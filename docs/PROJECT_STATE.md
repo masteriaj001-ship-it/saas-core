@@ -9,7 +9,7 @@
 
 SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 18 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` + trait `BelongsToTenant` con global scope.
 
-**Fase actual:** Panel admin (`/admin/{slug}`) con 6 Resources + Dashboard widgets; panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy (`jaosoft:make-superadmin`, `jaosoft:create-tenant-admin`). 60 tests pasando, 165 assertions.
+**Fase actual:** Panel admin (`/admin/{slug}`) con 6 Resources + Dashboard widgets + **VerifyTenantStatus middleware** (bloquea tenants suspendidos). Panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy. **63 tests pasando, 168 assertions.**
 
 ---
 
@@ -86,6 +86,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | Componente | Ruta | Propósito |
 |---|---|---|---|
 | `SetTenantContext` | `app/Http/Middleware/` | Inyecta tenant_id en PG por request (registrado en web + Filament middleware stack). Retorna 403 si tenant_id está vacío (bloquea superadmins en /admin) |
+| `VerifyTenantStatus` | `app/Http/Middleware/` | Bloquea acceso al panel `/admin` si `tenant->is_active === false`. Corre después de `SetTenantContext`. Superadmins bypass. Retorna 403 con vista `errors/tenant-suspended.blade.php` |
 | `EnsureIsSuperAdmin` | `app/Http/Middleware/` | Middleware del panel superadmin: retorna 403 si `auth()->user()->is_superadmin !== true` |
 | `TenantManager` | `app/Services/` | Singleton, puente PHP ↔ PostgreSQL |
 | `BelongsToTenant` | `app/Models/Concerns/` | Trait con global scope + creating event. Modificado para omitir exception si `is_superadmin=true` |
@@ -154,10 +155,10 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `WorkOrderStatusChart` | BarChartWidget | WOs agrupadas por status con colores |
 | `LatestWorkOrdersTable` | TableWidget | Últimas 5 WOs con código, título, asset, status, fecha |
 
-### Tests (60 pasando, 165 assertions)
+### Tests (63 pasando, 168 assertions)
 
 | Test Suite | Archivos | Tests | Propósito |
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 | WorkOrderTest | `tests/Feature/WorkOrders/` | 4 | CRUD + status transitions |
 | WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 1 | Aislamiento cross-tenant WorkOrders |
 | SpatieTenantIsolationTest | `tests/Feature/Security/` | 4 | Roles/permissions aislados entre tenants, global scope filtra, RLS policies existen |
@@ -168,6 +169,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | PasswordResetTest | `tests/Feature/Auth/` | 7 | Forgot password, reset, token inválido, password débil |
 | ApiTokenTest | `tests/Feature/Auth/` | 9 | Crear/revocar/listar tokens Sanctum, abilities, 401 |
 | RegistrationWithDefaultsTest | `tests/Feature/Onboarding/` | 6 | Defaults post-registro: location, categories, items, contacts, módulos, industria default |
+| TenantSuspensionTest | `tests/Feature/Security/` | 3 | VerifyTenantStatus: active → 200, inactive → 403, superadmin bypass → 200 |
 
 ### Reglas de gobernanza
 
@@ -222,6 +224,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | **16** | ✅ **Deploy Tools** | Alta | `jaosoft:make-superadmin`, `jaosoft:create-tenant-admin`. Trait BelongsToTenant modificado. `tenant_id` nullable. | Nada |
 | **17** | ✅ **Filament tenant()->slug** | Alta | `->tenant(Tenant::class, slugAttribute: 'slug')`. HasTenants contract. | Nada |
 | **18** | ✅ **Superadmin Resources** | Alta | `TenantResource`, `GlobalAssetResource`, `GlobalWorkOrderResource`. `withoutGlobalScope('tenant')`. | Nada |
+| **19** | ✅ **Tenant Suspension** | Alta | Middleware `VerifyTenantStatus` bloquea tenants inactivos. Vista `errors/tenant-suspended`. 3 tests. | Nada |
 
 ---
 
@@ -324,6 +327,7 @@ php artisan make:command Nombre            # Crear comando Artisan
 | 2026-05-28 | opencode | **HasTenants contract**: User implementa `Filament\Models\Contracts\HasTenants`. `getTenants()` devuelve todos los tenants para superadmin, `[$this->tenant]` para usuarios normales. `canAccessTenant()` valida por `$this->tenant_id`. Fix: `Support\Collection` vs `Eloquent\Collection`. 60/60 tests. | — |
 | 2026-05-28 | opencode | **Fix route tenant param**: `DemoStatsOverview` reemplaza `route('filament.admin.resources.*')` por `XxxResource::getUrl('index')` que resuelve `{tenant}` automáticamente. 60/60 tests. | — |
 | 2026-05-28 | opencode | **Superadmin Resources**: `TenantResource` (CRUD completo: tabla, formulario, filtros, badges), `GlobalWorkOrderResource` (read-only global, columna tenant.name, sin scope de tenant), `GlobalAssetResource` (read-only global, columna tenant.name, sin scope de tenant). 3 resources en menú izquierdo del panel rojo `/superadmin`. Rutas verificadas. 60/60 tests pasando. | Vistas/resource superadmin propias |
+| 2026-05-28 | opencode | **Tenant Suspension**: Middleware `VerifyTenantStatus` bloquea `/admin/{slug}` si `tenant->is_active === false`. Superadmins bypass. Vista personalizada `errors/tenant-suspended.blade.php`. 3 tests. Pipeline: SetTenantContext → VerifyTenantStatus. 63/63 tests, 168 assertions. | — |
 
 ## 8. Notas Técnicas Críticas
 
@@ -385,7 +389,7 @@ static::creating(function (Model $model) {
 - Modelos custom: `App\Models\Role`, `App\Models\Permission` (extienden Spatie + BelongsToTenant + HasUuids)
 - `tenant_id` en todas las tablas con `DEFAULT public.current_tenant_id()` (para pivotes que Spatie inserta sin team_id)
 - 21 tablas con RLS + FORCE RLS (previas + 5 Spatie + 2 Transactions + 3 nuevas: categories, locations, tenant_modules)
-- 10 test suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1) — 60 tests total
+- 11 test suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1), TenantSuspension (1) — 63 tests total, 168 assertions
 - `current_tenant_id()` PG function regex actualizada: acepta cualquier versión UUID (v4 y v7) — Laravel 13 genera v7 por defecto
 - **20 permisos totales**: work_orders, assets, items, contacts, transactions (× 4 acciones c/u)
 - **18 migraciones**: 17 previas + `alter_users_table_make_tenant_id_nullable` para soporte superadmin
@@ -394,7 +398,7 @@ static::creating(function (Model $model) {
 
 | Panel | Path | Tenant | Middleware extra | Recursos |
 |---|---|---|---|---|
-| Admin | `/admin/{tenant:slug}` | ✅ `->tenant(Tenant::class, slugAttribute: 'slug')` | `SetTenantContext` (inyecta `app.current_tenant_id` para RLS) | 6 Resources (Asset, Contact, Item, WorkOrder, Transaction, Location) |
+| Admin | `/admin/{tenant:slug}` | ✅ `->tenant(Tenant::class, slugAttribute: 'slug')` | `SetTenantContext` → `VerifyTenantStatus` (bloquea si `is_active=false`) | 6 Resources (Asset, Contact, Item, WorkOrder, Transaction, Location) |
 | Superadmin | `/superadmin` | ❌ Sin tenant context | `EnsureIsSuperAdmin` (403 si no superadmin) | 3 Resources (Tenant, GlobalAsset, GlobalWorkOrder) |
 
 ### Filament Multi-Tenant Architecture
@@ -403,8 +407,21 @@ static::creating(function (Model $model) {
 - **HasTenants contract**: `App\Models\User` implementa `Filament\Models\Contracts\HasTenants`
   - `getTenants(Panel $panel)`: superadmin → `Tenant::all()`, normal → `collect([$this->tenant])->filter()`
   - `canAccessTenant(Model $tenant)`: superadmin → `true`, normal → `$this->tenant_id === $tenant->id`
-- **SetTenantContext se mantiene**: necesario para setear `app.current_tenant_id` en PostgreSQL (para RLS). Se ejecuta después de que Filament resuelve el tenant de la URL
+- **Pipeline de middleware (AdminPanelProvider)**: `SetTenantContext` → `VerifyTenantStatus` → resto del stack. `SetTenantContext` inyecta `app.current_tenant_id` en PG (RLS). `VerifyTenantStatus` verifica `tenant->is_active` y bloquea con 403 si está suspendido.
 - **Resource::getUrl('index')**: Los widgets y enlaces deben usar `XxxResource::getUrl('index')` en vez de `route('filament.admin.resources.*')` porque `getUrl()` incluye automáticamente el `{tenant}` resuelto
+
+### Tenant Suspension
+
+- Middleware `VerifyTenantStatus` en `app/Http/Middleware/VerifyTenantStatus.php`
+- Usa `Filament::getTenant()` (ya resuelto por Filament desde el slug en URL) para obtener el modelo Tenant
+- Si `tenant->is_active === false` y el usuario NO es superadmin → `response()->view('errors.tenant-suspended', [], 403)`
+- Superadmins siempre pasan (acceso irrestricto para auditoría/soporte)
+- Vista en `resources/views/errors/tenant-suspended.blade.php` — template HTML estático con Tailwind, sin dependencias de layout
+- 3 tests en `tests/Feature/Security/TenantSuspensionTest.php`:
+  - `test_active_tenant_user_can_access_panel` → 200
+  - `test_inactive_tenant_user_is_blocked_with_403` → 403
+  - `test_superadmin_bypasses_suspension_on_inactive_tenant` → 200
+- **Mocking**: Tests usan `createMock` + `Filament::swap()` (no Mockery) para evitar crash PHP 8.5 con `tempnam()`
 
 ### HasTenants Contract
 

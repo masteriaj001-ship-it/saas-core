@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Http\Middleware\SetTenantContext;
+use App\Http\Middleware\VerifyTenantStatus;
 use App\Models\Tenant;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -59,6 +60,7 @@ class AdminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
                 SetTenantContext::class,
+                VerifyTenantStatus::class, // ← NUEVO: bloquea tenants con is_active = false
             ])
             ->authMiddleware([
                 Authenticate::class,
