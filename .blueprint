@@ -1,0 +1,14 @@
+created:
+    - database/factories/AssetFactory.php
+    - database/factories/ItemFactory.php
+    - database/factories/ContactFactory.php
+    - database/migrations/2026_05_25_031519_create_assets_table.php
+    - database/migrations/2026_05_25_031520_create_items_table.php
+    - database/migrations/2026_05_25_031521_create_contacts_table.php
+    - app/Models/Asset.php
+    - app/Models/Item.php
+    - app/Models/Contact.php
+models:
+    Asset: { tenant_id: 'uuid index', name: 'string:100', type: 'string:50', metadata: json, status: 'string:30', timestamps: timestamps }
+    Item: { tenant_id: 'uuid index', sku: 'string:60 unique', name: 'string:150', description: 'text nullable', stock: 'integer default:0', price: 'decimal:10,2', timestamps: timestamps }
+    Contact: { tenant_id: 'uuid index', type: 'string:30', name: 'string:150', email: 'string:150 nullable', phone: 'string:40 nullable', identification: 'string:50 nullable', timestamps: timestamps }

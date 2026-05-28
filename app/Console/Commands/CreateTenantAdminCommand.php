@@ -1,0 +1,74 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TenantManager;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+class CreateTenantAdminCommand extends Command
+{
+    protected $signature = 'jaosoft:create-tenant-admin';
+    protected $description = 'Create a tenant with its admin user (transactional)';
+
+    public function handle(TenantManager $tenantManager): int
+    {
+        $companyName = $this->ask('Nombre de la Empresa/Taller');
+        $slug = $this->ask('Slug del Tenant');
+        $adminName = $this->ask('Nombre del Administrador');
+        $adminEmail = $this->ask('Email del Administrador');
+        $password = $this->secret('Contraseña');
+
+        if (Tenant::where('slug', $slug)->exists()) {
+            $this->error("Ya existe un tenant con el slug {$slug}.");
+            return Command::FAILURE;
+        }
+
+        if (User::where('email', $adminEmail)->exists()) {
+            $this->error("Ya existe un usuario con el email {$adminEmail}.");
+            return Command::FAILURE;
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $tenant = Tenant::create([
+                'name'      => $companyName,
+                'slug'      => $slug,
+                'plan'      => 'basic',
+                'is_active' => true,
+                'settings'  => '{}',
+            ]);
+
+            $tenantManager->setTenantContext($tenant->id);
+
+            $user = User::create([
+                'name'     => $adminName,
+                'email'    => $adminEmail,
+                'password' => Hash::make($password),
+            ]);
+
+            $this->callSilent(RolePermissionSeeder::class);
+
+            $user->assignRole('owner');
+
+            $tenantManager->clearTenantContext();
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            $this->error("Error: {$e->getMessage()}");
+            return Command::FAILURE;
+        }
+
+        $this->info("Tenant '{$companyName}' creado con admin {$adminEmail}.");
+
+        return Command::SUCCESS;
+    }
+}

@@ -1,0 +1,26 @@
+# ProyectDashboard - Core Architectural Contract
+
+## 1. Stack Tecnológico General
+- **Backend:** Laravel 12, PHP 8.4 (Strict types obligatorios).
+- **Frontend:** Laravel Blade, Livewire 3, Alpine.js. (NO React, NO Vue, NO SPA).
+- **Panel de Control:** Filament 3 (Panels, Resources, Pages).
+- **Base de Datos:** PostgreSQL 16+.
+
+## 2. Aislamiento Multi-Tenant (Crítico)
+- **Estrategia:** Base de datos única con esquema compartido.
+- **Aislamiento de Datos:** Gestionado a nivel de infraestructura mediante **PostgreSQL Row Level Security (RLS)**.
+- **Regla de Oro:** La seguridad se maneja en la base de datos, NO en la capa de la aplicación. Las políticas de RLS deben asegurar que ningún Tenant pueda leer o escribir datos de otro.
+- **ORM/Query Builder:** Se priorizan funciones nativas, Supabase RPC (si aplica) y PostgreSQL nativo sobre abstracciones pesadas. Se eliminó Prisma del stack de forma explícita.
+
+## 3. Abstracción del Modelo de Datos (Universal & Multi-Industria)
+- **Filosofía:** Diseño centralizado con "Zero Redundancy". El sistema debe servir para múltiples industrias (servicios técnicos, inventarios, etc.).
+- **Nombres de Entidades:** Queda estrictamente PROHIBIDO usar términos específicos de una sola industria (por ejemplo, "Vehicles", "Workshops").
+- **Abstracciones Universales:** Toda entidad debe mapearse a conceptos genéricos del Core:
+  - `Asset` (Para cualquier objeto de cliente, equipos, vehículos, etc.).
+  - `Item` (Para inventario, repuestos, productos).
+  - `Contact` (Para clientes, proveedores, leads).
+
+## 4. Lineamientos de Código para el Agente
+- Actúa siempre como un Arquitecto de Sistemas Senior.
+- Prioriza soluciones nativas de Laravel y Filament antes de sugerir dependencias externas de terceros.
+- Antes de escribir migraciones o lógica compleja, propón la estructura de datos para su validación.
