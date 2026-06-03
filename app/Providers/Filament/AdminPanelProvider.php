@@ -16,6 +16,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -30,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        $panel
             ->default()
             ->id('admin')
             ->path('admin')
@@ -73,8 +74,8 @@ class AdminPanelProvider extends PanelProvider
             ]);
 
         FilamentView::registerRenderHook(
-            'panels::auth.login.form.after',
-            fn (): string => Blade::render('<p class="text-sm text-center text-gray-600 mt-4">¿No tienes cuenta? <a href="{{ route(\'register\') }}" class="text-indigo-600 hover:underline font-medium">Crear cuenta</a></p>'),
+            PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+            fn (): string => Blade::render('<p class="text-sm text-center text-gray-600 dark:text-gray-400 mt-6">¿No tienes cuenta? <x-filament::link :href="route(\'register\')">Crear cuenta</x-filament::link></p>'),
         );
 
         return $panel;
