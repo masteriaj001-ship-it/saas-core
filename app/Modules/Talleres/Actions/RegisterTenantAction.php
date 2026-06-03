@@ -25,12 +25,18 @@ final class RegisterTenantAction
         return DB::transaction(function () use ($data) {
             $slug = $this->generateSlug($data['business_name']);
 
+            $settings = is_array($data['settings'] ?? null)
+                ? $data['settings']
+                : [];
+
+            $settings['industry'] = $data['industry'] ?? 'mechanic';
+
             $tenant = Tenant::create([
                 'name' => $data['business_name'],
                 'slug' => $slug,
                 'plan' => $data['plan'] ?? 'free',
                 'is_active' => true,
-                'settings' => $data['settings'] ?? '{}',
+                'settings' => $settings,
             ]);
 
             $this->tenantManager->setTenantContext($tenant->id);

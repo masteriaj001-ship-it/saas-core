@@ -32,11 +32,14 @@ class RegisterService
                 ->slug()
                 ->append('-', Str::random(4));
 
+            $industry = $data['industry'] ?? 'general';
+
             $tenant = Tenant::create([
                 'name' => $data['business_name'],
                 'slug' => $slug,
                 'plan' => 'free',
                 'is_active' => true,
+                'settings' => ['industry' => $industry],
             ]);
 
             $this->tenantManager->setTenantContext($tenant->id);
@@ -52,7 +55,6 @@ class RegisterService
 
             $user->assignRole('owner');
 
-            $industry = $data['industry'] ?? 'general';
             $this->createDefaults($industry);
 
             Auth::login($user);

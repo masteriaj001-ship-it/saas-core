@@ -6,6 +6,7 @@ namespace App\Modules\Talleres\Http\Pages;
 
 use App\Modules\Talleres\Actions\RegisterTenantAction;
 use App\Modules\Talleres\Exceptions\TenantRegistrationException;
+use App\Services\TenantTemplateSeeder;
 use Filament\Forms\Components\Checkbox;
 use Filament\Forms\Components\CheckboxList;
 use Filament\Forms\Components\Select;
@@ -84,10 +85,13 @@ class TallerOnboarding extends Page
                     'name' => $this->data['owner_name'] ?? 'Admin',
                     'email' => $this->data['email'] ?? '',
                     'password' => $this->data['password'] ?? '',
+                    'industry' => 'mechanic',
                 ]);
 
-                $metadata = $user->tenant->metadata ?? [];
-                $metadata['taller'] = [
+                app(TenantTemplateSeeder::class)->seed($user->tenant, 'mechanic');
+
+                $settings = $user->tenant->settings ?? [];
+                $settings['taller'] = [
                     'name' => $this->data['taller_name'] ?? '',
                     'address' => $this->data['address'] ?? '',
                     'phone' => $this->data['phone'] ?? '',
@@ -98,9 +102,9 @@ class TallerOnboarding extends Page
                     'notify_on_ready' => $this->data['notify_on_ready'] ?? true,
                     'business_days' => $this->data['business_days'] ?? ['mon', 'tue', 'wed', 'thu', 'fri'],
                 ];
-                $metadata['taller_onboarding_completed'] = true;
+                $settings['taller_onboarding_completed'] = true;
 
-                $user->tenant->update(['metadata' => $metadata]);
+                $user->tenant->update(['settings' => $settings, 'onboarding_completed' => true]);
 
                 Auth::login($user);
 
