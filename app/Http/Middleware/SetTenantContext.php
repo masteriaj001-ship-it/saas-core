@@ -22,6 +22,11 @@ final class SetTenantContext
         }
 
         $user = Auth::user();
+
+        if ($user->is_superadmin) {
+            return $next($request);
+        }
+
         $tenantId = $user->tenant_id;
 
         if (empty($tenantId)) {

@@ -22,6 +22,7 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TenantResource extends Resource
 {
@@ -114,13 +115,27 @@ class TenantResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading(__('Confirmar eliminación del taller'))
+                    ->modalDescription(__('Esta acción eliminará permanentemente el taller y todos sus datos asociados. Esta operación no se puede deshacer.'))
+                    ->modalSubmitActionLabel(__('Eliminar taller'))
+                    ->successNotificationTitle(__('Taller eliminado')),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading(__('Confirmar eliminación masiva'))
+                        ->modalDescription(__('Se eliminarán permanentemente los talleres seleccionados y todos sus datos asociados.'))
+                        ->modalSubmitActionLabel(__('Eliminar seleccionados')),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->withoutGlobalScopes();
     }
 
     public static function getPages(): array
