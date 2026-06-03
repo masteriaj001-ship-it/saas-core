@@ -2,14 +2,22 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Modules\Talleres\Models;
 
+use App\Models\Item;
+use App\Models\TenantModel;
+use Database\Factories\WorkOrderItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WorkOrderItem extends TenantModel
 {
     use HasFactory;
+
+    protected static function newFactory(): WorkOrderItemFactory
+    {
+        return WorkOrderItemFactory::new();
+    }
 
     protected $fillable = [
         'work_order_id',

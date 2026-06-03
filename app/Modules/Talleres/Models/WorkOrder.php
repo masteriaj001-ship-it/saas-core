@@ -2,8 +2,11 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Modules\Talleres\Models;
 
+use App\Models\Contact;
+use App\Models\TenantModel;
+use Database\Factories\WorkOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +14,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class WorkOrder extends TenantModel
 {
     use HasFactory;
+
+    protected static function newFactory(): WorkOrderFactory
+    {
+        return WorkOrderFactory::new();
+    }
 
     protected $fillable = [
         'asset_id',

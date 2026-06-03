@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Superadmin\Resources;
 
 use App\Filament\Superadmin\Resources\GlobalWorkOrderResource\Pages\ListGlobalWorkOrders;
-use App\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;

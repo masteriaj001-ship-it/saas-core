@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
-use App\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Widgets\BarChartWidget;
 use Illuminate\Support\Facades\DB;
 

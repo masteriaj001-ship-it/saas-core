@@ -11,6 +11,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 class WorkOrderFactory extends Factory
 {
+    protected $model = \App\Modules\Talleres\Models\WorkOrder::class;
+
     public function definition(): array
     {
         return [

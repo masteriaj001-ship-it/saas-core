@@ -7,7 +7,7 @@ namespace Tests\Feature\Talleres;
 use App\Modules\Talleres\Models\Asset;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;

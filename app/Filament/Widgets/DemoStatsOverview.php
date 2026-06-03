@@ -11,7 +11,7 @@ use App\Filament\Resources\WorkOrderResource;
 use App\Modules\Talleres\Models\Asset;
 use App\Models\Contact;
 use App\Models\Item;
-use App\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 

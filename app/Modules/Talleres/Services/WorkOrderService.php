@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Services\WorkOrders;
+namespace App\Modules\Talleres\Services;
 
 use App\Http\Requests\WorkOrders\CreateWorkOrderRequest;
 use App\Http\Requests\WorkOrders\UpdateWorkOrderRequest;
-use App\Models\WorkOrder;
-use App\Models\WorkOrderItem;
+use App\Modules\Talleres\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrderItem;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 final class WorkOrderService

@@ -9,7 +9,7 @@ use App\Filament\Resources\WorkOrderResource\Pages\EditWorkOrder;
 use App\Filament\Resources\WorkOrderResource\Pages\ListWorkOrders;
 use App\Filament\Resources\WorkOrderResource\RelationManagers\ItemsRelationManager;
 use App\Models\Item;
-use App\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;

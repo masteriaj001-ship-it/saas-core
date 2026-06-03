@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\WorkOrders;
 
-use App\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrder;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateWorkOrderRequest extends FormRequest
