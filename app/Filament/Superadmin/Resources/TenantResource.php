@@ -8,21 +8,21 @@ use App\Filament\Superadmin\Resources\TenantResource\Pages\CreateTenant;
 use App\Filament\Superadmin\Resources\TenantResource\Pages\EditTenant;
 use App\Filament\Superadmin\Resources\TenantResource\Pages\ListTenants;
 use App\Models\Tenant;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TenantResource extends Resource
 {
@@ -64,9 +64,9 @@ class TenantResource extends Resource
                             ->required()
                             ->default('basic')
                             ->options([
-                                'basic'       => __('Basic'),
-                                'premium'     => __('Premium'),
-                                'enterprise'  => __('Enterprise'),
+                                'basic' => __('Basic'),
+                                'premium' => __('Premium'),
+                                'enterprise' => __('Enterprise'),
                             ]),
                         Toggle::make('is_active')
                             ->label(__('Activo'))
@@ -102,8 +102,8 @@ class TenantResource extends Resource
                 SelectFilter::make('plan')
                     ->label(__('Plan'))
                     ->options([
-                        'basic'      => __('Basic'),
-                        'premium'    => __('Premium'),
+                        'basic' => __('Basic'),
+                        'premium' => __('Premium'),
                         'enterprise' => __('Enterprise'),
                     ]),
                 SelectFilter::make('is_active')
@@ -115,21 +115,35 @@ class TenantResource extends Resource
             ])
             ->actions([
                 EditAction::make(),
-                DeleteAction::make(),
+                DeleteAction::make()
+                    ->requiresConfirmation()
+                    ->modalHeading(__('Confirmar eliminación del taller'))
+                    ->modalDescription(__('Esta acción eliminará permanentemente el taller y todos sus datos asociados. Esta operación no se puede deshacer.'))
+                    ->modalSubmitActionLabel(__('Eliminar taller'))
+                    ->successNotificationTitle(__('Taller eliminado')),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->requiresConfirmation()
+                        ->modalHeading(__('Confirmar eliminación masiva'))
+                        ->modalDescription(__('Se eliminarán permanentemente los talleres seleccionados y todos sus datos asociados.'))
+                        ->modalSubmitActionLabel(__('Eliminar seleccionados')),
                 ]),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->withoutGlobalScopes();
     }
 
     public static function getPages(): array
     {
         return [
-            'index'  => ListTenants::route('/'),
+            'index' => ListTenants::route('/'),
             'create' => CreateTenant::route('/create'),
-            'edit'   => EditTenant::route('/{record}/edit'),
+            'edit' => EditTenant::route('/{record}/edit'),
         ];
     }
 }

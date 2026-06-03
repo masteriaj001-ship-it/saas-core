@@ -10,22 +10,19 @@ use App\Filament\Resources\TransactionResource\Pages\ListTransactions;
 use App\Filament\Resources\TransactionResource\RelationManagers\ItemsRelationManager;
 use App\Models\Transaction;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\KeyValue;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class TransactionResource extends Resource
 {
@@ -57,7 +54,7 @@ class TransactionResource extends Resource
                             ->required()
                             ->live()
                             ->options([
-                                'sale'    => 'Venta',
+                                'sale' => 'Venta',
                                 'purchase' => 'Compra',
                             ])
                             ->afterStateUpdated(function (callable $set) {
@@ -74,8 +71,8 @@ class TransactionResource extends Resource
                             ->required()
                             ->disabled()
                             ->options([
-                                'draft'     => 'Borrador',
-                                'issued'    => 'Emitida',
+                                'draft' => 'Borrador',
+                                'issued' => 'Emitida',
                                 'cancelled' => 'Anulada',
                             ]),
                     ]),
@@ -123,11 +120,11 @@ class TransactionResource extends Resource
                         Select::make('payment_method')
                             ->label('Método de pago')
                             ->options([
-                                'cash'     => 'Efectivo',
+                                'cash' => 'Efectivo',
                                 'transfer' => 'Transferencia',
-                                'card'     => 'Tarjeta',
-                                'check'    => 'Cheque',
-                                'credit'   => 'Crédito',
+                                'card' => 'Tarjeta',
+                                'check' => 'Cheque',
+                                'credit' => 'Crédito',
                             ]),
                         Textarea::make('notes')
                             ->label('Notas')
@@ -148,11 +145,11 @@ class TransactionResource extends Resource
                     ->label('Tipo')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'sale'    => 'info',
+                        'sale' => 'info',
                         'purchase' => 'warning',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'sale'    => 'Venta',
+                        'sale' => 'Venta',
                         'purchase' => 'Compra',
                     }),
                 TextColumn::make('contact.name')
@@ -163,13 +160,13 @@ class TransactionResource extends Resource
                     ->label('Estado')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'draft'     => 'gray',
-                        'issued'    => 'success',
+                        'draft' => 'gray',
+                        'issued' => 'success',
                         'cancelled' => 'danger',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'draft'     => 'Borrador',
-                        'issued'    => 'Emitida',
+                        'draft' => 'Borrador',
+                        'issued' => 'Emitida',
                         'cancelled' => 'Anulada',
                     }),
                 TextColumn::make('total_amount')
@@ -190,25 +187,23 @@ class TransactionResource extends Resource
                 SelectFilter::make('type')
                     ->label('Tipo')
                     ->options([
-                        'sale'    => 'Venta',
+                        'sale' => 'Venta',
                         'purchase' => 'Compra',
                     ]),
                 SelectFilter::make('status')
                     ->label('Estado')
                     ->options([
-                        'draft'     => 'Borrador',
-                        'issued'    => 'Emitida',
+                        'draft' => 'Borrador',
+                        'issued' => 'Emitida',
                         'cancelled' => 'Anulada',
                     ]),
             ])
             ->actions([
                 EditAction::make()
-                    ->visible(fn (Transaction $record): bool =>
-                        auth()->user()->can('edit_transactions') && $record->canEdit()
+                    ->visible(fn (Transaction $record): bool => auth()->user()->can('edit_transactions') && $record->canEdit()
                     ),
                 DeleteAction::make()
-                    ->visible(fn (Transaction $record): bool =>
-                        auth()->user()->can('delete_transactions') && $record->canEdit()
+                    ->visible(fn (Transaction $record): bool => auth()->user()->can('delete_transactions') && $record->canEdit()
                     ),
             ])
             ->bulkActions([
@@ -229,13 +224,13 @@ class TransactionResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListTransactions::route('/'),
+            'index' => ListTransactions::route('/'),
             'create' => CreateTransaction::route('/create'),
-            'edit'   => EditTransaction::route('/{record}/edit'),
+            'edit' => EditTransaction::route('/{record}/edit'),
         ];
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->whereNull('deleted_at');
     }

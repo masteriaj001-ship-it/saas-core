@@ -9,7 +9,11 @@ use App\Filament\Resources\WorkOrderResource\Pages\EditWorkOrder;
 use App\Filament\Resources\WorkOrderResource\Pages\ListWorkOrders;
 use App\Filament\Resources\WorkOrderResource\RelationManagers\ItemsRelationManager;
 use App\Models\Item;
-use App\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrder;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -19,14 +23,10 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Text;
 use Filament\Schemas\Schema;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class WorkOrderResource extends Resource
 {
@@ -79,7 +79,7 @@ class WorkOrderResource extends Resource
                             ]),
                         Select::make('asset_id')
                             ->label(__('Dispositivo / Recurso'))
-                            ->relationship('asset', 'name')
+                            ->relationship('asset', 'plate')
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
@@ -92,9 +92,9 @@ class WorkOrderResource extends Resource
                                     ->required()
                                     ->default('vehicles')
                                     ->options([
-                                        'phones'    => __('Celulares'),
+                                        'phones' => __('Celulares'),
                                         'computers' => __('Cómputo'),
-                                        'vehicles'  => __('Vehículos'),
+                                        'vehicles' => __('Vehículos'),
                                     ]),
                                 TextInput::make('metadata.marca')
                                     ->label(__('Marca')),
@@ -110,19 +110,19 @@ class WorkOrderResource extends Resource
                             ->required()
                             ->default('pending')
                             ->options([
-                                'pending'     => __('Pendiente'),
+                                'pending' => __('Pendiente'),
                                 'in_progress' => __('En progreso'),
-                                'completed'   => __('Completada'),
-                                'cancelled'   => __('Cancelada'),
+                                'completed' => __('Completada'),
+                                'cancelled' => __('Cancelada'),
                             ]),
                         Select::make('priority')
                             ->label(__('Prioridad'))
                             ->required()
                             ->default('medium')
                             ->options([
-                                'low'    => __('Baja'),
+                                'low' => __('Baja'),
                                 'medium' => __('Media'),
-                                'high'   => __('Alta'),
+                                'high' => __('Alta'),
                             ]),
                     ]),
                 Section::make(__('Problema'))
@@ -132,9 +132,12 @@ class WorkOrderResource extends Resource
                             ->label(__('Título'))
                             ->required()
                             ->maxLength(255),
-                        Textarea::make('description')
-                            ->label(__('Descripción'))
+                        Textarea::make('service_description')
+                            ->label(__('Descripción del servicio'))
                             ->rows(4),
+                        Textarea::make('description')
+                            ->label(__('Notas internas'))
+                            ->rows(3),
                     ]),
                 Section::make(__('Fechas'))
                     ->columnSpan(1)
@@ -163,7 +166,7 @@ class WorkOrderResource extends Resource
                                             ->tenant()
                                             ->where(function ($q) use ($search): void {
                                                 $q->where('name', 'ilike', "%{$search}%")
-                                                  ->orWhere('sku', 'ilike', "%{$search}%");
+                                                    ->orWhere('sku', 'ilike', "%{$search}%");
                                             })
                                             ->limit(15)
                                             ->pluck('name', 'id')
@@ -176,7 +179,7 @@ class WorkOrderResource extends Resource
                                             ->value('name') ?? __('(sin nombre)');
                                     })
                                     ->afterStateUpdated(function ($state, $set, $get): void {
-                                        if (!$state) {
+                                        if (! $state) {
                                             return;
                                         }
                                         $item = Item::find($state);
@@ -198,15 +201,16 @@ class WorkOrderResource extends Resource
                                     ->extraInputAttributes(['class' => 'text-center'])
                                     ->rules(function (callable $get): array {
                                         $itemId = $get('item_id');
-                                        if (!$itemId) {
+                                        if (! $itemId) {
                                             return [];
                                         }
-                                        $item = \App\Models\Item::query()
+                                        $item = Item::query()
                                             ->tenant()
                                             ->find($itemId);
-                                        if (!$item || $item->item_type !== 'product' || $item->stock === null) {
+                                        if (! $item || $item->item_type !== 'product' || $item->stock === null) {
                                             return [];
                                         }
+
                                         return [
                                             function (string $attribute, mixed $value, \Closure $fail) use ($item): void {
                                                 if ((float) $value > (float) $item->stock) {
@@ -278,7 +282,8 @@ class WorkOrderResource extends Resource
                             foreach ($items as $item) {
                                 $total += (float) ($item['quantity'] ?? 0) * (float) ($item['unit_price'] ?? 0);
                             }
-                            return __('Total:') . ' $ ' . number_format($total, 2, ',', '.');
+
+                            return __('Total:').' $ '.number_format($total, 2, ',', '.');
                         })
                             ->extraAttributes(['class' => 'font-mono text-lg font-bold']),
                     ]),
@@ -297,6 +302,10 @@ class WorkOrderResource extends Resource
                     ->label(__('Título'))
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('service_description')
+                    ->label(__('Servicio'))
+                    ->limit(50)
+                    ->toggleable(),
                 TextColumn::make('asset.name')
                     ->label(__('Activo'))
                     ->searchable(),
@@ -304,24 +313,24 @@ class WorkOrderResource extends Resource
                     ->label(__('Estado'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'pending'     => 'gray',
+                        'pending' => 'gray',
                         'in_progress' => 'warning',
-                        'completed'   => 'success',
-                        'cancelled'   => 'danger',
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending'     => __('Pendiente'),
+                        'pending' => __('Pendiente'),
                         'in_progress' => __('En progreso'),
-                        'completed'   => __('Completada'),
-                        'cancelled'   => __('Cancelada'),
+                        'completed' => __('Completada'),
+                        'cancelled' => __('Cancelada'),
                     }),
                 TextColumn::make('priority')
                     ->label(__('Prioridad'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'low'    => 'info',
+                        'low' => 'info',
                         'medium' => 'warning',
-                        'high'   => 'danger',
+                        'high' => 'danger',
                     }),
                 TextColumn::make('started_at')
                     ->label(__('Programada'))
@@ -336,17 +345,17 @@ class WorkOrderResource extends Resource
                 SelectFilter::make('status')
                     ->label(__('Estado'))
                     ->options([
-                        'pending'     => __('Pendiente'),
+                        'pending' => __('Pendiente'),
                         'in_progress' => __('En progreso'),
-                        'completed'   => __('Completada'),
-                        'cancelled'   => __('Cancelada'),
+                        'completed' => __('Completada'),
+                        'cancelled' => __('Cancelada'),
                     ]),
                 SelectFilter::make('priority')
                     ->label(__('Prioridad'))
                     ->options([
-                        'low'    => __('Baja'),
+                        'low' => __('Baja'),
                         'medium' => __('Media'),
-                        'high'   => __('Alta'),
+                        'high' => __('Alta'),
                     ]),
             ])
             ->actions([
@@ -373,13 +382,13 @@ class WorkOrderResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListWorkOrders::route('/'),
+            'index' => ListWorkOrders::route('/'),
             'create' => CreateWorkOrder::route('/create'),
-            'edit'   => EditWorkOrder::route('/{record}/edit'),
+            'edit' => EditWorkOrder::route('/{record}/edit'),
         ];
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->whereNull('deleted_at');
     }

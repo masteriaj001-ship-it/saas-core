@@ -2,9 +2,11 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\SetTenantContext;
 use App\Http\Middleware\VerifyTenantStatus;
 use App\Models\Tenant;
+use App\Modules\Talleres\Http\Pages\TallerOnboarding;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -14,6 +16,7 @@ use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
 use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets\AccountWidget;
 use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
@@ -28,7 +31,7 @@ class AdminPanelProvider extends PanelProvider
 {
     public function panel(Panel $panel): Panel
     {
-        return $panel
+        $panel
             ->default()
             ->id('admin')
             ->path('admin')
@@ -43,6 +46,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
+                TallerOnboarding::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
@@ -59,16 +63,19 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                SetTenantContext::class,
-                VerifyTenantStatus::class, // ← NUEVO: bloquea tenants con is_active = false
             ])
+            ->tenantMiddleware([
+                SetTenantContext::class,
+                EnsureOnboardingIsCompleted::class,
+                VerifyTenantStatus::class,
+            ], isPersistent: true)
             ->authMiddleware([
                 Authenticate::class,
             ]);
 
         FilamentView::registerRenderHook(
-            'panels::auth.login.form.after',
-            fn (): string => Blade::render('<p class="text-sm text-center text-gray-600 mt-4">¿No tienes cuenta? <a href="{{ route(\'register\') }}" class="text-indigo-600 hover:underline font-medium">Crear cuenta</a></p>'),
+            PanelsRenderHook::AUTH_LOGIN_FORM_AFTER,
+            fn (): string => Blade::render('<p class="text-sm text-center text-gray-600 dark:text-gray-400 mt-6">¿No tienes cuenta? <x-filament::link :href="route(\'register\')">Crear cuenta</x-filament::link></p>'),
         );
 
         return $panel;

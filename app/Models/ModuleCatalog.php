@@ -27,7 +27,7 @@ class ModuleCatalog extends Model
     protected function casts(): array
     {
         return [
-            'id'        => 'string',
+            'id' => 'string',
             'is_active' => 'boolean',
         ];
     }

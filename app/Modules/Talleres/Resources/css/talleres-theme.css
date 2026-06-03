@@ -1,0 +1,17 @@
+@import 'tailwindcss';
+
+@source '../../../../app/Modules/Talleres/Resources/Views/**/*.blade.php';
+
+@theme {
+  --color-neon-cyan: #22d3ee;
+  --color-neon-green: #34d399;
+  --color-neon-emerald: #10b981;
+  --color-neon-rose: #f43f5e;
+  --color-neon-amber: #f59e0b;
+
+  --font-mono-tech: 'JetBrains Mono', 'Fira Code', ui-monospace, monospace;
+
+  --shadow-neon-cyan: 0 0 12px rgba(34, 211, 238, 0.4);
+  --shadow-neon-emerald: 0 0 12px rgba(52, 211, 153, 0.4);
+  --shadow-neon-rose: 0 0 12px rgba(244, 63, 94, 0.4);
+}

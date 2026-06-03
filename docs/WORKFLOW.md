@@ -5,36 +5,37 @@
 
 ---
 
-## 1. El ciclo de un feature
+## 1. El ciclo de un feature (SDD)
 
-```
-TÚ                                YO (Agente IA)
-═══                               ═══════════════
+GATE 0 — /enrich_us
 
-"Quiero un módulo de              Analizo el código existente,
- órdenes de trabajo"               reviso migrations, propongo spec
-                                   ──────────────────────────────
-                                   → Produzco FEATURE_SPEC.md
+TÚ: "Quiero un módulo de órdenes de trabajo"
+AGENTE: Analiza código existente → produce FEATURE_SPEC.md
+TÚ: Revisas → escribes APROBADO
 
-Revisas el spec                   
-                                   │
-"APROBADO" (solo esa palabra)      
-                                   ──────────────────────────────
-                                   → Ejecuto en orden:
-                                     1. Migración + RLS
-                                     2. Modelo
-                                     3. Policy (autorización)
-                                     4. FormRequest (validación)
-                                     5. Service class
-                                     6. Controller
-                                     7. Filament Resource
-                                     8. Tests
-                                   → Reporto cambios
+GATE 1 — /new
 
-Pruebas en el navegador           
-```
+AGENTE: Crea rama feature/nombre-del-feature
 
-**Regla de oro:** Sin "APROBADO" no ejecuto migraciones. Ni "ok", ni "dale", ni "procede". Solo **"APROBADO"**.
+GATE 2 — Schema
+
+AGENTE: Propone borrador SQL completo
+TÚ: Revisas → escribes APROBADO → agente genera migración
+TÚ: Revisas migración → escribes APROBADO → agente ejecuta migrate
+
+Ciclo de desarrollo (orden estricto):
+
+  Test    → agente escribe tests que fallan primero (TDD)
+  Docs    → agente actualiza docs afectadas
+  Code    → agente implementa hasta que los tests pasen
+  Report  → suite completa en verde + reporte de cobertura
+  Update  → FEATURE_SPEC actualizado con desviaciones del plan
+
+GATE 3 — /commit
+
+0 tests rojos → merge permitido
+
+**Regla de oro:** Sin "APROBADO" no ejecuto migraciones ni schemas. Ni "ok", ni "dale", ni "procede". Solo **"APROBADO"**.
 
 ---
 
@@ -67,23 +68,29 @@ Solo admin y editor pueden crearlas."
 
 ---
 
-## 3. Qué produce el agente
+## 3. Qué produce el agente (por cada gate)
 
-Después de cada ejecución recibes:
+**Después de GATE 0:**
+- `docs/features/[nombre]/FEATURE_SPEC.md` con casos de uso, tablas, seguridad
 
-```
-## Cambios aplicados
+**Después de GATE 2:**
+- Archivo de migración generado (pendiente de tu APROBADO para ejecutar)
 
-| Archivo                          | Operación |
-|----------------------------------|-----------|
-| database/migrations/xxxx_...     | CREATE    |
-| app/Models/WorkOrder.php         | CREATE    |
-| app/Filament/Resources/...       | CREATE    |
+**Después del ciclo de desarrollo:**
 
-## Verificación requerida
-- [ ] php artisan migrate ejecutado
-- [ ] RLS verificado
-```
+| Cambios aplicados | |
+|---|---|
+| Archivo | Operación |
+| tests/Feature/NombreTest.php | CREATE |
+| database/migrations/xxxx_...php | CREATE |
+| app/Models/Nombre.php | CREATE |
+| app/Services/Nombre/NombreService.php | CREATE |
+| app/Filament/Resources/NombreResource.php | CREATE |
+
+**Tests**
+
+Suite completa: X tests, Y assertions — todos en verde
+Cobertura nuevos archivos: Z%
 
 ---
 

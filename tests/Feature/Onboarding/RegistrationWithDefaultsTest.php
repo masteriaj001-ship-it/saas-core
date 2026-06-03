@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Onboarding;
 
+use App\Models\Category;
+use App\Models\Contact;
+use App\Models\Item;
 use App\Models\Location;
-use App\Models\Tenant;
+use App\Models\TenantModule;
 use App\Models\User;
-use App\Services\TenantManager;
 use Database\Seeders\ModulesCatalogSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -54,7 +56,7 @@ class RegistrationWithDefaultsTest extends TestCase
         ]);
 
         $user = User::where('email', 'mechanic@example.com')->first();
-        $categories = \App\Models\Category::where('tenant_id', $user->tenant_id)->get();
+        $categories = Category::where('tenant_id', $user->tenant_id)->get();
 
         $this->assertCount(4, $categories);
         $this->assertEquals('Repuestos', $categories[0]->name);
@@ -72,7 +74,7 @@ class RegistrationWithDefaultsTest extends TestCase
         ]);
 
         $user = User::where('email', 'restaurant@example.com')->first();
-        $items = \App\Models\Item::where('tenant_id', $user->tenant_id)->get();
+        $items = Item::where('tenant_id', $user->tenant_id)->get();
 
         $this->assertCount(3, $items);
         $this->assertEquals('Agua mineral', $items[0]->name);
@@ -89,7 +91,7 @@ class RegistrationWithDefaultsTest extends TestCase
         ]);
 
         $user = User::where('email', 'contacts@example.com')->first();
-        $contacts = \App\Models\Contact::where('tenant_id', $user->tenant_id)->get();
+        $contacts = Contact::where('tenant_id', $user->tenant_id)->get();
 
         $this->assertCount(2, $contacts);
         $this->assertEquals('Cliente Ejemplo', $contacts[0]->name);
@@ -109,7 +111,7 @@ class RegistrationWithDefaultsTest extends TestCase
         ]);
 
         $user = User::where('email', 'modules@example.com')->first();
-        $modules = \App\Models\TenantModule::where('tenant_id', $user->tenant_id)->get();
+        $modules = TenantModule::where('tenant_id', $user->tenant_id)->get();
 
         $this->assertCount(3, $modules);
         $this->assertTrue($modules->pluck('module_slug')->contains('inventory'));
@@ -128,8 +130,8 @@ class RegistrationWithDefaultsTest extends TestCase
         ]);
 
         $user = User::where('email', 'general@example.com')->first();
-        $categories = \App\Models\Category::where('tenant_id', $user->tenant_id)->get();
-        $items = \App\Models\Item::where('tenant_id', $user->tenant_id)->get();
+        $categories = Category::where('tenant_id', $user->tenant_id)->get();
+        $items = Item::where('tenant_id', $user->tenant_id)->get();
 
         $this->assertCount(4, $categories);
         $this->assertEquals('General', $categories[0]->name);

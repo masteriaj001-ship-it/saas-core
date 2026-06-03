@@ -14,7 +14,7 @@ final class TenantManager
 
     public function setTenantContext(string $tenantId): void
     {
-        if (!Str::isUuid($tenantId)) {
+        if (! Str::isUuid($tenantId)) {
             throw new RuntimeException("Invalid tenant UUID format: {$tenantId}");
         }
 

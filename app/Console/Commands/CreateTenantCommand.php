@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Hash;
 class CreateTenantCommand extends Command
 {
     protected $signature = 'tenant:create {name : Tenant name} {slug : Tenant slug} {email? : Admin email}';
+
     protected $description = 'Create a new tenant with admin user and base roles/permissions';
 
     public function handle(TenantManager $tenantManager): int
@@ -35,7 +36,7 @@ class CreateTenantCommand extends Command
         $tenantManager->setTenantContext($tenant->id);
 
         $user = User::create([
-            'name' => $name . ' Admin',
+            'name' => $name.' Admin',
             'email' => $email,
             'password' => Hash::make('secret123'),
         ]);

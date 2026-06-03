@@ -4,21 +4,27 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\WorkOrderStatusEnum;
+use App\Models\Contact;
 use App\Models\Tenant;
+use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\WorkOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class WorkOrderFactory extends Factory
 {
+    protected $model = WorkOrder::class;
+
     public function definition(): array
     {
         return [
             'tenant_id' => Tenant::factory(),
-            'asset_id' => \App\Models\Asset::factory(),
-            'contact_id' => \App\Models\Contact::factory()->client(),
+            'asset_id' => Asset::factory(),
+            'contact_id' => Contact::factory()->client(),
             'code' => fake()->unique()->bothify('WO-####'),
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
-            'status' => fake()->randomElement(['draft', 'in_progress', 'completed', 'cancelled']),
+            'status' => fake()->randomElement(WorkOrderStatusEnum::cases())->value,
             'priority' => fake()->randomElement(['low', 'normal', 'high', 'urgent']),
         ];
     }

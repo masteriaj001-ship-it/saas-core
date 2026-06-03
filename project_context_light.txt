@@ -1,0 +1,4696 @@
+=== ESTRUCTURA DEL PROYECTO ===
+.
+./app
+./app/Console
+./app/Console/Commands
+./app/Filament
+./app/Filament/Pages
+./app/Filament/Resources
+./app/Filament/Superadmin
+./app/Filament/Widgets
+./app/Http
+./app/Http/Controllers
+./app/Http/Middleware
+./app/Http/Requests
+./app/Models
+./app/Models/Asset.php
+./app/Models/Category.php
+./app/Models/Concerns
+./app/Models/Contact.php
+./app/Models/Item.php
+./app/Models/Location.php
+./app/Models/ModuleCatalog.php
+./app/Models/Permission.php
+./app/Models/Role.php
+./app/Models/TenantModel.php
+./app/Models/TenantModule.php
+./app/Models/Tenant.php
+./app/Models/TransactionItem.php
+./app/Models/Transaction.php
+./app/Models/User.php
+./app/Models/WorkOrderItem.php
+./app/Models/WorkOrder.php
+./app/Notifications
+./app/Notifications/ResetPasswordNotification.php
+./app/Policies
+./app/Policies/TransactionPolicy.php
+./app/Policies/WorkOrderPolicy.php
+./app/Providers
+./app/Providers/AppServiceProvider.php
+./app/Providers/Filament
+./app/Services
+./app/Services/Auth
+./app/Services/TenantManager.php
+./app/Services/Transactions
+./app/Services/WorkOrders
+./artisan
+./.blueprint
+./bootstrap
+./bundle-ctx.sh
+./bundle-light.sh
+./CLAUDE.md
+./composer.json
+./composer.lock
+./compose.yaml
+./config
+./config/app.php
+./config/auth.php
+./config/cache.php
+./config/database.php
+./config/filesystems.php
+./config/industry-defaults.php
+./config/logging.php
+./config/mail.php
+./config/permission.php
+./config/queue.php
+./config/sanctum.php
+./config/services.php
+./config/session.php
+./.cursorrules
+./database
+./database/database.sqlite
+./database/esquema_supabase.md
+./database/factories
+./database/factories/AssetFactory.php
+./database/factories/ContactFactory.php
+./database/factories/ItemFactory.php
+./database/factories/TenantFactory.php
+./database/factories/TransactionFactory.php
+./database/factories/TransactionItemFactory.php
+./database/factories/UserFactory.php
+./database/factories/WorkOrderFactory.php
+./database/factories/WorkOrderItemFactory.php
+./database/.gitignore
+./database/migrations
+./database/migrations/0000_00_00_000001_create_current_tenant_id_function.php
+./database/migrations/0000_00_00_000002_create_tenants_table.php
+./database/migrations/0001_01_01_000000_create_users_table.php
+./database/migrations/0001_01_01_000001_create_cache_table.php
+./database/migrations/0001_01_01_000002_create_jobs_table.php
+./database/migrations/2026_05_25_031519_create_assets_table.php
+./database/migrations/2026_05_25_031520_create_items_table.php
+./database/migrations/2026_05_25_031521_create_contacts_table.php
+./database/migrations/2026_05_25_192255_create_personal_access_tokens_table.php
+./database/migrations/2026_05_25_192256_create_work_orders_table.php
+./database/migrations/2026_05_26_160000_create_permission_tables.php
+./database/migrations/2026_05_27_000001_create_transactions_table.php
+./database/migrations/2026_05_27_161719_update_personal_access_tokens_tokenable_id_to_uuid.php
+./database/migrations/2026_05_28_000001_create_modules_catalog_table.php
+./database/migrations/2026_05_28_000002_create_categories_table.php
+./database/migrations/2026_05_28_000003_create_locations_table.php
+./database/migrations/2026_05_28_000004_create_tenant_modules_table.php
+./database/migrations/2026_05_28_000005_add_is_superadmin_to_users_table.php
+./database/migrations/2026_05_28_032815_alter_users_table_make_tenant_id_nullable.php
+./database/seeders
+./database/seeders/DatabaseSeeder.php
+./database/seeders/ModulesCatalogSeeder.php
+./database/seeders/RolePermissionSeeder.php
+./docs
+./docs/features
+./docs/features/FEATURE_SPEC_TEMPLATE.md
+./docs/features/spatie-permission.md
+./docs/features/superadmin-panel
+./docs/features/work_order_reception
+./docs/features/work_orders
+./docs/LEARNING_GUIDE.md
+./docs/PROJECT_STATE.md
+./docs/WORKFLOW.md
+./draft.yaml
+./.editorconfig
+./.env
+./.env.example
+./.git
+./.gitattributes
+./.gitignore
+./lang
+./lang/vendor
+./node_modules
+./.npmrc
+./package.json
+./package-lock.json
+./.phpunit.result.cache
+./phpunit.xml
+./project_context_light.txt
+./public
+./README.md
+./resources
+./resources/css
+./resources/css/app.css
+./resources/js
+./resources/js/app.js
+./resources/views
+./resources/views/auth
+./resources/views/emails
+./resources/views/layouts
+./resources/views/welcome.blade.php
+./routes
+./routes/api.php
+./routes/console.php
+./routes/web.php
+./storage
+./tests
+./tests/Feature
+./tests/Feature/Auth
+./tests/Feature/ExampleTest.php
+./tests/Feature/Onboarding
+./tests/Feature/Security
+./tests/Feature/Transactions
+./tests/Feature/WorkOrders
+./tests/TestCase.php
+./tests/Unit
+./tests/Unit/ExampleTest.php
+./vendor
+./vite.config.js
+
+
+=== CONFIGURACIÓN CORE ===
+
+--- .env.example ---
+APP_NAME=Laravel
+APP_ENV=local
+APP_KEY=
+APP_DEBUG=true
+APP_URL=http://localhost
+
+APP_LOCALE=en
+APP_FALLBACK_LOCALE=en
+APP_FAKER_LOCALE=en_US
+
+APP_MAINTENANCE_DRIVER=file
+# APP_MAINTENANCE_STORE=database
+
+# PHP_CLI_SERVER_WORKERS=4
+
+BCRYPT_ROUNDS=12
+
+LOG_CHANNEL=stack
+LOG_STACK=single
+LOG_DEPRECATIONS_CHANNEL=null
+LOG_LEVEL=debug
+
+DB_CONNECTION=sqlite
+# DB_HOST=127.0.0.1
+# DB_PORT=3306
+# DB_DATABASE=laravel
+# DB_USERNAME=root
+# DB_PASSWORD=
+
+SESSION_DRIVER=database
+SESSION_LIFETIME=120
+SESSION_ENCRYPT=false
+SESSION_PATH=/
+SESSION_DOMAIN=null
+
+BROADCAST_CONNECTION=log
+FILESYSTEM_DISK=local
+QUEUE_CONNECTION=database
+
+CACHE_STORE=database
+# CACHE_PREFIX=
+
+MEMCACHED_HOST=127.0.0.1
+
+REDIS_CLIENT=phpredis
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
+MAIL_MAILER=log
+MAIL_SCHEME=null
+MAIL_HOST=127.0.0.1
+MAIL_PORT=2525
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS="hello@example.com"
+MAIL_FROM_NAME="${APP_NAME}"
+
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
+AWS_DEFAULT_REGION=us-east-1
+AWS_BUCKET=
+AWS_USE_PATH_STYLE_ENDPOINT=false
+
+VITE_APP_NAME="${APP_NAME}"
+
+--- config/app.php ---
+<?php
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Name
+    |--------------------------------------------------------------------------
+    |
+    | This value is the name of your application, which will be used when the
+    | framework needs to place the application's name in a notification or
+    | other UI elements where an application name needs to be displayed.
+    |
+    */
+
+    'name' => env('APP_NAME', 'Laravel'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Environment
+    |--------------------------------------------------------------------------
+    |
+    | This value determines the "environment" your application is currently
+    | running in. This may determine how you prefer to configure various
+    | services the application utilizes. Set this in your ".env" file.
+    |
+    */
+
+    'env' => env('APP_ENV', 'production'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Debug Mode
+    |--------------------------------------------------------------------------
+    |
+    | When your application is in debug mode, detailed error messages with
+    | stack traces will be shown on every error that occurs within your
+    | application. If disabled, a simple generic error page is shown.
+    |
+    */
+
+    'debug' => (bool) env('APP_DEBUG', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application URL
+    |--------------------------------------------------------------------------
+    |
+    | This URL is used by the console to properly generate URLs when using
+    | the Artisan command line tool. You should set this to the root of
+    | the application so that it's available within Artisan commands.
+    |
+    */
+
+    'url' => env('APP_URL', 'http://localhost'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Timezone
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify the default timezone for your application, which
+    | will be used by the PHP date and date-time functions. The timezone
+    | is set to "UTC" by default as it is suitable for most use cases.
+    |
+    */
+
+    'timezone' => 'UTC',
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Locale Configuration
+    |--------------------------------------------------------------------------
+    |
+    | The application locale determines the default locale that will be used
+    | by Laravel's translation / localization methods. This option can be
+    | set to any locale for which you plan to have translation strings.
+    |
+    */
+
+    'locale' => env('APP_LOCALE', 'es'),
+
+    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+
+    'faker_locale' => env('APP_FAKER_LOCALE', 'es_CO'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Encryption Key
+    |--------------------------------------------------------------------------
+    |
+    | This key is utilized by Laravel's encryption services and should be set
+    | to a random, 32 character string to ensure that all encrypted values
+    | are secure. You should do this prior to deploying the application.
+    |
+    */
+
+    'cipher' => 'AES-256-CBC',
+
+    'key' => env('APP_KEY'),
+
+    'previous_keys' => [
+        ...array_filter(
+            explode(',', (string) env('APP_PREVIOUS_KEYS', ''))
+        ),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Maintenance Mode Driver
+    |--------------------------------------------------------------------------
+    |
+    | These configuration options determine the driver used to determine and
+    | manage Laravel's "maintenance mode" status. The "cache" driver will
+    | allow maintenance mode to be controlled across multiple machines.
+    |
+    | Supported drivers: "file", "cache"
+    |
+    */
+
+    'maintenance' => [
+        'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
+        'store' => env('APP_MAINTENANCE_STORE', 'database'),
+    ],
+
+];
+
+--- config/database.php ---
+<?php
+
+use Illuminate\Support\Str;
+use Pdo\Mysql;
+
+return [
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default Database Connection Name
+    |--------------------------------------------------------------------------
+    |
+    | Here you may specify which of the database connections below you wish
+    | to use as your default connection for database operations. This is
+    | the connection which will be utilized unless another connection
+    | is explicitly specified when you execute a query / statement.
+    |
+    */
+
+    'default' => env('DB_CONNECTION', 'sqlite'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Database Connections
+    |--------------------------------------------------------------------------
+    |
+    | Below are all of the database connections defined for your application.
+    | An example configuration is provided for each database system which
+    | is supported by Laravel. You're free to add / remove connections.
+    |
+    */
+
+    'connections' => [
+
+        'sqlite' => [
+            'driver' => 'sqlite',
+            'url' => env('DB_URL'),
+            'database' => env('DB_DATABASE', database_path('database.sqlite')),
+            'prefix' => '',
+            'foreign_key_constraints' => env('DB_FOREIGN_KEYS', true),
+            'busy_timeout' => null,
+            'journal_mode' => null,
+            'synchronous' => null,
+            'transaction_mode' => 'DEFERRED',
+        ],
+
+        'mysql' => [
+            'driver' => 'mysql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'mariadb' => [
+            'driver' => 'mariadb',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '3306'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'unix_socket' => env('DB_SOCKET', ''),
+            'charset' => env('DB_CHARSET', 'utf8mb4'),
+            'collation' => env('DB_COLLATION', 'utf8mb4_unicode_ci'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'strict' => true,
+            'engine' => null,
+            'options' => extension_loaded('pdo_mysql') ? array_filter([
+                Mysql::ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
+            ]) : [],
+        ],
+
+        'pgsql' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', '127.0.0.1'),
+            'port' => env('DB_PORT', '5432'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+        ],
+
+        'sqlsrv' => [
+            'driver' => 'sqlsrv',
+            'url' => env('DB_URL'),
+            'host' => env('DB_HOST', 'localhost'),
+            'port' => env('DB_PORT', '1433'),
+            'database' => env('DB_DATABASE', 'laravel'),
+            'username' => env('DB_USERNAME', 'root'),
+            'password' => env('DB_PASSWORD', ''),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            // 'encrypt' => env('DB_ENCRYPT', 'yes'),
+            // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
+        ],
+
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Migration Repository Table
+    |--------------------------------------------------------------------------
+    |
+    | This table keeps track of all the migrations that have already run for
+    | your application. Using this information, we can determine which of
+    | the migrations on disk haven't actually been run on the database.
+    |
+    */
+
+    'migrations' => [
+        'table' => 'migrations',
+        'update_date_on_publish' => true,
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redis Databases
+    |--------------------------------------------------------------------------
+    |
+    | Redis is an open source, fast, and advanced key-value store that also
+    | provides a richer body of commands than a typical key-value system
+    | such as Memcached. You may define your connection settings here.
+    |
+    */
+
+    'redis' => [
+
+        'client' => env('REDIS_CLIENT', 'phpredis'),
+
+        'options' => [
+            'cluster' => env('REDIS_CLUSTER', 'redis'),
+            'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'laravel')).'-database-'),
+            'persistent' => env('REDIS_PERSISTENT', false),
+        ],
+
+        'default' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_DB', '0'),
+            'max_retries' => env('REDIS_MAX_RETRIES', 3),
+            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
+            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
+            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+        ],
+
+        'cache' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_CACHE_DB', '1'),
+            'max_retries' => env('REDIS_MAX_RETRIES', 3),
+            'backoff_algorithm' => env('REDIS_BACKOFF_ALGORITHM', 'decorrelated_jitter'),
+            'backoff_base' => env('REDIS_BACKOFF_BASE', 100),
+            'backoff_cap' => env('REDIS_BACKOFF_CAP', 1000),
+        ],
+
+    ],
+
+];
+
+--- config/permission.php ---
+<?php
+
+use Spatie\Permission\DefaultTeamResolver;
+use App\Models\Permission;
+use App\Models\Role;
+
+return [
+
+    'models' => [
+
+        /*
+         * When using the "HasPermissions" trait from this package, we need to know which
+         * Eloquent model should be used to retrieve your permissions. Of course, it
+         * is often just the "Permission" model but you may use whatever you like.
+         *
+         * The model you want to use as a Permission model needs to implement the
+         * `Spatie\Permission\Contracts\Permission` contract.
+         */
+
+        'permission' => Permission::class,
+
+        /*
+         * When using the "HasRoles" trait from this package, we need to know which
+         * Eloquent model should be used to retrieve your roles. Of course, it
+         * is often just the "Role" model but you may use whatever you like.
+         *
+         * The model you want to use as a Role model needs to implement the
+         * `Spatie\Permission\Contracts\Role` contract.
+         */
+
+        'role' => Role::class,
+
+        /*
+         * When using the "Teams" feature from this package, we need to know which
+         * Eloquent model should be used to retrieve your teams. Of course, it
+         * is often just the "Team" model but you may use whatever you like.
+         */
+        'team' => null,
+
+        /*
+         * When using the "HasModels" trait and passing raw IDs to syncModels,
+         * attachModels, or detachModels, this model class will be used to
+         * resolve those IDs. If null, defaults to the guard's model.
+         */
+        'default_model' => null,
+    ],
+
+    'table_names' => [
+
+        /*
+         * When using the "HasRoles" trait from this package, we need to know which
+         * table should be used to retrieve your roles. We have chosen a basic
+         * default value but you may easily change it to any table you like.
+         */
+
+        'roles' => 'roles',
+
+        /*
+         * When using the "HasPermissions" trait from this package, we need to know which
+         * table should be used to retrieve your permissions. We have chosen a basic
+         * default value but you may easily change it to any table you like.
+         */
+
+        'permissions' => 'permissions',
+
+        /*
+         * When using the "HasPermissions" trait from this package, we need to know which
+         * table should be used to retrieve your models permissions. We have chosen a
+         * basic default value but you may easily change it to any table you like.
+         */
+
+        'model_has_permissions' => 'model_has_permissions',
+
+        /*
+         * When using the "HasRoles" trait from this package, we need to know which
+         * table should be used to retrieve your models roles. We have chosen a
+         * basic default value but you may easily change it to any table you like.
+         */
+
+        'model_has_roles' => 'model_has_roles',
+
+        /*
+         * When using the "HasRoles" trait from this package, we need to know which
+         * table should be used to retrieve your roles permissions. We have chosen a
+         * basic default value but you may easily change it to any table you like.
+         */
+
+        'role_has_permissions' => 'role_has_permissions',
+    ],
+
+    'column_names' => [
+        /*
+         * Change this if you want to name the related pivots other than defaults
+         */
+        'role_pivot_key' => null, // default 'role_id',
+        'permission_pivot_key' => null, // default 'permission_id',
+
+        /*
+         * Change this if you want to name the related model primary key other than
+         * `model_id`.
+         *
+         * For example, this would be nice if your primary keys are all UUIDs. In
+         * that case, name this `model_uuid`.
+         */
+
+        'model_morph_key' => 'model_id',
+
+        /*
+         * Change this if you want to use the teams feature and your related model's
+         * foreign key is other than `team_id`.
+         */
+
+        'team_foreign_key' => 'team_id',
+    ],
+
+    /*
+     * When set to true, the method for checking permissions will be registered on the gate.
+     * Set this to false if you want to implement custom logic for checking permissions.
+     */
+
+    'register_permission_check_method' => true,
+
+    /*
+     * When set to true, Laravel\Octane\Events\OperationTerminated event listener will be registered
+     * this will refresh permissions on every TickTerminated, TaskTerminated and RequestTerminated
+     * NOTE: This should not be needed in most cases, but an Octane/Vapor combination benefited from it.
+     */
+    'register_octane_reset_listener' => false,
+
+    /*
+     * Events will fire when a role or permission is assigned/unassigned:
+     * \Spatie\Permission\Events\RoleAttachedEvent
+     * \Spatie\Permission\Events\RoleDetachedEvent
+     * \Spatie\Permission\Events\PermissionAttachedEvent
+     * \Spatie\Permission\Events\PermissionDetachedEvent
+     *
+     * To enable, set to true, and then create listeners to watch these events.
+     */
+    'events_enabled' => false,
+
+    /*
+     * Teams Feature.
+     * When set to true the package implements teams using the 'team_foreign_key'.
+     * If you want the migrations to register the 'team_foreign_key', you must
+     * set this to true before doing the migration.
+     * If you already did the migration then you must make a new migration to also
+     * add 'team_foreign_key' to 'roles', 'model_has_roles', and 'model_has_permissions'
+     * (view the latest version of this package's migration file)
+     */
+
+    'teams' => false,
+
+    /*
+     * The class to use to resolve the permissions team id
+     */
+    'team_resolver' => DefaultTeamResolver::class,
+
+    /*
+     * Passport Client Credentials Grant
+     * When set to true the package will use Passports Client to check permissions
+     */
+
+    'use_passport_client_credentials' => false,
+
+    /*
+     * When set to true, the required permission names are added to exception messages.
+     * This could be considered an information leak in some contexts, so the default
+     * setting is false here for optimum safety.
+     */
+
+    'display_permission_in_exception' => false,
+
+    /*
+     * When set to true, the required role names are added to exception messages.
+     * This could be considered an information leak in some contexts, so the default
+     * setting is false here for optimum safety.
+     */
+
+    'display_role_in_exception' => false,
+
+    /*
+     * By default wildcard permission lookups are disabled.
+     * See documentation to understand supported syntax.
+     */
+
+    'enable_wildcard_permission' => false,
+
+    /*
+     * The class to use for interpreting wildcard permissions.
+     * If you need to modify delimiters, override the class and specify its name here.
+     */
+    // 'wildcard_permission' => Spatie\Permission\WildcardPermission::class,
+
+    /* Cache-specific settings */
+
+    'cache' => [
+
+        /*
+         * By default all permissions are cached for 24 hours to speed up performance.
+         * When permissions or roles are updated the cache is flushed automatically.
+         */
+
+        'expiration_time' => DateInterval::createFromDateString('24 hours'),
+
+        /*
+         * The cache key used to store all permissions.
+         */
+
+        'key' => 'spatie.permission.cache',
+
+        /*
+         * You may optionally indicate a specific cache driver to use for permission and
+         * role caching using any of the `store` drivers listed in the cache.php config
+         * file. Using 'default' here means to use the `default` set in cache.php.
+         */
+
+        'store' => 'array',
+    ],
+];
+
+--- config/industry-defaults.php ---
+<?php
+
+declare(strict_types=1);
+
+return [
+    'general' => [
+        'categories' => ['General', 'Electrónica', 'Hogar', 'Papelería'],
+        'items'       => [
+            ['name' => 'Producto de ejemplo',     'item_type' => 'product', 'price' => 100, 'sku' => 'PRO-001'],
+            ['name' => 'Servicio de ejemplo',     'item_type' => 'service', 'price' => 50,  'sku' => 'SER-001'],
+            ['name' => 'Artículo de oficina',     'item_type' => 'product', 'price' => 25,  'sku' => 'PRO-002'],
+        ],
+    ],
+    'mechanic' => [
+        'categories' => ['Repuestos', 'Servicios', 'Lubricantes', 'Neumáticos'],
+        'items'       => [
+            ['name' => 'Filtro de aceite',        'item_type' => 'product', 'price' => 150,  'sku' => 'REP-001'],
+            ['name' => 'Revisión general',        'item_type' => 'service', 'price' => 500,  'sku' => 'SER-001'],
+            ['name' => 'Llanta 175/70R13',        'item_type' => 'product', 'price' => 1200, 'sku' => 'REP-002'],
+        ],
+    ],
+    'restaurant' => [
+        'categories' => ['Bebidas', 'Entradas', 'Platos principales', 'Postres'],
+        'items'       => [
+            ['name' => 'Agua mineral',            'item_type' => 'product', 'price' => 25,  'sku' => 'BEB-001'],
+            ['name' => 'Hamburguesa clásica',     'item_type' => 'product', 'price' => 120, 'sku' => 'PLA-001'],
+            ['name' => 'Cerveza artesanal',       'item_type' => 'product', 'price' => 65,  'sku' => 'BEB-002'],
+        ],
+    ],
+    'construction' => [
+        'categories' => ['Materiales', 'Herramientas', 'Equipos', 'Seguridad'],
+        'items'       => [
+            ['name' => 'Cemento 50kg',            'item_type' => 'product', 'price' => 250, 'sku' => 'MAT-001'],
+            ['name' => 'Martillo demoledor',      'item_type' => 'product', 'price' => 3500,'sku' => 'HER-001'],
+            ['name' => 'Casco de seguridad',      'item_type' => 'product', 'price' => 180, 'sku' => 'SEG-001'],
+        ],
+    ],
+    'clinic' => [
+        'categories' => ['Medicamentos', 'Consultas', 'Exámenes', 'Procedimientos'],
+        'items'       => [
+            ['name' => 'Paracetamol 500mg',       'item_type' => 'product', 'price' => 80,  'sku' => 'MED-001'],
+            ['name' => 'Consulta general',        'item_type' => 'service', 'price' => 600, 'sku' => 'SER-001'],
+            ['name' => 'Radiografía',             'item_type' => 'service', 'price' => 400, 'sku' => 'SER-002'],
+        ],
+    ],
+];
+
+
+=== PANELES FILAMENT ===
+
+--- app/Providers/Filament/AdminPanelProvider.php ---
+<?php
+
+namespace App\Providers\Filament;
+
+use App\Http\Middleware\SetTenantContext;
+use App\Models\Tenant;
+use Filament\Http\Middleware\Authenticate;
+use Filament\Http\Middleware\AuthenticateSession;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Pages\Dashboard;
+use Filament\Panel;
+use Filament\PanelProvider;
+use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentView;
+use Filament\Widgets\AccountWidget;
+use Filament\Widgets\FilamentInfoWidget;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Blade;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+
+class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->default()
+            ->id('admin')
+            ->path('admin')
+            ->login()
+            ->profile()
+            ->passwordReset()
+            ->tenant(Tenant::class, slugAttribute: 'slug')
+            ->colors([
+                'primary' => Color::Amber,
+            ])
+            ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
+            ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
+            ->pages([
+                Dashboard::class,
+            ])
+            ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
+            ->widgets([
+                AccountWidget::class,
+                FilamentInfoWidget::class,
+            ])
+            ->middleware([
+                EncryptCookies::class,
+                AddQueuedCookiesToResponse::class,
+                StartSession::class,
+                AuthenticateSession::class,
+                ShareErrorsFromSession::class,
+                PreventRequestForgery::class,
+                SubstituteBindings::class,
+                DisableBladeIconComponents::class,
+                DispatchServingFilamentEvent::class,
+                SetTenantContext::class,
+            ])
+            ->authMiddleware([
+                Authenticate::class,
+            ]);
+
+        FilamentView::registerRenderHook(
+            'panels::auth.login.form.after',
+            fn (): string => Blade::render('<p class="text-sm text-center text-gray-600 mt-4">¿No tienes cuenta? <a href="{{ route(\'register\') }}" class="text-indigo-600 hover:underline font-medium">Crear cuenta</a></p>'),
+        );
+
+        return $panel;
+    }
+}
+
+--- app/Providers/Filament/SuperadminPanelProvider.php ---
+<?php
+
+namespace App\Providers\Filament;
+
+use App\Http\Middleware\EnsureIsSuperAdmin;
+use Filament\Http\Middleware\Authenticate;
+use Filament\Http\Middleware\AuthenticateSession;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Pages\Dashboard;
+use Filament\Panel;
+use Filament\PanelProvider;
+use Filament\Support\Colors\Color;
+use Filament\Widgets\AccountWidget;
+use Filament\Widgets\FilamentInfoWidget;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+
+class SuperadminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->id('superadmin')
+            ->path('superadmin')
+            ->login()
+            ->passwordReset()
+            ->colors([
+                'primary' => Color::Red,
+            ])
+            ->discoverResources(in: app_path('Filament/Superadmin/Resources'), for: 'App\Filament\Superadmin\Resources')
+            ->discoverPages(in: app_path('Filament/Superadmin/Pages'), for: 'App\Filament\Superadmin\Pages')
+            ->pages([
+                Dashboard::class,
+            ])
+            ->discoverWidgets(in: app_path('Filament/Superadmin/Widgets'), for: 'App\Filament\Superadmin\Widgets')
+            ->widgets([
+                AccountWidget::class,
+                FilamentInfoWidget::class,
+            ])
+            ->middleware([
+                EncryptCookies::class,
+                AddQueuedCookiesToResponse::class,
+                StartSession::class,
+                AuthenticateSession::class,
+                ShareErrorsFromSession::class,
+                PreventRequestForgery::class,
+                SubstituteBindings::class,
+                DisableBladeIconComponents::class,
+                DispatchServingFilamentEvent::class,
+            ])
+            ->authMiddleware([
+                Authenticate::class,
+                EnsureIsSuperAdmin::class,
+            ]);
+    }
+}
+
+
+=== MODELOS ===
+
+--- app/Models/Asset.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Asset extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'code',
+        'asset_type',
+        'status',
+        'metadata',
+        'acquired_at',
+    ];
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'metadata'    => 'array',
+            'acquired_at' => 'date',
+            'disposed_at' => 'date',
+        ]);
+    }
+}
+
+--- app/Models/Category.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Category extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'description',
+        'is_active',
+    ];
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'is_active' => 'boolean',
+        ]);
+    }
+}
+
+--- app/Models/Contact.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Contact extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'contact_type',
+        'name',
+        'tax_id',
+        'email',
+        'phone',
+        'address',
+        'metadata',
+    ];
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'metadata' => 'array',
+        ]);
+    }
+}
+
+--- app/Models/Item.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Item extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'sku',
+        'name',
+        'description',
+        'item_type',
+        'unit',
+        'price',
+        'cost',
+        'stock',
+        'min_stock',
+        'metadata',
+    ];
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'price'    => 'decimal:2',
+            'cost'     => 'decimal:2',
+            'stock'    => 'integer',
+            'min_stock' => 'integer',
+            'metadata' => 'array',
+        ]);
+    }
+}
+
+--- app/Models/Location.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class Location extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'name',
+        'address',
+        'is_main',
+        'is_active',
+    ];
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'is_main'   => 'boolean',
+            'is_active' => 'boolean',
+        ]);
+    }
+}
+
+--- app/Models/ModuleCatalog.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+
+class ModuleCatalog extends Model
+{
+    use HasUuids;
+
+    protected $table = 'modules_catalog';
+
+    protected $fillable = [
+        'slug',
+        'name',
+        'description',
+        'is_active',
+    ];
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected function casts(): array
+    {
+        return [
+            'id'        => 'string',
+            'is_active' => 'boolean',
+        ];
+    }
+}
+
+--- app/Models/Permission.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Models\Concerns\BelongsToTenant;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Spatie\Permission\Models\Permission as SpatiePermission;
+
+class Permission extends SpatiePermission
+{
+    use BelongsToTenant, HasUuids;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $guarded = [
+        'id',
+        'tenant_id',
+    ];
+
+    protected $casts = [
+        'id' => 'string',
+    ];
+}
+
+--- app/Models/Role.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Models\Concerns\BelongsToTenant;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Spatie\Permission\Models\Role as SpatieRole;
+
+class Role extends SpatieRole
+{
+    use BelongsToTenant, HasUuids;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
+
+    protected $guarded = [
+        'id',
+        'tenant_id',
+    ];
+
+    protected $casts = [
+        'id' => 'string',
+    ];
+}
+
+--- app/Models/TenantModel.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Models\Concerns\BelongsToTenant;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+abstract class TenantModel extends Model
+{
+    use BelongsToTenant, HasUuids, SoftDeletes;
+
+    protected $guarded = [
+        'id',
+        'tenant_id',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(Tenant::class);
+    }
+
+    protected function casts(): array
+    {
+        return [
+            'id'         => 'string',
+            'tenant_id'  => 'string',
+            'created_at' => 'datetime',
+            'updated_at' => 'datetime',
+            'deleted_at' => 'datetime',
+        ];
+    }
+}
+
+--- app/Models/TenantModule.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+class TenantModule extends TenantModel
+{
+    protected $fillable = [
+        'module_slug',
+        'is_active',
+        'config',
+        'activated_at',
+    ];
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'is_active'    => 'boolean',
+            'config'       => 'array',
+            'activated_at' => 'datetime',
+        ]);
+    }
+}
+
+--- app/Models/Tenant.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class Tenant extends Model
+{
+    use HasFactory, HasUuids;
+
+    protected $fillable = [
+        'name',
+        'slug',
+        'plan',
+        'is_active',
+        'settings',
+    ];
+
+    protected $casts = [
+        'id'        => 'string',
+        'is_active' => 'boolean',
+        'settings'  => 'array',
+    ];
+}
+
+--- app/Models/TransactionItem.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class TransactionItem extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'transaction_id',
+        'item_id',
+        'quantity',
+        'unit_price',
+        'tax_rate',
+        'tax_amount',
+        'discount_amount',
+        'total_item_amount',
+    ];
+
+    public function transaction(): BelongsTo
+    {
+        return $this->belongsTo(Transaction::class);
+    }
+
+    public function item(): BelongsTo
+    {
+        return $this->belongsTo(Item::class);
+    }
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'quantity'          => 'decimal:4',
+            'unit_price'        => 'decimal:4',
+            'tax_rate'          => 'decimal:2',
+            'tax_amount'        => 'decimal:2',
+            'discount_amount'   => 'decimal:2',
+            'total_item_amount' => 'decimal:2',
+        ]);
+    }
+}
+
+--- app/Models/Transaction.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Services\Transactions\TransactionService;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class Transaction extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'contact_id',
+        'type',
+        'invoice_number',
+        'cufe',
+        'resolution_number',
+        'status',
+        'subtotal',
+        'total_tax',
+        'total_retentions',
+        'total_amount',
+        'payment_method',
+        'notes',
+        'created_by',
+    ];
+
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(TransactionItem::class);
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function isDraft(): bool
+    {
+        return $this->status === 'draft';
+    }
+
+    public function isIssued(): bool
+    {
+        return $this->status === 'issued';
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === 'cancelled';
+    }
+
+    public function canEdit(): bool
+    {
+        return $this->isDraft();
+    }
+
+    public function canIssue(): bool
+    {
+        return $this->isDraft();
+    }
+
+    public function canCancel(): bool
+    {
+        return $this->isIssued();
+    }
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'subtotal'         => 'decimal:2',
+            'total_tax'        => 'decimal:2',
+            'total_retentions' => 'decimal:2',
+            'total_amount'     => 'decimal:2',
+        ]);
+    }
+}
+
+--- app/Models/User.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use App\Models\Concerns\BelongsToTenant;
+use App\Notifications\ResetPasswordNotification;
+use Filament\Models\Contracts\HasTenants;
+use Filament\Panel;
+use Spatie\Permission\Traits\HasRoles;
+use Database\Factories\UserFactory;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
+
+class User extends Authenticatable implements HasTenants
+{
+    /** @use HasFactory<UserFactory> */
+    use BelongsToTenant, HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable, SoftDeletes;
+
+    public $incrementing = false;
+
+    protected $keyType = "string";
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'is_superadmin',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected $casts = [
+        'id'                => 'string',
+        'tenant_id'         => 'string',
+        'is_superadmin'     => 'boolean',
+        'email_verified_at' => 'datetime',
+        'password'          => 'hashed',
+    ];
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function getTenants(Panel $panel): Collection
+    {
+        if ($this->is_superadmin) {
+            return Tenant::all();
+        }
+
+        return collect([$this->tenant])->filter();
+    }
+
+    public function canAccessTenant(Model $tenant): bool
+    {
+        if ($this->is_superadmin) {
+            return true;
+        }
+
+        return $this->tenant_id === $tenant->id;
+    }
+}
+
+--- app/Models/WorkOrderItem.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class WorkOrderItem extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'work_order_id',
+        'item_id',
+        'quantity',
+        'unit_price',
+        'description',
+        'metadata',
+    ];
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'quantity'   => 'decimal:4',
+            'unit_price' => 'decimal:4',
+            'metadata'   => 'array',
+        ]);
+    }
+
+    public function workOrder(): BelongsTo
+    {
+        return $this->belongsTo(WorkOrder::class);
+    }
+
+    public function item(): BelongsTo
+    {
+        return $this->belongsTo(Item::class);
+    }
+}
+
+--- app/Models/WorkOrder.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
+class WorkOrder extends TenantModel
+{
+    use HasFactory;
+
+    protected $fillable = [
+        'asset_id',
+        'contact_id',
+        'code',
+        'title',
+        'description',
+        'priority',
+        'status',
+        'started_at',
+        'completed_at',
+        'metadata',
+    ];
+
+    protected function casts(): array
+    {
+        return array_merge(parent::casts(), [
+            'metadata'     => 'array',
+            'started_at'   => 'datetime',
+            'completed_at' => 'datetime',
+        ]);
+    }
+
+    public function asset(): BelongsTo
+    {
+        return $this->belongsTo(Asset::class);
+    }
+
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
+    }
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(WorkOrderItem::class);
+    }
+}
+
+
+=== TRAITS ===
+
+--- app/Models/Concerns/BelongsToTenant.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Models\Concerns;
+
+use App\Services\TenantManager;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use RuntimeException;
+
+trait BelongsToTenant
+{
+    public static function bootBelongsToTenant(): void
+    {
+        static::addGlobalScope('tenant', function (Builder $builder) {
+            $tenantManager = app(TenantManager::class);
+
+            if (!$tenantManager->hasContext()) {
+                return;
+            }
+
+            $builder->where(
+                $builder->getModel()->getTable() . '.tenant_id',
+                $tenantManager->getCurrentTenantId()
+            );
+        });
+
+        static::creating(function (Model $model) {
+            if (empty($model->tenant_id)) {
+                $isSuperadmin = isset($model->is_superadmin) && $model->is_superadmin;
+
+                if ($isSuperadmin) {
+                    return;
+                }
+
+                $tenantManager = app(TenantManager::class);
+
+                if (!$tenantManager->hasContext()) {
+                    throw new RuntimeException(
+                        'Cannot create ' . static::class . ' without tenant context.'
+                    );
+                }
+
+                $model->tenant_id = $tenantManager->getCurrentTenantId();
+            }
+        });
+    }
+
+    public function tenant(): BelongsTo
+    {
+        return $this->belongsTo(\App\Models\Tenant::class);
+    }
+
+    public function scopeWithoutTenantScope(Builder $query): Builder
+    {
+        return $query->withoutGlobalScope('tenant');
+    }
+
+    public function scopeTenant(Builder $query): void
+    {
+        $tenantManager = app(TenantManager::class);
+
+        if (!$tenantManager->hasContext()) {
+            return;
+        }
+
+        $query->where(
+            $query->getModel()->getTable() . '.tenant_id',
+            $tenantManager->getCurrentTenantId()
+        );
+    }
+}
+
+
+=== MIDDLEWARES ===
+
+--- app/Http/Middleware/EnsureIsSuperAdmin.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+final class EnsureIsSuperAdmin
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        if (!$request->user() || !$request->user()->is_superadmin) {
+            abort(403, __('Acceso denegado. Se requieren permisos de superadministrador.'));
+        }
+
+        return $next($request);
+    }
+}
+
+--- app/Http/Middleware/SetTenantContext.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Middleware;
+
+use App\Services\TenantManager;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Symfony\Component\HttpFoundation\Response;
+
+final class SetTenantContext
+{
+    public function __construct(
+        private readonly TenantManager $tenantManager
+    ) {}
+
+    public function handle(Request $request, \Closure $next): Response
+    {
+        if (!Auth::check()) {
+            return $next($request);
+        }
+
+        $user = Auth::user();
+        $tenantId = $user->tenant_id;
+
+        if (empty($tenantId)) {
+            abort(403, 'User has no tenant assignment.');
+        }
+
+        $this->tenantManager->setTenantContext((string) $tenantId);
+
+        try {
+            $response = $next($request);
+        } finally {
+            $this->tenantManager->clearTenantContext();
+        }
+
+        return $response;
+    }
+}
+
+
+=== SERVICIOS CORE ===
+
+--- app/Services/TenantManager.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services;
+
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+use RuntimeException;
+
+final class TenantManager
+{
+    private ?string $currentTenantId = null;
+
+    public function setTenantContext(string $tenantId): void
+    {
+        if (!Str::isUuid($tenantId)) {
+            throw new RuntimeException("Invalid tenant UUID format: {$tenantId}");
+        }
+
+        DB::statement(
+            "SELECT set_config('app.current_tenant_id', ?, false)",
+            [$tenantId]
+        );
+
+        $this->currentTenantId = $tenantId;
+    }
+
+    public function clearTenantContext(): void
+    {
+        DB::statement(
+            "SELECT set_config('app.current_tenant_id', '', false)"
+        );
+        $this->currentTenantId = null;
+    }
+
+    public function getCurrentTenantId(): ?string
+    {
+        return $this->currentTenantId;
+    }
+
+    public function hasContext(): bool
+    {
+        return $this->currentTenantId !== null;
+    }
+}
+
+--- app/Services/Auth/RegisterService.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Auth;
+
+use App\Models\Category;
+use App\Models\Contact;
+use App\Models\Item;
+use App\Models\Location;
+use App\Models\ModuleCatalog;
+use App\Models\Tenant;
+use App\Models\TenantModule;
+use App\Models\User;
+use App\Services\TenantManager;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
+
+class RegisterService
+{
+    public function __construct(
+        private readonly TenantManager $tenantManager,
+    ) {}
+
+    public function register(array $data): User
+    {
+        return DB::transaction(function () use ($data) {
+            $slug = Str::of($data['business_name'])
+                ->slug()
+                ->append('-', Str::random(4));
+
+            $tenant = Tenant::create([
+                'name' => $data['business_name'],
+                'slug' => $slug,
+                'plan' => 'free',
+                'is_active' => true,
+            ]);
+
+            $this->tenantManager->setTenantContext($tenant->id);
+
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+            ]);
+
+            $seeder = app(RolePermissionSeeder::class);
+            $seeder->run();
+
+            $user->assignRole('owner');
+
+            $industry = $data['industry'] ?? 'general';
+            $this->createDefaults($industry);
+
+            Auth::login($user);
+
+            return $user;
+        });
+    }
+
+    private function createDefaults(string $industry): void
+    {
+        Location::create([
+            'name'     => 'Sede Principal',
+            'is_main'  => true,
+            'is_active' => true,
+        ]);
+
+        $defaults = config("industry-defaults.{$industry}", config('industry-defaults.general'));
+
+        foreach ($defaults['categories'] as $catName) {
+            Category::create(['name' => $catName]);
+        }
+
+        foreach ($defaults['items'] as $itemData) {
+            Item::create([
+                'sku'       => $itemData['sku'] . '-' . Str::random(4),
+                'name'      => $itemData['name'],
+                'item_type' => $itemData['item_type'],
+                'price'     => $itemData['price'],
+            ]);
+        }
+
+        Contact::create([
+            'name'         => 'Cliente Ejemplo',
+            'contact_type' => 'client',
+        ]);
+
+        Contact::create([
+            'name'         => 'Proveedor Ejemplo',
+            'contact_type' => 'supplier',
+        ]);
+
+        $moduleSlugs = ['inventory', 'transactions', 'contacts'];
+        $modules = ModuleCatalog::whereIn('slug', $moduleSlugs)->pluck('slug');
+
+        foreach ($modules as $moduleSlug) {
+            TenantModule::create([
+                'module_slug'  => $moduleSlug,
+                'is_active'    => true,
+                'activated_at' => now(),
+            ]);
+        }
+    }
+}
+
+--- app/Services/Transactions/TransactionService.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\Transactions;
+
+use App\Models\Transaction;
+use App\Models\TransactionItem;
+use Illuminate\Support\Facades\DB;
+
+class TransactionService
+{
+    public function generateInvoiceNumber(Transaction $transaction): string
+    {
+        $type = $transaction->type;
+
+        $result = DB::selectOne("
+            UPDATE tenants
+            SET settings = settings || jsonb_build_object(
+                'transactions',
+                COALESCE(settings->'transactions', '{}'::jsonb) || jsonb_build_object(
+                    '{$type}_counter',
+                    COALESCE((settings#>'{transactions,{$type}_counter}')::int, 0) + 1
+                )
+            )
+            WHERE id = ?
+            RETURNING settings
+        ", [$transaction->tenant_id]);
+
+        if (!$result) {
+            throw new \RuntimeException('Tenant no encontrado al generar número de factura.');
+        }
+
+        $settings = json_decode($result->settings, true);
+        $counter = $settings['transactions']["{$type}_counter"] ?? 1;
+        $prefix = $type === 'sale' ? 'FAC' : 'OC';
+
+        return "{$prefix}-" . str_pad((string) $counter, 5, '0', STR_PAD_LEFT);
+    }
+
+    public function calculateItemTotals(TransactionItem $item): TransactionItem
+    {
+        $subtotal = $item->quantity * $item->unit_price;
+        $item->tax_amount = $subtotal * ($item->tax_rate / 100);
+        $item->total_item_amount = $subtotal + $item->tax_amount - ($item->discount_amount ?? 0);
+
+        return $item;
+    }
+
+    public function calculateTransactionTotals(Transaction $transaction): Transaction
+    {
+        $items = $transaction->items;
+
+        $transaction->subtotal = $items->sum(fn (TransactionItem $i) => $i->quantity * $i->unit_price);
+        $transaction->total_tax = $items->sum('tax_amount');
+        $transaction->total_amount = $items->sum('total_item_amount') - $transaction->total_retentions;
+
+        return $transaction;
+    }
+
+    public function recalculateFromItems(Transaction $transaction): Transaction
+    {
+        $items = $transaction->items;
+
+        foreach ($items as $item) {
+            $this->calculateItemTotals($item);
+            $item->save();
+        }
+
+        $this->calculateTransactionTotals($transaction);
+        $transaction->save();
+
+        return $transaction->fresh(['items']);
+    }
+
+    public function issue(Transaction $transaction): Transaction
+    {
+        if (!$transaction->canIssue()) {
+            throw new \RuntimeException('Solo transacciones en draft pueden emitirse.');
+        }
+
+        $transaction->status = 'issued';
+        $transaction->cufe = 'CUFE-' . strtoupper((string) \Illuminate\Support\Str::uuid());
+        $transaction->save();
+
+        return $transaction;
+    }
+
+    public function cancel(Transaction $transaction): Transaction
+    {
+        if (!$transaction->canCancel()) {
+            throw new \RuntimeException('Solo transacciones emitidas pueden anularse.');
+        }
+
+        $transaction->status = 'cancelled';
+        $transaction->save();
+
+        return $transaction;
+    }
+
+    public function createWithItems(array $transactionData, array $itemsData): Transaction
+    {
+        return DB::transaction(function () use ($transactionData, $itemsData) {
+            $transaction = Transaction::make($transactionData);
+            $transaction->tenant_id = $transactionData['tenant_id'];
+            $transaction->invoice_number = $this->generateInvoiceNumber($transaction);
+            $transaction->save();
+
+            foreach ($itemsData as $itemData) {
+                $itemData['transaction_id'] = $transaction->id;
+                $itemData['tenant_id'] = $transaction->tenant_id;
+                $item = TransactionItem::create($itemData);
+                $this->calculateItemTotals($item);
+                $item->save();
+            }
+
+            return $this->recalculateFromItems($transaction->fresh(['items']));
+        });
+    }
+}
+
+--- app/Services/WorkOrders/WorkOrderService.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Services\WorkOrders;
+
+use App\Http\Requests\WorkOrders\CreateWorkOrderRequest;
+use App\Http\Requests\WorkOrders\UpdateWorkOrderRequest;
+use App\Models\WorkOrder;
+use App\Models\WorkOrderItem;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Str;
+
+final class WorkOrderService
+{
+    public function list(array $filters = [], int $perPage = 25): LengthAwarePaginator
+    {
+        $query = WorkOrder::select(['id', 'code', 'title', 'status', 'priority', 'asset_id', 'contact_id', 'created_at'])
+            ->with(['asset:id,name,code', 'contact:id,name'])
+            ->latest();
+
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        if (!empty($filters['asset_id'])) {
+            $query->where('asset_id', $filters['asset_id']);
+        }
+
+        if (!empty($filters['priority'])) {
+            $query->where('priority', $filters['priority']);
+        }
+
+        if (!empty($filters['search'])) {
+            $query->where(function ($q) use ($filters) {
+                $q->where('title', 'ilike', "%{$filters['search']}%")
+                  ->orWhere('code', 'ilike', "%{$filters['search']}%");
+            });
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    public function create(CreateWorkOrderRequest $request): WorkOrder
+    {
+        $code = $this->generateCode();
+
+        return WorkOrder::create(
+            $request->validated() + ['code' => $code]
+        );
+    }
+
+    public function update(string $id, UpdateWorkOrderRequest $request): WorkOrder
+    {
+        $workOrder = WorkOrder::findOrFail($id);
+        $workOrder->update($request->validated());
+        return $workOrder->fresh();
+    }
+
+    public function delete(string $id): void
+    {
+        WorkOrder::findOrFail($id)->delete();
+    }
+
+    public function addItem(string $workOrderId, array $data): WorkOrderItem
+    {
+        $workOrder = WorkOrder::findOrFail($workOrderId);
+
+        return $workOrder->items()->create($data);
+    }
+
+    public function removeItem(string $workOrderId, string $itemId): void
+    {
+        $workOrder = WorkOrder::findOrFail($workOrderId);
+        $workOrder->items()->findOrFail($itemId)->delete();
+    }
+
+    private function generateCode(): string
+    {
+        $prefix = 'WO-';
+        $last = WorkOrder::withTrashed()
+            ->where('code', 'ilike', "{$prefix}%")
+            ->orderByRaw("CAST(SUBSTRING(code, 4) AS INTEGER) DESC")
+            ->first();
+
+        if ($last) {
+            $num = (int) substr($last->code, 3) + 1;
+        } else {
+            $num = 1;
+        }
+
+        return $prefix . str_pad((string) $num, 4, '0', STR_PAD_LEFT);
+    }
+}
+
+
+=== FILAMENT RESOURCES (ADMIN) ===
+
+--- app/Filament/Resources/AssetResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\AssetResource\Pages\CreateAsset;
+use App\Filament\Resources\AssetResource\Pages\EditAsset;
+use App\Filament\Resources\AssetResource\Pages\ListAssets;
+use App\Models\Asset;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Get;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class AssetResource extends Resource
+{
+    protected static ?string $model = Asset::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Activos');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Gestión');
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->schema([
+                Section::make(__('General'))
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('name')
+                            ->label(__('Nombre'))
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('code')
+                            ->label(__('Código'))
+                            ->maxLength(100),
+                        Select::make('asset_type')
+                            ->label(__('Tipo'))
+                            ->required()
+                            ->options([
+                                'phones'    => __('Celulares'),
+                                'computers' => __('Cómputo'),
+                                'vehicles'  => __('Vehículos'),
+                            ])
+                            ->live()
+                            ->afterStateUpdated(function (string $operation, string $state, $set): void {
+                                $defaults = match ($state) {
+                                    'phones'    => ['marca' => '', 'modelo' => '', 'imei' => '', 'clave_acceso' => '', 'observaciones_fisicas' => ''],
+                                    'computers' => ['marca' => '', 'modelo' => '', 'procesador' => '', 'ram' => '', 'almacenamiento' => ''],
+                                    'vehicles'  => ['marca' => '', 'modelo' => '', 'anio' => '', 'placa' => '', 'color' => '', 'numero_serie' => ''],
+                                    default     => [],
+                                };
+                                $set('metadata', $defaults);
+                            }),
+                        Select::make('status')
+                            ->label(__('Estado'))
+                            ->required()
+                            ->default('active')
+                            ->options([
+                                'active'      => __('Activo'),
+                                'maintenance' => __('En mantenimiento'),
+                                'disposed'    => __('Dado de baja'),
+                            ]),
+                        DatePicker::make('acquired_at')
+                            ->label(__('Fecha de adquisición')),
+                    ]),
+                Section::make(__('Metadatos'))
+                    ->schema([
+                        KeyValue::make('metadata')
+                            ->label(__('Metadatos'))
+                            ->keyLabel(__('Clave'))
+                            ->valueLabel(__('Valor'))
+                            ->addActionLabel(__('Agregar campo')),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('name')
+                    ->label(__('Nombre'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('code')
+                    ->label(__('Código'))
+                    ->searchable(),
+                TextColumn::make('asset_type')
+                    ->label(__('Tipo'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'phones'    => 'info',
+                        'computers' => 'success',
+                        'vehicles'  => 'warning',
+                        default     => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'phones'    => __('Celulares'),
+                        'computers' => __('Cómputo'),
+                        'vehicles'  => __('Vehículos'),
+                        default     => $state,
+                    }),
+                TextColumn::make('status')
+                    ->label(__('Estado'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active'      => 'success',
+                        'maintenance' => 'warning',
+                        'disposed'    => 'danger',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'active'      => __('Activo'),
+                        'maintenance' => __('En mantenimiento'),
+                        'disposed'    => __('Dado de baja'),
+                    }),
+                TextColumn::make('acquired_at')
+                    ->label(__('Adquisición'))
+                    ->date(),
+                TextColumn::make('created_at')
+                    ->label(__('Creado'))
+                    ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('asset_type')
+                    ->label(__('Tipo'))
+                    ->options([
+                        'phones'    => __('Celulares'),
+                        'computers' => __('Cómputo'),
+                        'vehicles'  => __('Vehículos'),
+                    ]),
+                SelectFilter::make('status')
+                    ->label(__('Estado'))
+                    ->options([
+                        'active'      => __('Activo'),
+                        'maintenance' => __('En mantenimiento'),
+                        'disposed'    => __('Dado de baja'),
+                    ]),
+            ])
+            ->actions([
+                EditAction::make()
+                    ->visible(fn (): bool => auth()->user()->can('edit_assets')),
+                DeleteAction::make()
+                    ->visible(fn (): bool => auth()->user()->can('delete_assets')),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => auth()->user()->can('delete_assets')),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => ListAssets::route('/'),
+            'create' => CreateAsset::route('/create'),
+            'edit'   => EditAsset::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->whereNull('deleted_at');
+    }
+}
+
+--- app/Filament/Resources/ContactResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ContactResource\Pages\CreateContact;
+use App\Filament\Resources\ContactResource\Pages\EditContact;
+use App\Filament\Resources\ContactResource\Pages\ListContacts;
+use App\Models\Contact;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class ContactResource extends Resource
+{
+    protected static ?string $model = Contact::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-users';
+
+    protected static ?int $navigationSort = 3;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Contactos');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Gestión');
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->schema([
+                Section::make(__('General'))
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('name')
+                            ->label(__('Nombre'))
+                            ->required()
+                            ->maxLength(255),
+                        Select::make('contact_type')
+                            ->label(__('Tipo'))
+                            ->required()
+                            ->options([
+                                'client'   => __('Cliente'),
+                                'supplier' => __('Proveedor'),
+                                'employee' => __('Empleado'),
+                                'other'    => __('Otro'),
+                            ]),
+                        TextInput::make('email')
+                            ->label(__('Correo electrónico'))
+                            ->email()
+                            ->maxLength(255),
+                        TextInput::make('phone')
+                            ->label(__('Teléfono'))
+                            ->maxLength(40),
+                        TextInput::make('tax_id')
+                            ->label(__('RFC / ID Fiscal'))
+                            ->maxLength(50),
+                    ]),
+                Section::make(__('Dirección'))
+                    ->schema([
+                        Textarea::make('address')
+                            ->label(__('Dirección'))
+                            ->rows(3),
+                    ]),
+                Section::make(__('Metadatos'))
+                    ->schema([
+                        KeyValue::make('metadata')
+                            ->label(__('Metadatos'))
+                            ->keyLabel(__('Clave'))
+                            ->valueLabel(__('Valor')),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('name')
+                    ->label(__('Nombre'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('contact_type')
+                    ->label(__('Tipo'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'client'   => 'info',
+                        'supplier' => 'warning',
+                        'employee' => 'success',
+                        'other'    => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'client'   => __('Cliente'),
+                        'supplier' => __('Proveedor'),
+                        'employee' => __('Empleado'),
+                        'other'    => __('Otro'),
+                    }),
+                TextColumn::make('tax_id')
+                    ->label(__('RFC / ID Fiscal'))
+                    ->searchable(),
+                TextColumn::make('email')
+                    ->label(__('Correo'))
+                    ->searchable(),
+                TextColumn::make('phone')
+                    ->label(__('Teléfono'))
+                    ->searchable(),
+                TextColumn::make('created_at')
+                    ->label(__('Creado'))
+                    ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('contact_type')
+                    ->label(__('Tipo'))
+                    ->options([
+                        'client'   => __('Cliente'),
+                        'supplier' => __('Proveedor'),
+                        'employee' => __('Empleado'),
+                        'other'    => __('Otro'),
+                    ]),
+            ])
+            ->actions([
+                EditAction::make()
+                    ->visible(fn (): bool => auth()->user()->can('edit_contacts')),
+                DeleteAction::make()
+                    ->visible(fn (): bool => auth()->user()->can('delete_contacts')),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => auth()->user()->can('delete_contacts')),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => ListContacts::route('/'),
+            'create' => CreateContact::route('/create'),
+            'edit'   => EditContact::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->whereNull('deleted_at');
+    }
+}
+
+--- app/Filament/Resources/ItemResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\ItemResource\Pages\CreateItem;
+use App\Filament\Resources\ItemResource\Pages\EditItem;
+use App\Filament\Resources\ItemResource\Pages\ListItems;
+use App\Models\Item;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+
+class ItemResource extends Resource
+{
+    protected static ?string $model = Item::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-squares-2x2';
+
+    protected static ?int $navigationSort = 2;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Repuestos/Insumos');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Gestión');
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->schema([
+                Section::make(__('General'))
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('sku')
+                            ->label('SKU')
+                            ->required()
+                            ->maxLength(100),
+                        TextInput::make('name')
+                            ->label(__('Nombre'))
+                            ->required()
+                            ->maxLength(255),
+                        Select::make('item_type')
+                            ->label(__('Tipo'))
+                            ->required()
+                            ->default('product')
+                            ->options([
+                                'spare'        => __('Repuesto'),
+                                'product'      => __('Producto'),
+                                'service'      => __('Servicio'),
+                                'raw_material' => __('Materia prima'),
+                            ]),
+                        Select::make('unit')
+                            ->label(__('Unidad'))
+                            ->required()
+                            ->default('unit')
+                            ->options([
+                                'unit'  => __('Unidad'),
+                                'kg'    => __('Kg'),
+                                'lt'    => __('Litro'),
+                                'm'     => __('Metro'),
+                                'piece' => __('Pieza'),
+                            ]),
+                        TextInput::make('price')
+                            ->label(__('Precio'))
+                            ->numeric()
+                            ->default(0)
+                            ->required(),
+                        TextInput::make('cost')
+                            ->label(__('Costo'))
+                            ->numeric()
+                            ->default(0)
+                            ->required(),
+                        TextInput::make('stock')
+                            ->label(__('Stock'))
+                            ->numeric()
+                            ->integer()
+                            ->default(0)
+                            ->required(),
+                        TextInput::make('min_stock')
+                            ->label(__('Stock mínimo'))
+                            ->numeric()
+                            ->integer()
+                            ->default(0)
+                            ->required(),
+                    ]),
+                Section::make(__('Descripción'))
+                    ->schema([
+                        Textarea::make('description')
+                            ->label(__('Descripción'))
+                            ->rows(3),
+                    ]),
+                Section::make(__('Metadatos'))
+                    ->schema([
+                        KeyValue::make('metadata')
+                            ->label(__('Metadatos'))
+                            ->keyLabel(__('Clave'))
+                            ->valueLabel(__('Valor')),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('sku')
+                    ->label('SKU')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('name')
+                    ->label(__('Nombre'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('item_type')
+                    ->label(__('Tipo'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'spare'        => 'info',
+                        'product'      => 'success',
+                        'service'      => 'warning',
+                        'raw_material' => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'spare'        => __('Repuesto'),
+                        'product'      => __('Producto'),
+                        'service'      => __('Servicio'),
+                        'raw_material' => __('Materia prima'),
+                    }),
+                TextColumn::make('stock')
+                    ->label(__('Stock'))
+                    ->numeric()
+                    ->sortable()
+                    ->color(fn (Item $record): string => $record->stock < $record->min_stock ? 'danger' : 'success'),
+                TextColumn::make('min_stock')
+                    ->label(__('Stock mínimo'))
+                    ->numeric(),
+                TextColumn::make('price')
+                    ->label(__('Precio'))
+                    ->numeric(thousandsSeparator: '.')
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label(__('Creado'))
+                    ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('item_type')
+                    ->label(__('Tipo'))
+                    ->options([
+                        'spare'        => __('Repuesto'),
+                        'product'      => __('Producto'),
+                        'service'      => __('Servicio'),
+                        'raw_material' => __('Materia prima'),
+                    ]),
+                Filter::make('stock_below_min')
+                    ->label(__('Stock bajo mínimo'))
+                    ->query(fn (Builder $query) => $query->whereColumn('stock', '<', 'min_stock')),
+            ])
+            ->actions([
+                EditAction::make()
+                    ->visible(fn (): bool => auth()->user()->can('edit_items')),
+                DeleteAction::make()
+                    ->visible(fn (): bool => auth()->user()->can('delete_items')),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => auth()->user()->can('delete_items')),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => ListItems::route('/'),
+            'create' => CreateItem::route('/create'),
+            'edit'   => EditItem::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->whereNull('deleted_at');
+    }
+}
+
+--- app/Filament/Resources/LocationResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\LocationResource\Pages\CreateLocation;
+use App\Filament\Resources\LocationResource\Pages\EditLocation;
+use App\Filament\Resources\LocationResource\Pages\ListLocations;
+use App\Models\Location;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+
+class LocationResource extends Resource
+{
+    protected static ?string $model = Location::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-map-pin';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Ubicaciones');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Configuración');
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->schema([
+                Section::make('General')
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('name')
+                            ->label('Nombre')
+                            ->required()
+                            ->maxLength(255),
+                        Toggle::make('is_main')
+                            ->label('Sede Principal'),
+                        Textarea::make('address')
+                            ->label('Dirección')
+                            ->rows(3)
+                            ->columnSpanFull(),
+                        Toggle::make('is_active')
+                            ->label('Activo')
+                            ->default(true),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('name')
+                    ->label('Nombre')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('address')
+                    ->label('Dirección')
+                    ->searchable()
+                    ->limit(40),
+                TextColumn::make('is_main')
+                    ->label('Principal')
+                    ->badge()
+                    ->color(fn (bool $state): string => $state ? 'success' : 'gray')
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Principal' : 'No'),
+                TextColumn::make('is_active')
+                    ->label('Activo')
+                    ->badge()
+                    ->color(fn (bool $state): string => $state ? 'success' : 'danger')
+                    ->formatStateUsing(fn (bool $state): string => $state ? 'Sí' : 'No'),
+                TextColumn::make('created_at')
+                    ->label('Creado')
+                    ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->actions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => ListLocations::route('/'),
+            'create' => CreateLocation::route('/create'),
+            'edit'   => EditLocation::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->whereNull('deleted_at');
+    }
+}
+
+--- app/Filament/Resources/TransactionResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\TransactionResource\Pages\CreateTransaction;
+use App\Filament\Resources\TransactionResource\Pages\EditTransaction;
+use App\Filament\Resources\TransactionResource\Pages\ListTransactions;
+use App\Filament\Resources\TransactionResource\RelationManagers\ItemsRelationManager;
+use App\Models\Transaction;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Schema;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class TransactionResource extends Resource
+{
+    protected static ?string $model = Transaction::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-receipt-percent';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Transacciones');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Facturación');
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->schema([
+                Section::make('General')
+                    ->columns(3)
+                    ->schema([
+                        Select::make('type')
+                            ->label('Tipo')
+                            ->required()
+                            ->live()
+                            ->options([
+                                'sale'    => 'Venta',
+                                'purchase' => 'Compra',
+                            ])
+                            ->afterStateUpdated(function (callable $set) {
+                                $set('contact_id', null);
+                            }),
+                        Select::make('contact_id')
+                            ->label('Contacto')
+                            ->required()
+                            ->relationship('contact', 'name')
+                            ->searchable()
+                            ->preload(),
+                        Select::make('status')
+                            ->label('Estado')
+                            ->required()
+                            ->disabled()
+                            ->options([
+                                'draft'     => 'Borrador',
+                                'issued'    => 'Emitida',
+                                'cancelled' => 'Anulada',
+                            ]),
+                    ]),
+                Section::make('Facturación Electrónica')
+                    ->columns(2)
+                    ->visible(fn (callable $get) => $get('type') === 'sale')
+                    ->schema([
+                        TextInput::make('invoice_number')
+                            ->label('N° Factura')
+                            ->required()
+                            ->maxLength(50),
+                        TextInput::make('resolution_number')
+                            ->label('Resolución DIAN')
+                            ->maxLength(50),
+                        TextInput::make('cufe')
+                            ->label('CUFE')
+                            ->maxLength(100),
+                    ]),
+                Section::make('Totales')
+                    ->columns(4)
+                    ->schema([
+                        TextInput::make('subtotal')
+                            ->label('Subtotal')
+                            ->numeric()
+                            ->disabled()
+                            ->default(0),
+                        TextInput::make('total_tax')
+                            ->label('Total IVA')
+                            ->numeric()
+                            ->disabled()
+                            ->default(0),
+                        TextInput::make('total_retentions')
+                            ->label('Retenciones')
+                            ->numeric()
+                            ->default(0),
+                        TextInput::make('total_amount')
+                            ->label('Total Neto')
+                            ->numeric()
+                            ->disabled()
+                            ->default(0),
+                    ]),
+                Section::make('Pago')
+                    ->columns(2)
+                    ->schema([
+                        Select::make('payment_method')
+                            ->label('Método de pago')
+                            ->options([
+                                'cash'     => 'Efectivo',
+                                'transfer' => 'Transferencia',
+                                'card'     => 'Tarjeta',
+                                'check'    => 'Cheque',
+                                'credit'   => 'Crédito',
+                            ]),
+                        Textarea::make('notes')
+                            ->label('Notas')
+                            ->rows(3),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('invoice_number')
+                    ->label('N° Factura')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('type')
+                    ->label('Tipo')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'sale'    => 'info',
+                        'purchase' => 'warning',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'sale'    => 'Venta',
+                        'purchase' => 'Compra',
+                    }),
+                TextColumn::make('contact.name')
+                    ->label('Contacto')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('status')
+                    ->label('Estado')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'draft'     => 'gray',
+                        'issued'    => 'success',
+                        'cancelled' => 'danger',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'draft'     => 'Borrador',
+                        'issued'    => 'Emitida',
+                        'cancelled' => 'Anulada',
+                    }),
+                TextColumn::make('total_amount')
+                    ->label('Total')
+                    ->numeric(thousandsSeparator: '.')
+                    ->sortable(),
+                TextColumn::make('cufe')
+                    ->label('CUFE')
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('created_at')
+                    ->label('Creada')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('type')
+                    ->label('Tipo')
+                    ->options([
+                        'sale'    => 'Venta',
+                        'purchase' => 'Compra',
+                    ]),
+                SelectFilter::make('status')
+                    ->label('Estado')
+                    ->options([
+                        'draft'     => 'Borrador',
+                        'issued'    => 'Emitida',
+                        'cancelled' => 'Anulada',
+                    ]),
+            ])
+            ->actions([
+                EditAction::make()
+                    ->visible(fn (Transaction $record): bool =>
+                        auth()->user()->can('edit_transactions') && $record->canEdit()
+                    ),
+                DeleteAction::make()
+                    ->visible(fn (Transaction $record): bool =>
+                        auth()->user()->can('delete_transactions') && $record->canEdit()
+                    ),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => auth()->user()->can('delete_transactions')),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            ItemsRelationManager::class,
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => ListTransactions::route('/'),
+            'create' => CreateTransaction::route('/create'),
+            'edit'   => EditTransaction::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->whereNull('deleted_at');
+    }
+}
+
+--- app/Filament/Resources/WorkOrderResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\WorkOrderResource\Pages\CreateWorkOrder;
+use App\Filament\Resources\WorkOrderResource\Pages\EditWorkOrder;
+use App\Filament\Resources\WorkOrderResource\Pages\ListWorkOrders;
+use App\Filament\Resources\WorkOrderResource\RelationManagers\ItemsRelationManager;
+use App\Models\Item;
+use App\Models\WorkOrder;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Repeater;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Text;
+use Filament\Schemas\Schema;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class WorkOrderResource extends Resource
+{
+    protected static ?string $model = WorkOrder::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-wrench-screwdriver';
+
+    protected static ?int $navigationSort = 4;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Órdenes de Trabajo');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Gestión');
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->columns(3)
+            ->schema([
+                Section::make(__('Asociación'))
+                    ->columnSpan(2)
+                    ->columns(2)
+                    ->schema([
+                        Select::make('contact_id')
+                            ->label(__('Cliente'))
+                            ->relationship('contact', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                TextInput::make('name')
+                                    ->label(__('Nombre'))
+                                    ->required()
+                                    ->maxLength(255),
+                                TextInput::make('phone')
+                                    ->label(__('Teléfono'))
+                                    ->tel(),
+                                TextInput::make('tax_id')
+                                    ->label(__('Documento / NIT')),
+                                Select::make('contact_type')
+                                    ->label(__('Tipo'))
+                                    ->required()
+                                    ->default('client')
+                                    ->options(['client' => __('Cliente')])
+                                    ->selectablePlaceholder(false),
+                            ]),
+                        Select::make('asset_id')
+                            ->label(__('Dispositivo / Recurso'))
+                            ->relationship('asset', 'name')
+                            ->searchable()
+                            ->preload()
+                            ->createOptionForm([
+                                TextInput::make('name')
+                                    ->label(__('Nombre / Placa'))
+                                    ->required()
+                                    ->maxLength(255),
+                                Select::make('asset_type')
+                                    ->label(__('Tipo'))
+                                    ->required()
+                                    ->default('vehicles')
+                                    ->options([
+                                        'phones'    => __('Celulares'),
+                                        'computers' => __('Cómputo'),
+                                        'vehicles'  => __('Vehículos'),
+                                    ]),
+                                TextInput::make('metadata.marca')
+                                    ->label(__('Marca')),
+                                TextInput::make('metadata.modelo')
+                                    ->label(__('Modelo')),
+                            ]),
+                    ]),
+                Section::make(__('Control'))
+                    ->columnSpan(1)
+                    ->schema([
+                        Select::make('status')
+                            ->label(__('Estado'))
+                            ->required()
+                            ->default('pending')
+                            ->options([
+                                'pending'     => __('Pendiente'),
+                                'in_progress' => __('En progreso'),
+                                'completed'   => __('Completada'),
+                                'cancelled'   => __('Cancelada'),
+                            ]),
+                        Select::make('priority')
+                            ->label(__('Prioridad'))
+                            ->required()
+                            ->default('medium')
+                            ->options([
+                                'low'    => __('Baja'),
+                                'medium' => __('Media'),
+                                'high'   => __('Alta'),
+                            ]),
+                    ]),
+                Section::make(__('Problema'))
+                    ->columnSpan(2)
+                    ->schema([
+                        TextInput::make('title')
+                            ->label(__('Título'))
+                            ->required()
+                            ->maxLength(255),
+                        Textarea::make('description')
+                            ->label(__('Descripción'))
+                            ->rows(4),
+                    ]),
+                Section::make(__('Fechas'))
+                    ->columnSpan(1)
+                    ->schema([
+                        DatePicker::make('started_at')
+                            ->label(__('Fecha programada')),
+                        DatePicker::make('completed_at')
+                            ->label(__('Fecha de finalización')),
+                    ]),
+                Section::make(__('Insumos / Repuestos'))
+                    ->columnSpan(2)
+                    ->description(__('Agregue los repuestos o servicios consumidos en esta orden. Seleccione el item y el precio se sugerirá automáticamente.'))
+                    ->schema([
+                        Repeater::make('items')
+                            ->relationship('items')
+                            ->schema([
+                                Select::make('item_id')
+                                    ->label(__('Insumo / Repuesto'))
+                                    ->placeholder(__('Buscar repuesto o servicio...'))
+                                    ->searchable()
+                                    ->required()
+                                    ->live()
+                                    ->columnSpan(4)
+                                    ->getSearchResultsUsing(function (string $search): array {
+                                        return Item::query()
+                                            ->tenant()
+                                            ->where(function ($q) use ($search): void {
+                                                $q->where('name', 'ilike', "%{$search}%")
+                                                  ->orWhere('sku', 'ilike', "%{$search}%");
+                                            })
+                                            ->limit(15)
+                                            ->pluck('name', 'id')
+                                            ->toArray();
+                                    })
+                                    ->getOptionLabelUsing(function ($value): string {
+                                        return Item::query()
+                                            ->tenant()
+                                            ->where('id', $value)
+                                            ->value('name') ?? __('(sin nombre)');
+                                    })
+                                    ->afterStateUpdated(function ($state, $set, $get): void {
+                                        if (!$state) {
+                                            return;
+                                        }
+                                        $item = Item::find($state);
+                                        if ($item && ($item->price ?? 0) > 0) {
+                                            $set('unit_price', $item->price);
+                                        }
+                                        $qty = (float) ($get('quantity') ?? 1);
+                                        $price = (float) ($get('unit_price') ?? 0);
+                                        $set('subtotal', round($qty * $price, 2));
+                                    }),
+                                TextInput::make('quantity')
+                                    ->label(__('Cant.'))
+                                    ->numeric()
+                                    ->step(0.01)
+                                    ->default(1)
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->columnSpan(1)
+                                    ->extraInputAttributes(['class' => 'text-center'])
+                                    ->rules(function (callable $get): array {
+                                        $itemId = $get('item_id');
+                                        if (!$itemId) {
+                                            return [];
+                                        }
+                                        $item = \App\Models\Item::query()
+                                            ->tenant()
+                                            ->find($itemId);
+                                        if (!$item || $item->item_type !== 'product' || $item->stock === null) {
+                                            return [];
+                                        }
+                                        return [
+                                            function (string $attribute, mixed $value, \Closure $fail) use ($item): void {
+                                                if ((float) $value > (float) $item->stock) {
+                                                    $fail(__('Stock insuficiente. Solo quedan :stock unidades disponibles.', ['stock' => $item->stock]));
+                                                }
+                                            },
+                                        ];
+                                    })
+                                    ->afterStateUpdated(function ($state, $set, $get): void {
+                                        $price = (float) ($get('unit_price') ?? 0);
+                                        $qty = (float) ($state ?? 1);
+                                        $set('subtotal', round($qty * $price, 2));
+                                    }),
+                                TextInput::make('unit_price')
+                                    ->label(__('Precio'))
+                                    ->numeric()
+                                    ->default(0)
+                                    ->required()
+                                    ->live(onBlur: true)
+                                    ->prefix('$')
+                                    ->columnSpan(2)
+                                    ->extraAttributes(['class' => 'font-mono'])
+                                    ->afterStateUpdated(function ($state, $set, $get): void {
+                                        $qty = (float) ($get('quantity') ?? 1);
+                                        $price = (float) ($state ?? 0);
+                                        $set('subtotal', round($qty * $price, 2));
+                                    }),
+                                TextInput::make('subtotal')
+                                    ->label(__('Subtotal'))
+                                    ->disabled()
+                                    ->dehydrated(false)
+                                    ->numeric()
+                                    ->prefix('$')
+                                    ->columnSpan(2)
+                                    ->extraAttributes(['class' => 'font-mono bg-gray-50 dark:bg-gray-800']),
+                                TextInput::make('description')
+                                    ->label(__('Nota (opcional)'))
+                                    ->placeholder(__('Ej: Pantalla original, incluye flex'))
+                                    ->columnSpan(1)
+                                    ->extraAttributes(['class' => 'text-sm text-gray-500']),
+                            ])
+                            ->columns(5)
+                            ->addActionLabel(__('Agregar insumo'))
+                            ->defaultItems(0)
+                            ->collapsible()
+                            ->collapsed(false),
+                    ]),
+                Section::make(__('Inspección de Ingreso'))
+                    ->columnSpan(1)
+                    ->columns(1)
+                    ->schema([
+                        TextInput::make('metadata.kilometraje')
+                            ->label(__('Kilometraje / Horas de uso'))
+                            ->placeholder(__('Ej: 45000 km / 1200 h')),
+                        TextInput::make('metadata.nivel_bateria')
+                            ->label(__('Nivel de fluido / batería'))
+                            ->placeholder(__('Ej: 12.4V / OK')),
+                        Textarea::make('metadata.notas_esteticas')
+                            ->label(__('Notas de estado estético'))
+                            ->placeholder(__('Rayones, abolladuras, estado de llantas...'))
+                            ->rows(3),
+                    ]),
+                Section::make(__('Resumen financiero'))
+                    ->columnSpan(2)
+                    ->schema([
+                        Text::make(function (callable $get): string {
+                            $items = $get('items') ?? [];
+                            $total = 0;
+                            foreach ($items as $item) {
+                                $total += (float) ($item['quantity'] ?? 0) * (float) ($item['unit_price'] ?? 0);
+                            }
+                            return __('Total:') . ' $ ' . number_format($total, 2, ',', '.');
+                        })
+                            ->extraAttributes(['class' => 'font-mono text-lg font-bold']),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('code')
+                    ->label(__('Código'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('title')
+                    ->label(__('Título'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('asset.name')
+                    ->label(__('Activo'))
+                    ->searchable(),
+                TextColumn::make('status')
+                    ->label(__('Estado'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending'     => 'gray',
+                        'in_progress' => 'warning',
+                        'completed'   => 'success',
+                        'cancelled'   => 'danger',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'pending'     => __('Pendiente'),
+                        'in_progress' => __('En progreso'),
+                        'completed'   => __('Completada'),
+                        'cancelled'   => __('Cancelada'),
+                    }),
+                TextColumn::make('priority')
+                    ->label(__('Prioridad'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'low'    => 'info',
+                        'medium' => 'warning',
+                        'high'   => 'danger',
+                    }),
+                TextColumn::make('started_at')
+                    ->label(__('Programada'))
+                    ->date()
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->label(__('Creada'))
+                    ->dateTime()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                SelectFilter::make('status')
+                    ->label(__('Estado'))
+                    ->options([
+                        'pending'     => __('Pendiente'),
+                        'in_progress' => __('En progreso'),
+                        'completed'   => __('Completada'),
+                        'cancelled'   => __('Cancelada'),
+                    ]),
+                SelectFilter::make('priority')
+                    ->label(__('Prioridad'))
+                    ->options([
+                        'low'    => __('Baja'),
+                        'medium' => __('Media'),
+                        'high'   => __('Alta'),
+                    ]),
+            ])
+            ->actions([
+                EditAction::make()
+                    ->visible(fn (): bool => auth()->user()->can('edit_work_orders')),
+                DeleteAction::make()
+                    ->visible(fn (): bool => auth()->user()->can('delete_work_orders')),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => auth()->user()->can('delete_work_orders')),
+                ]),
+            ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            ItemsRelationManager::class,
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => ListWorkOrders::route('/'),
+            'create' => CreateWorkOrder::route('/create'),
+            'edit'   => EditWorkOrder::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()->whereNull('deleted_at');
+    }
+}
+
+
+=== FILAMENT RESOURCES (SUPERADMIN) ===
+
+--- app/Filament/Superadmin/Resources/GlobalAssetResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Superadmin\Resources;
+
+use App\Filament\Superadmin\Resources\GlobalAssetResource\Pages\ListGlobalAssets;
+use App\Models\Asset;
+use Filament\Resources\Resource;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class GlobalAssetResource extends Resource
+{
+    protected static ?string $model = Asset::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
+
+    protected static ?int $navigationSort = 2;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Activos Globales');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Plataforma');
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('tenant.name')
+                    ->label(__('Taller'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('name')
+                    ->label(__('Nombre'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('code')
+                    ->label(__('Código'))
+                    ->searchable(),
+                TextColumn::make('asset_type')
+                    ->label(__('Tipo'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'phones'    => 'info',
+                        'computers' => 'success',
+                        'vehicles'  => 'warning',
+                        default     => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => __(match ($state) {
+                        'phones'    => 'Celulares',
+                        'computers' => 'Cómputo',
+                        'vehicles'  => 'Vehículos',
+                        default     => $state,
+                    })),
+                TextColumn::make('status')
+                    ->label(__('Estado'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active'      => 'success',
+                        'maintenance' => 'warning',
+                        'disposed'    => 'danger',
+                        default       => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => __(match ($state) {
+                        'active'      => 'Activo',
+                        'maintenance' => 'En mantenimiento',
+                        'disposed'    => 'Dado de baja',
+                        default       => $state,
+                    })),
+                TextColumn::make('created_at')
+                    ->label(__('Registrado'))
+                    ->dateTime()
+                    ->sortable(),
+            ])
+            ->filters([
+                SelectFilter::make('asset_type')
+                    ->label(__('Tipo'))
+                    ->options([
+                        'phones'    => __('Celulares'),
+                        'computers' => __('Cómputo'),
+                        'vehicles'  => __('Vehículos'),
+                    ]),
+                SelectFilter::make('status')
+                    ->label(__('Estado'))
+                    ->options([
+                        'active'      => __('Activo'),
+                        'maintenance' => __('En mantenimiento'),
+                        'disposed'    => __('Dado de baja'),
+                    ]),
+            ])
+            ->actions([])
+            ->bulkActions([]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListGlobalAssets::route('/'),
+        ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScope('tenant')
+            ->whereNull('deleted_at')
+            ->with('tenant');
+    }
+}
+
+--- app/Filament/Superadmin/Resources/GlobalWorkOrderResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Superadmin\Resources;
+
+use App\Filament\Superadmin\Resources\GlobalWorkOrderResource\Pages\ListGlobalWorkOrders;
+use App\Models\WorkOrder;
+use Filament\Resources\Resource;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+
+class GlobalWorkOrderResource extends Resource
+{
+    protected static ?string $model = WorkOrder::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-wrench-screwdriver';
+
+    protected static ?int $navigationSort = 3;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Órdenes Globales');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Plataforma');
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('tenant.name')
+                    ->label(__('Taller'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('code')
+                    ->label(__('Código'))
+                    ->searchable(),
+                TextColumn::make('title')
+                    ->label(__('Título'))
+                    ->searchable()
+                    ->sortable()
+                    ->limit(40),
+                TextColumn::make('status')
+                    ->label(__('Estado'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'open'        => 'info',
+                        'in_progress' => 'warning',
+                        'completed'   => 'success',
+                        'cancelled'   => 'danger',
+                        default       => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => __(match ($state) {
+                        'open'        => 'Abierta',
+                        'in_progress' => 'En progreso',
+                        'completed'   => 'Completada',
+                        'cancelled'   => 'Cancelada',
+                        default       => $state,
+                    })),
+                TextColumn::make('priority')
+                    ->label(__('Prioridad'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'low'    => 'info',
+                        'medium' => 'warning',
+                        'high'   => 'danger',
+                        default  => 'gray',
+                    }),
+                TextColumn::make('contact.name')
+                    ->label(__('Cliente'))
+                    ->searchable(),
+                TextColumn::make('asset.name')
+                    ->label(__('Activo'))
+                    ->searchable(),
+                TextColumn::make('created_at')
+                    ->label(__('Creado'))
+                    ->dateTime()
+                    ->sortable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([])
+            ->bulkActions([]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListGlobalWorkOrders::route('/'),
+        ];
+    }
+
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->withoutGlobalScope('tenant')
+            ->whereNull('deleted_at')
+            ->with(['tenant', 'contact', 'asset']);
+    }
+}
+
+--- app/Filament/Superadmin/Resources/TenantResource.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Superadmin\Resources;
+
+use App\Filament\Superadmin\Resources\TenantResource\Pages\CreateTenant;
+use App\Filament\Superadmin\Resources\TenantResource\Pages\EditTenant;
+use App\Filament\Superadmin\Resources\TenantResource\Pages\ListTenants;
+use App\Models\Tenant;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
+use Filament\Tables\Table;
+
+class TenantResource extends Resource
+{
+    protected static ?string $model = Tenant::class;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-building-storefront';
+
+    protected static ?int $navigationSort = 1;
+
+    public static function getNavigationLabel(): string
+    {
+        return __('Talleres');
+    }
+
+    public static function getNavigationGroup(): ?string
+    {
+        return __('Plataforma');
+    }
+
+    public static function form(Schema $schema): Schema
+    {
+        return $schema
+            ->schema([
+                Section::make(__('Información General'))
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('name')
+                            ->label(__('Nombre'))
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('slug')
+                            ->label(__('Slug'))
+                            ->required()
+                            ->maxLength(255)
+                            ->unique(ignoreRecord: true)
+                            ->rules(['alpha_dash']),
+                        Select::make('plan')
+                            ->label(__('Plan'))
+                            ->required()
+                            ->default('basic')
+                            ->options([
+                                'basic'       => __('Basic'),
+                                'premium'     => __('Premium'),
+                                'enterprise'  => __('Enterprise'),
+                            ]),
+                        Toggle::make('is_active')
+                            ->label(__('Activo'))
+                            ->default(true),
+                    ]),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('name')
+                    ->label(__('Nombre'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('slug')
+                    ->label(__('Slug'))
+                    ->searchable()
+                    ->copyable(),
+                TextColumn::make('plan')
+                    ->label(__('Plan'))
+                    ->badge(),
+                IconColumn::make('is_active')
+                    ->label(__('Activo'))
+                    ->boolean(),
+                TextColumn::make('created_at')
+                    ->label(__('Registrado'))
+                    ->dateTime()
+                    ->sortable(),
+            ])
+            ->filters([
+                SelectFilter::make('plan')
+                    ->label(__('Plan'))
+                    ->options([
+                        'basic'      => __('Basic'),
+                        'premium'    => __('Premium'),
+                        'enterprise' => __('Enterprise'),
+                    ]),
+                SelectFilter::make('is_active')
+                    ->label(__('Estado'))
+                    ->options([
+                        '1' => __('Activo'),
+                        '0' => __('Inactivo'),
+                    ]),
+            ])
+            ->actions([
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
+            ->bulkActions([
+                BulkActionGroup::make([
+                    DeleteBulkAction::make(),
+                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index'  => ListTenants::route('/'),
+            'create' => CreateTenant::route('/create'),
+            'edit'   => EditTenant::route('/{record}/edit'),
+        ];
+    }
+}
+
+
+=== FILAMENT WIDGETS ===
+
+--- app/Filament/Widgets/DemoStatsOverview.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Widgets;
+
+use App\Models\Asset;
+use App\Models\Contact;
+use App\Models\Item;
+use App\Models\WorkOrder;
+use App\Filament\Resources\AssetResource;
+use App\Filament\Resources\ContactResource;
+use App\Filament\Resources\ItemResource;
+use App\Filament\Resources\WorkOrderResource;
+use Filament\Widgets\StatsOverviewWidget as BaseWidget;
+use Filament\Widgets\StatsOverviewWidget\Stat;
+
+class DemoStatsOverview extends BaseWidget
+{
+    protected static ?int $sort = 1;
+
+    protected function getStats(): array
+    {
+        return [
+            Stat::make(__('Activos'), Asset::count())
+                ->icon('heroicon-o-cube')
+                ->description(__('Total de activos del taller'))
+                ->descriptionIcon('heroicon-m-arrow-trending-up')
+                ->chart([7, 5, 8, 6, 9, 10])
+                ->color('info')
+                ->url(AssetResource::getUrl('index')),
+
+            Stat::make(__('Repuestos/Insumos'), Item::count())
+                ->icon('heroicon-o-squares-2x2')
+                ->description(Item::whereColumn('stock', '<', 'min_stock')->count() . ' ' . __('con stock bajo'))
+                ->descriptionIcon('heroicon-m-exclamation-triangle')
+                ->chart([20, 18, 22, 21, 25])
+                ->color('warning')
+                ->url(ItemResource::getUrl('index')),
+
+            Stat::make(__('Contactos'), Contact::count())
+                ->icon('heroicon-o-users')
+                ->description(Contact::where('contact_type', 'client')->count() . ' ' . __('clientes'))
+                ->descriptionIcon('heroicon-m-user-group')
+                ->chart([10, 12, 11, 14, 15])
+                ->color('success')
+                ->url(ContactResource::getUrl('index')),
+
+            Stat::make(__('Órdenes de Trabajo'), WorkOrder::count())
+                ->icon('heroicon-o-wrench')
+                ->description(
+                    WorkOrder::where('status', 'completed')->count() . ' ' . __('completadas') . ' / '
+                    . WorkOrder::where('status', 'in_progress')->count() . ' ' . __('en progreso')
+                )
+                ->descriptionIcon('heroicon-m-clock')
+                ->chart([15, 12, 18, 14, 20])
+                ->color('primary')
+                ->url(WorkOrderResource::getUrl('index')),
+
+            Stat::make(__('Stock Bajo'), Item::whereColumn('stock', '<', 'min_stock')->count())
+                ->icon('heroicon-o-exclamation-circle')
+                ->description(__('Items por debajo del stock mínimo'))
+                ->descriptionIcon('heroicon-m-arrow-trending-down')
+                ->color('danger')
+                ->url(ItemResource::getUrl('index')),
+        ];
+    }
+}
+
+--- app/Filament/Widgets/LatestWorkOrdersTable.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Widgets;
+
+use App\Models\WorkOrder;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Filament\Widgets\TableWidget as BaseTableWidget;
+
+class LatestWorkOrdersTable extends BaseTableWidget
+{
+    protected static ?int $sort = 3;
+
+    protected function makeTable(): Table
+    {
+        return parent::makeTable()
+            ->heading(__('Últimas Órdenes de Trabajo'))
+            ->query(
+                WorkOrder::query()
+                    ->select(['id', 'code', 'title', 'asset_id', 'status', 'priority', 'created_at'])
+                    ->with('asset:id,name')
+                    ->latest()
+                    ->limit(5)
+            )
+            ->columns([
+                TextColumn::make('code')
+                    ->label(__('Código'))
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('title')
+                    ->label(__('Título'))
+                    ->limit(30)
+                    ->searchable(),
+                TextColumn::make('asset.name')
+                    ->label(__('Activo'))
+                    ->searchable(),
+                TextColumn::make('status')
+                    ->label(__('Estado'))
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending'     => 'gray',
+                        'draft'       => 'gray',
+                        'in_progress' => 'warning',
+                        'completed'   => 'success',
+                        'cancelled'   => 'danger',
+                        default       => 'gray',
+                    })
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'pending'     => __('Pendiente'),
+                        'draft'       => __('Borrador'),
+                        'in_progress' => __('En Progreso'),
+                        'completed'   => __('Completada'),
+                        'cancelled'   => __('Cancelada'),
+                        default       => $state,
+                    }),
+                TextColumn::make('created_at')
+                    ->label(__('Creada'))
+                    ->dateTime(),
+            ]);
+    }
+}
+
+--- app/Filament/Widgets/WorkOrderStatusChart.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Widgets;
+
+use App\Models\WorkOrder;
+use Filament\Widgets\BarChartWidget;
+use Illuminate\Support\Facades\DB;
+
+class WorkOrderStatusChart extends BarChartWidget
+{
+    protected static ?int $sort = 2;
+
+    public function getHeading(): ?string
+    {
+        return __('Órdenes por Estado');
+    }
+
+    protected function getData(): array
+    {
+        $statuses = WorkOrder::select('status', DB::raw('count(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status')
+            ->toArray();
+
+        $labels = [
+            'draft'       => __('Borrador'),
+            'in_progress' => __('En Progreso'),
+            'completed'   => __('Completadas'),
+            'cancelled'   => __('Canceladas'),
+        ];
+
+        $data = [];
+        $colors = ['#6b7280', '#eab308', '#22c55e', '#ef4444'];
+
+        foreach (array_keys($labels) as $status) {
+            $data[] = $statuses[$status] ?? 0;
+        }
+
+        return [
+            'datasets' => [
+                [
+                    'label' => __('Órdenes de Trabajo'),
+                    'data' => $data,
+                    'backgroundColor' => $colors,
+                    'borderColor' => $colors,
+                    'borderWidth' => 1,
+                ],
+            ],
+            'labels' => array_values($labels),
+        ];
+    }
+}
+
+
+=== COMANDOS ARTISAN ===
+
+--- app/Console/Commands/CreateTenantAdminCommand.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TenantManager;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+
+class CreateTenantAdminCommand extends Command
+{
+    protected $signature = 'jaosoft:create-tenant-admin';
+    protected $description = 'Create a tenant with its admin user (transactional)';
+
+    public function handle(TenantManager $tenantManager): int
+    {
+        $companyName = $this->ask('Nombre de la Empresa/Taller');
+        $slug = $this->ask('Slug del Tenant');
+        $adminName = $this->ask('Nombre del Administrador');
+        $adminEmail = $this->ask('Email del Administrador');
+        $password = $this->secret('Contraseña');
+
+        if (Tenant::where('slug', $slug)->exists()) {
+            $this->error("Ya existe un tenant con el slug {$slug}.");
+            return Command::FAILURE;
+        }
+
+        if (User::where('email', $adminEmail)->exists()) {
+            $this->error("Ya existe un usuario con el email {$adminEmail}.");
+            return Command::FAILURE;
+        }
+
+        DB::beginTransaction();
+
+        try {
+            $tenant = Tenant::create([
+                'name'      => $companyName,
+                'slug'      => $slug,
+                'plan'      => 'basic',
+                'is_active' => true,
+                'settings'  => '{}',
+            ]);
+
+            $tenantManager->setTenantContext($tenant->id);
+
+            $user = User::create([
+                'name'     => $adminName,
+                'email'    => $adminEmail,
+                'password' => Hash::make($password),
+            ]);
+
+            $this->callSilent(RolePermissionSeeder::class);
+
+            $user->assignRole('owner');
+
+            $tenantManager->clearTenantContext();
+
+            DB::commit();
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            $this->error("Error: {$e->getMessage()}");
+            return Command::FAILURE;
+        }
+
+        $this->info("Tenant '{$companyName}' creado con admin {$adminEmail}.");
+
+        return Command::SUCCESS;
+    }
+}
+
+--- app/Console/Commands/CreateTenantCommand.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Models\Tenant;
+use App\Models\User;
+use App\Services\TenantManager;
+use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Hash;
+
+class CreateTenantCommand extends Command
+{
+    protected $signature = 'tenant:create {name : Tenant name} {slug : Tenant slug} {email? : Admin email}';
+    protected $description = 'Create a new tenant with admin user and base roles/permissions';
+
+    public function handle(TenantManager $tenantManager): int
+    {
+        $name = $this->argument('name');
+        $slug = $this->argument('slug');
+        $email = $this->argument('email') ?? "admin@{$slug}.test";
+
+        $tenant = Tenant::create([
+            'name' => $name,
+            'slug' => $slug,
+            'plan' => 'basic',
+            'is_active' => true,
+            'settings' => '{}',
+        ]);
+
+        $this->info("Tenant created: {$tenant->id}");
+
+        $tenantManager->setTenantContext($tenant->id);
+
+        $user = User::create([
+            'name' => $name . ' Admin',
+            'email' => $email,
+            'password' => Hash::make('secret123'),
+        ]);
+
+        $this->info("Admin user created: {$user->email} / secret123");
+
+        $this->callSilent(RolePermissionSeeder::class);
+
+        $user->assignRole('owner');
+
+        $this->info('Base roles and permissions seeded.');
+
+        $tenantManager->clearTenantContext();
+
+        $this->info('Done.');
+
+        return Command::SUCCESS;
+    }
+}
+
+--- app/Console/Commands/MakeSuperadminCommand.php ---
+<?php
+
+declare(strict_types=1);
+
+namespace App\Console\Commands;
+
+use App\Models\User;
+use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Hash;
+
+class MakeSuperadminCommand extends Command
+{
+    protected $signature = 'jaosoft:make-superadmin';
+    protected $description = 'Create a global superadmin user (tenant_id=null, is_superadmin=true)';
+
+    public function handle(): int
+    {
+        $name = $this->ask('Nombre del superadmin');
+        $email = $this->ask('Email del superadmin');
+        $password = $this->secret('Contraseña');
+
+        if (User::where('email', $email)->exists()) {
+            $this->error("Ya existe un usuario con el email {$email}.");
+            return Command::FAILURE;
+        }
+
+        $user = User::create([
+            'name'          => $name,
+            'email'         => $email,
+            'password'      => Hash::make($password),
+            'is_superadmin' => true,
+            'tenant_id'     => null,
+        ]);
+
+        $this->info("Superadmin creado: {$user->email}");
+
+        return Command::SUCCESS;
+    }
+}
+
+
+=== DOCS (solo PROJECT_STATE) ===
+# PROJECT STATE — ProyectDashboard
+
+> Stack: Laravel 13 · PHP 8.5 · PostgreSQL 18 · Filament 5 · RLS Nativo
+> Última actualización: 2026-05-28
+
+---
+
+## 1. Resumen Ejecutivo
+
+SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 18 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` + trait `BelongsToTenant` con global scope.
+
+**Fase actual:** Panel admin (`/admin/{slug}`) con 6 Resources + Dashboard widgets; panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy (`jaosoft:make-superadmin`, `jaosoft:create-tenant-admin`). 60 tests pasando, 165 assertions.
+
+---
+
+## 2. Estado Actual
+
+### Migraciones ejecutadas (18/18)
+
+| Orden | Archivo | Tabla | RLS |
+|---|---|---|---|---|---|---|---|
+| 1 | `0000_00_00_000001_create_current_tenant_id_function` | Función PG | — |
+| 2 | `0000_00_00_000002_create_tenants_table` | `tenants` | Sin RLS (raíz) |
+| 3 | `0001_01_01_000000_create_users_table` | `users` | 4 políticas (SELECT con permiso login sin contexto) |
+| 4 | `0001_01_01_000001_create_cache_table` | `cache` | — |
+| 5 | `0001_01_01_000002_create_jobs_table` | `jobs` | — |
+| 6 | `2026_05_25_031519_create_assets_table` | `assets` | 4 políticas |
+| 7 | `2026_05_25_031520_create_items_table` | `items` | 4 políticas |
+| 8 | `2026_05_25_031521_create_contacts_table` | `contacts` | 4 políticas |
+| 9 | `2026_05_25_192256_create_work_orders_table` | `work_orders` | 4 políticas |
+| 10 | (misma que 9) | `work_order_items` | 4 políticas |
+| 11 | `2026_05_26_160000_create_permission_tables` | `roles` | 4 políticas |
+| 11 | (misma que 11) | `permissions` | 4 políticas |
+| 11 | (misma que 11) | `model_has_roles` | 4 políticas |
+| 11 | (misma que 11) | `model_has_permissions` | 4 políticas |
+| 11 | (misma que 11) | `role_has_permissions` | 4 políticas |
+| 12 | `2026_05_27_000001_create_transactions_table` | `transactions` | 4 políticas |
+| 12 | (misma que 12) | `transaction_items` | 4 políticas |
+| 13 | `2026_05_28_000001_create_modules_catalog_table` | `modules_catalog` | Sin RLS (catálogo global) |
+| 14 | `2026_05_28_000002_create_categories_table` | `categories` | 4 políticas |
+| 15 | `2026_05_28_000003_create_locations_table` | `locations` | 4 políticas |
+| 16 | `2026_05_28_000004_create_tenant_modules_table` | `tenant_modules` | 4 políticas |
+| 17 | `2026_05_28_000005_add_is_superadmin_to_users_table` | `users` (add col) | `is_superadmin boolean NOT NULL DEFAULT false` |
+| 18 | `2026_05_28_032815_alter_users_table_make_tenant_id_nullable` | `users` (alter) | `ALTER COLUMN tenant_id DROP NOT NULL` (soporte superadmin global) |
+
+### Modelos (17 + trait)
+
+| Modelo | Extiende | UUID PK | BelongsToTenant | SoftDeletes | Notas |
+|---|---|---|---|---|---|---|---|---|
+| `Tenant` | `Model` | ✅ HasUuids | ❌ (raíz) | ❌ | Slug usado como route key en Filament |
+| `User` | `Authenticatable` | ✅ HasUuids + $incrementing=false + $keyType=string | ✅ trait (con excepción: salta si is_superadmin=true) | ✅ | Implementa `Filament\Models\Contracts\HasTenants` |
+| `Asset` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `Item` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `Contact` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `WorkOrder` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `WorkOrderItem` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `Transaction` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `TransactionItem` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `Role` | `Spatie\Permission\Models\Role` | ✅ HasUuids + $incrementing=false + $keyType=string | ✅ trait | ❌ | |
+| `Permission` | `Spatie\Permission\Models\Permission` | ✅ HasUuids + $incrementing=false + $keyType=string | ✅ trait | ❌ | |
+| `Location` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `Category` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `TenantModule` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `ModuleCatalog` | `Model` | ✅ HasUuids | ❌ (global) | ❌ | |
+| `TenantModel` | `Model` | Abstracto base | — | — | |
+| (trait) `BelongsToTenant` | — | — | Global scope + creating event | — | Modificado: salta excepción si `is_superadmin=true` |
+
+**Nota crítica:** `User`, `Role` y `Permission` requieren `$incrementing = false`, `$keyType = 'string'` y `HasUuids` para que Spatie's eager loading funcione (usa `whereIntegerInRaw` que falla con UUIDs si $incrementing es true).
+
+### Factories (9)
+
+| Factory | Modelo |
+|---|---|
+| `TenantFactory` | Tenant |
+| `UserFactory` | User |
+| `AssetFactory` | Asset |
+| `ContactFactory` | Contact |
+| `ItemFactory` | Item |
+| `WorkOrderFactory` | WorkOrder |
+| `WorkOrderItemFactory` | WorkOrderItem |
+| `TransactionFactory` | Transaction (states: sale/purchase/draft/issued/cancelled) |
+| `TransactionItemFactory` | TransactionItem |
+
+### Middleware + Servicios
+
+| Componente | Ruta | Propósito |
+|---|---|---|---|
+| `SetTenantContext` | `app/Http/Middleware/` | Inyecta tenant_id en PG por request (registrado en web + Filament middleware stack). Retorna 403 si tenant_id está vacío (bloquea superadmins en /admin) |
+| `EnsureIsSuperAdmin` | `app/Http/Middleware/` | Middleware del panel superadmin: retorna 403 si `auth()->user()->is_superadmin !== true` |
+| `TenantManager` | `app/Services/` | Singleton, puente PHP ↔ PostgreSQL |
+| `BelongsToTenant` | `app/Models/Concerns/` | Trait con global scope + creating event. Modificado para omitir exception si `is_superadmin=true` |
+| `current_tenant_id()` | BD (función PG) | Firewall que valida UUID y lanza error si falta contexto |
+| `WorkOrderService` | `app/Services/WorkOrders/` | CRUD + generación de códigos WO-XXXX |
+| `TransactionService` | `app/Services/Transactions/` | Generación secuencial de facturas (contador atómico en tenants.settings), cálculo de IVA/totales, emitir/anular transacciones |
+| `RegisterService` | `app/Services/Auth/` | Registro + creación tenant + defaults automáticos (location, categories, items, contacts, módulos) por industria |
+
+### Rutas Web
+
+| Ruta | Método | Controlador | Propósito |
+|---|---|---|---|
+| `/register` | GET/POST | `RegisterController` | Registro público con industria + defaults |
+| `/forgot-password` | GET/POST | `ForgotPasswordController` | Solicitar recuperación de contraseña |
+| `/reset-password/{token}` | GET/POST | `ResetPasswordController` | Restablecer contraseña |
+| `/login` (named) | GET | Redirect → `/admin/login` | Named route para Filament login |
+
+### Rutas API
+
+| Ruta | Método | Controlador | Auth |
+|---|---|---|---|
+| `/api/sanctum/token` | POST | `ApiTokenController@createToken` | No (credenciales en body) |
+| `/api/sanctum/token` | DELETE | `ApiTokenController@revokeCurrentToken` | Sanctum |
+| `/api/sanctum/tokens` | GET/DELETE | `ApiTokenController@listTokens/revokeAllTokens` | Sanctum |
+
+### Seeders
+
+| Seeder | Propósito |
+|---|---|
+| `RolePermissionSeeder` | Crea 20 permisos + 4 roles (`owner`/`admin`/`editor`/`viewer`) por tenant |
+| `ModulesCatalogSeeder` | Crea 5 módulos globales: inventory, transactions, contacts, work_orders, reports |
+| `DatabaseSeeder` | Crea datos de prueba (actualizado: no crea usuarios huérfanos) |
+
+### Comandos Artisan
+
+| Comando | Propósito |
+|---|---|---|
+| `tenant:create` | Crea tenant + usuario admin + ejecuta RolePermissionSeeder + asigna rol `owner` |
+| `jaosoft:make-superadmin` | Crea superadmin global (`tenant_id=null`, `is_superadmin=true`). Interactivo: Nombre, Email, Contraseña |
+| `jaosoft:create-tenant-admin` | Transaccional: Crea Tenant → setTenantContext → User (owner) → commit. Interactivo: Empresa, Slug, Admin Nombre, Admin Email, Contraseña |
+
+### Filament Resources (Admin Panel — `/admin/{slug}`)
+
+| Recurso | Páginas |
+|---|---|
+| `AssetResource` | List / Create / Edit — name, code, asset_type, status, metadata, acquired_at |
+| `ContactResource` | List / Create / Edit — contact_type, name, tax_id, email, phone, address, metadata |
+| `ItemResource` | List / Create / Edit — sku, name, item_type, unit, price, cost, stock, min_stock, metadata |
+| `WorkOrderResource` | List (con permisos Spatie) / Create (con auto-código) / Edit + ItemsRelationManager |
+| `TransactionResource` | List / Create / Edit + ItemsRelationManager — type (sale/purchase), contact, invoice_number, CUFE, resolución DIAN, payment_method, items con IVA, totes automáticos, acciones de Emitir/Anular |
+| `LocationResource` | List / Create / Edit — name, address, is_main (badge Principal), is_active |
+
+### Filament Resources (Superadmin Panel — `/superadmin`)
+
+| Recurso | Páginas | Query |
+|---|---|---|
+| `TenantResource` | List / Create / Edit / Delete | Global (sin scope) — name, slug, plan (badge), is_active (toggle), filtros plan/estado |
+| `GlobalAssetResource` | List (read-only) | `withoutGlobalScope('tenant')` — todos los activos de la BD con columna tenant.name |
+| `GlobalWorkOrderResource` | List (read-only) | `withoutGlobalScope('tenant')` — todas las WOs de la BD con columna tenant.name |
+
+### Dashboard Widgets (3)
+
+| Widget | Tipo | Datos |
+|---|---|---|
+| `DemoStatsOverview` | StatsOverviewWidget | 5 cards: Assets, Items (+stock bajo), Contacts, WorkOrders, Stock Bajo |
+| `WorkOrderStatusChart` | BarChartWidget | WOs agrupadas por status con colores |
+| `LatestWorkOrdersTable` | TableWidget | Últimas 5 WOs con código, título, asset, status, fecha |
+
+### Tests (60 pasando, 165 assertions)
+
+| Test Suite | Archivos | Tests | Propósito |
+|---|---|---|---|---|
+| WorkOrderTest | `tests/Feature/WorkOrders/` | 4 | CRUD + status transitions |
+| WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 1 | Aislamiento cross-tenant WorkOrders |
+| SpatieTenantIsolationTest | `tests/Feature/Security/` | 4 | Roles/permissions aislados entre tenants, global scope filtra, RLS policies existen |
+| SpatiePermissionBypassTest | `tests/Feature/Security/` | 5 | Scope bloquea cross-tenant, creating event evita huérfanos, SQL directo muestra todo pero scope filtra, current_tenant_id() valida UUID |
+| SpatieCacheIsolationTest | `tests/Feature/Security/` | 3 | Cache aislado por tenant, forgetCachedPermissions limpia ambos niveles, permisos recargan con RLS |
+| TransactionTest | `tests/Feature/Transactions/` | 9 | CRUD (sale/purchase), counter atómico (FAC-XXXXX/OC-XXXXX), status transitions (draft→issued→cancelled), tenant isolation, recalculate totals |
+| RegistrationTest | `tests/Feature/Auth/` | 12 | Registro (válido, duplicados, password, slug, rol owner, tenant activo) |
+| PasswordResetTest | `tests/Feature/Auth/` | 7 | Forgot password, reset, token inválido, password débil |
+| ApiTokenTest | `tests/Feature/Auth/` | 9 | Crear/revocar/listar tokens Sanctum, abilities, 401 |
+| RegistrationWithDefaultsTest | `tests/Feature/Onboarding/` | 6 | Defaults post-registro: location, categories, items, contacts, módulos, industria default |
+
+### Reglas de gobernanza
+
+| Documento | Propósito |
+|---|---|
+| `AGENTS.md` | Reglas mandatorias para agentes IA (no negociables) |
+| `docs/LEARNING_GUIDE.md` | Guía de aprendizaje para el equipo |
+| `docs/WORKFLOW.md` | Cómo pedir features y operar con agentes |
+| `docs/features/FEATURE_SPEC_TEMPLATE.md` | Plantilla para specs de nuevos features |
+| `docs/PROJECT_STATE.md` | **Este archivo** — estado actual para handoff |
+
+---
+
+## 3. Decisiones Arquitectónicas Fijas (NO Negociables)
+
+| Decisión | Valor | Documento |
+|---|---|---|
+| ORM | Eloquent (Laravel) | AGENTS.md §3.1 |
+| Multi-tenancy | PostgreSQL RLS nativo | AGENTS.md §2 |
+| Inyección tenant | `set_config('app.current_tenant_id', ...)` | AGENTS.md §2.1 |
+| PKs | UUID v4 (`gen_random_uuid()`) | AGENTS.md §1.1 |
+| Soft delete | `deleted_at timestamptz` | AGENTS.md §2.5 |
+| FORCE RLS | Obligatorio en todas las tablas con tenant_id | AGENTS.md §2.2 |
+| Paquetes de tenancy | PROHIBIDOS (stancl/tenancy, spatie, etc.) | AGENTS.md §3.1 |
+| Prisma | PROHIBIDO | AGENTS.md §3.1 |
+| SELECT * | PROHIBIDO | AGENTS.md §3.1 |
+| Nomenclatura core | Asset / Item / Contact / Transaction / Space | AGENTS.md §1.4 |
+| Panel admin | Filament 5 (Schema API) | AGENTS.md §3.5 |
+| Connection pooling | Session mode únicamente | AGENTS.md §6 |
+
+---
+
+## 4. Pendientes Inmediatos (ordenados)
+
+| # | Tarea | Prioridad | Archivos involucrados | Depende de |
+|---|---|---|---|---|---|---|---|
+| **1** | ✅ **Filament Panel** | Alta | `AdminPanelProvider`, login en `/admin` | Nada |
+| **2** | ✅ **Comando `tenant:create`** | Alta | `app/Console/Commands/CreateTenantCommand.php` | Nada |
+| **3** | ✅ **Laravel Sanctum** | Media | `HasApiTokens` en User, migración tokens | Nada |
+| **4** | 👤 **Primer tenant creado** | Hecho | `demo-company` | Comando |
+| **5** | ✅ **Work Orders feature** | Alta | FEATURE_SPEC + migration + models + service + policy + form requests + Filament resource + tests | Nada |
+| **6** | ✅ **Spatie Permission** | Alta | `config/permission.php`, migración roles/permisos, custom models, seeder, policy migration, Filament guards, 3 security test suites | Nada |
+| **7** | ✅ **DatabaseSeeder demo** | Alta | `DatabaseSeeder` con 10 assets, 25 items, 15 contacts, 20 work orders, 15 transactions, tenant demo "Taller Mecánica Demo", admin user admin@demo.com/password | Nada |
+| **8** | ✅ **Filament Resources (Asset/Item/Contact)** | Alta | `AssetResource`, `ItemResource`, `ContactResource` con List/Create/Edit, permisos Spatie, filtros, tenant scope | Resources ya existen |
+| **9** | ✅ **Dashboard Widgets** | Media | `StatsOverviewWidget` (5 stats), `WorkOrderStatusChart` (bar chart), `LatestWorkOrdersTable` (5 últimas WOs) | Nada |
+| **10** | ✅ **Módulo Fiscal (Transactions)** | Alta | FEATURE_SPEC + migration 2 tablas + modelos Transaction/TransactionItem + TransactionService (contador atómico en tenants.settings) + TransactionPolicy + TransactionResource + ItemsRelationManager + 9 tests | Contacts, Items, Spatie Permission |
+| **11** | ✅ **Autenticación completa** | Alta | RegisterService, RegisterController, Forgot/Reset Password, ApiTokenController (Sanctum), ResetPasswordNotification, Blade views (register/forgot/reset), 28 tests, RateLimiter, custom login renderHook | Nada |
+| **12** | ✅ **Onboarding post-registro** | Alta | 4 migraciones (modules_catalog, categories, locations, tenant_modules), 4 modelos (ModuleCatalog, Category, Location, TenantModule), config/industry-defaults.php (5 industrias), RegisterService con defaults automáticos, ModulesCatalogSeeder, LocationResource Filament, 6 tests | Auth completo |
+| **13** | ✅ **SetTenantContext en Filament** | Alta | Agregado `SetTenantContext::class` al middleware stack de Filament en AdminPanelProvider. Sin esto, el global scope BelongsToTenant no se activaba en rutas Filament, mostrando datos del tenant demo a todos los usuarios. | Auth completo |
+| **14** | ✅ **UX/UI Resources** | Media | Eliminados Grid anidados en forms (Filament Section columns bastan). Eliminados headerActions duplicados de table() (se usan solo getHeaderActions en List pages). Recreado WorkOrderResource.php y ListWorkOrders.php (estaban vacíos). | Resources existentes |
+| **15** | ✅ **Panel Superadmin** | Alta | `/superadmin` sin tenant context. Middleware `EnsureIsSuperAdmin`. Migración `is_superadmin`. Login/passwordReset nativos. | Nada |
+| **16** | ✅ **Deploy Tools** | Alta | `jaosoft:make-superadmin`, `jaosoft:create-tenant-admin`. Trait BelongsToTenant modificado. `tenant_id` nullable. | Nada |
+| **17** | ✅ **Filament tenant()->slug** | Alta | `->tenant(Tenant::class, slugAttribute: 'slug')`. HasTenants contract. | Nada |
+| **18** | ✅ **Superadmin Resources** | Alta | `TenantResource`, `GlobalAssetResource`, `GlobalWorkOrderResource`. `withoutGlobalScope('tenant')`. | Nada |
+
+---
+
+## 5. Reglas de Operación para Agentes
+
+### Activación de migraciones
+
+**"APROBADO"** es la única palabra que autoriza ejecutar `php artisan migrate`.
+Sin ella: **NO** ejecutar migraciones. Ni "ok", ni "dale", ni "procede".
+
+### Flujo de trabajo
+
+1. John dice qué necesita (lenguaje natural)
+2. Agente analiza código existente y produce `FEATURE_SPEC.md`
+3. John revisa y escribe "APROBADO"
+4. Agente ejecuta: migración → modelo → policy → service → filament → tests
+5. Agente reporta cambios en tabla
+
+### Prohibiciones absolutas
+
+- ❌ Escribir código en el chat (editar archivos directamente)
+- ❌ Sugerir o instalar Prisma
+- ❌ Usar `SELECT *` o `Model::all()`
+- ❌ Crear tablas sin `tenant_id` y RLS
+- ❌ Ejecutar migraciones sin "APROBADO"
+- ❌ Instalar paquetes nuevos sin aprobación explícita
+
+### Post-ejecución
+
+Después de cada cambio, reportar:
+
+```markdown
+## Cambios aplicados
+
+| Archivo | Operación | Notas |
+|---|---|---|
+| `ruta/archivo.php` | CREATE/MODIFY | Descripción |
+
+## Verificación requerida
+- [ ] php artisan migrate ejecutado
+- [ ] RLS verificado
+```
+
+---
+
+## 6. Comandos Útiles
+
+```bash
+# Migraciones
+php artisan migrate                        # Ejecutar pendientes
+php artisan migrate:fresh                  # Reconstruir desde cero
+php artisan migrate:rollback               # Revertir último lote
+php artisan migrate:status                 # Ver estado
+
+# Seeders
+php artisan db:seed --force                # Seedear datos demo
+php artisan tenant:create "Nombre" slug    # Crear tenant + admin
+
+# Deploy Tools (interactivos)
+php artisan jaosoft:make-superadmin        # Crear superadmin global
+php artisan jaosoft:create-tenant-admin    # Crear tenant + admin (transaccional)
+
+# Filament
+php artisan filament:install --panels      # Instalar panel admin
+php artisan make:filament-resource Asset   # Crear Resource
+
+# Testing
+php artisan test --filter=TenantIsolation  # Tests de aislamiento
+php artisan test                            # Todos los tests
+
+# Laravel general
+php artisan route:list                     # Ver rutas
+php artisan tinker                         # Consola interactiva
+php artisan make:command Nombre            # Crear comando Artisan
+```
+
+---
+
+## 7. Handoff Log
+
+| Fecha | Agente | Qué se hizo | Próximo paso |
+|---|---|---|---|---|---|
+| 2026-05-25 | opencode | Migraciones iniciales + RLS + modelos + traits + middleware + TenantModel | Crear Filament Panel + comando tenant:create + Sanctum + Spatie |
+| 2026-05-25 | opencode | Filament Panel + Sanctum + comando tenant:create + HasApiTokens | Spatie Permission + Factories + Filament Resources |
+| 2026-05-25 | opencode | Work Orders feature completo (migración 2 tablas + modelos WorkOrder/WorkOrderItem + YamlPolicy + WorkOrderService + form requests + FilamentResource con form/table/filters/ItemsRelationManager + 4 tests). Fixes: Filament 5 Schema API (form() usa Schema no Form, Section/Grid movidos a Filament\Schemas\Components), tipos de propiedades Resource corregidos, factories creados (Tenant, WorkOrder, WorkOrderItem), tenant() relationship en TenantModel, HasFactory en Tenant. Login sin CSS -> filament:assets publicado. 6/6 tests passing. | Spatie Permission + Factories restantes + Filament Resources restantes + Seeders |
+| 2026-05-26 | opencode | Spatie Permission Opción B implementado: `config/permission.php` (teams=false, store=array), migración 5 tablas con UUID+tenant_id+RLS, custom Role/Permission models con BelongsToTenant+HasUuids, User con HasRoles+$incrementing=false+$keyType=string, WorkOrderPolicy migrada a $user->can(), ListWorkOrders con guards Filament, RolePermissionSeeder (4 roles+16 permisos), CreateTenantCommand ejecuta seeder y asigna owner. Fixes: current_tenant_id() regex acepta v4/v7, HasUuids en Role/Permission, DatabaseSeeder sin usuarios huérfanos, User con UUID config. 3 security test suites (13 tests): TenantIsolation, PermissionBypass, CacheIsolation. 18/18 tests pasando. | Filament Resources restantes (Asset/Item/Contact) |
+| 2026-05-26 | opencode | Filament Resources Asset/Item/Contact (3 resources, 12 archivos). DatabaseSeeder demo: tenant "Taller Mecánica Demo", admin admin@demo.com/password, 10 assets, 25 items, 15 contacts, 20 work orders, 23 work order items. Factories actualizados (AssetFactory, ItemFactory, ContactFactory, WorkOrderFactory) con estados y datos realistas. 18/18 tests pasando. | QA funcional + Dashboard widgets |
+| 2026-05-26 | opencode | Dashboard widgets: StatsOverviewWidget (5 cards: assets, items, contacts, work orders, stock bajo), WorkOrderStatusChart (bar chart por estado), LatestWorkOrdersTable (últimas 5). 18/18 tests pasando. | QA funcional en navegador |
+| 2026-05-26 | opencode | Bugfixes post-QA: imports de acciones Filament 5 corregidos (`Filament\Tables\Actions\` → `Filament\Actions\` en 4 archivos), `->tenant()` eliminado de 3 Resources (global scope ya filtraba), `scopeTenant()` agregado al trait, `id` agregado a select de LatestWorkOrdersTable. 18/18 tests pasando. | Módulo Fiscal (Transactions) |
+| 2026-05-27 | opencode | **Módulo Fiscal (Transactions)**: migración 2 tablas con RLS + FORCE + 7 índices, modelos Transaction/TransactionItem, TransactionService (contador atómico en tenants.settings via jsonb + RETURNING, cálculos IVA/totales, emitir/anular), TransactionPolicy, TransactionFactory/TransactionItemFactory, TransactionResource con form/table/filters/ItemsRelationManager, 4 nuevos permisos Spatie, 9 tests (CRUD, counter, transiciones, aislamiento). Fixes: `TenantFactory.settings` → DB default (evita doble encode array vs object), `TransactionService.createWithItems` → `make()` + `tenant_id` explícito, counter usa `jsonb ||` en vez de `jsonb_set`. DatabaseSeeder: +15 transacciones demo (10 ventas + 5 compras, estados variados), +~50 transaction_items. 27/27 tests pasando. | QA funcional en navegador + API REST |
+| 2026-05-27 | opencode | **Autenticación completa**: RegisterService, RegisterController, ForgotPasswordController, ResetPasswordController, ApiTokenController (Sanctum), ResetPasswordNotification, 4 Blade views, 27 tests auth (registro, password reset, API tokens). Fixes: Sanctum tokenable_id BIGINT→UUID, Vite manifest para tests, Filament 5 login rate limiting nativo (sin custom Login page). 54/54 tests pasando. | Onboarding post-registro |
+| 2026-05-28 | opencode | **Onboarding post-registro**: 4 migraciones (modules_catalog, categories, locations, tenant_modules), 4 modelos (ModuleCatalog, Category, Location, TenantModule), config/industry-defaults.php (5 industrias: mechanic, restaurant, construction, clinic, general), RegisterService extendido con createDefaults (location + categories + items + contacts + módulos), campo industry en formulario registro, ModulesCatalogSeeder, LocationResource Filament (List/Create/Edit con badge Principal), 6 tests defaults. 60/60 tests pasando. | QA funcional + wizard onboarding opcional |
+| 2026-05-28 | opencode | **Fix SetTenantContext en Filament**: middleware agregado al stack de Filament (AdminPanelProvider). Sin esto el global scope BelongsToTenant no filtraba datos en rutas Filament porque el panel usa middleware stack propio que no hereda el grupo `web`. Todos los usuarios veían datos del tenant demo. | UX/UI Resources |
+| 2026-05-28 | opencode | **UX/UI Resources**: Grid anidado eliminado de 4 Resources (inputs apilados → Section columns directo). headerActions duplicados eliminados de 5 Resources (doble botón New Asset). WorkOrderResource.php y ListWorkOrders.php recreados (0 líneas → contenido completo). 60/60 tests pasando. | Documentación |
+| 2026-05-28 | opencode | **Pulido WorkOrderResource**: Sidebar navigation i18n (6 Resources convertidos a métodos `getNavigationGroup`/`getNavigationLabel`), async search en item_id (`getSearchResultsUsing` con LIKE name+sku, limit 15, tenant scope), subtotal row reactivo, total_amount con `Text::make`, `onBlur: true` en quantity/unit_price, validación de stock (`item_type === 'product'` → cantidad ≤ stock real). Fix: `scheduled_at` → `started_at` (field name mismatch con migración). 60/60 tests pasando. | Pulido UI |
+| 2026-05-28 | opencode | **Unificación recepción WorkOrder**: `createOptionForm` en contact_id (name, phone, tax_id) y asset_id (name, asset_type, metadata.marca/modelo). Sección Metadatos (KeyValue) reemplazada por Inspección de Ingreso con campos estructurados en metadata JSONB (kilometraje, nivel_bateria, notas_esteticas). Sin migraciones. 60/60 tests pasando. | Nuevos features |
+| 2026-05-28 | opencode | **Panel Superadmin**: Nuevo panel `/superadmin` sin `SetTenantContext` (datos globales). Middleware `EnsureIsSuperAdmin` verifica flag `is_superadmin` en users. Migración nueva columna `is_superadmin boolean NOT NULL DEFAULT false`. Login + password reset nativos. Sin conflictos con panel admin. 60/60 tests pasando. | Superadmin |
+| 2026-05-28 | opencode | **Deploy Tools**: comandos `jaosoft:make-superadmin` (crea superadmin global con tenant_id=null, is_superadmin=true) y `jaosoft:create-tenant-admin` (transaccional: Tenant→context→User→roles). Trait BelongsToTenant modificado para saltar exception si is_superadmin=true. Migración `tenant_id` nullable en users. 60/60 tests pasando. | Vistas/resource superadmin (gestión global de tenants) |
+| 2026-05-28 | opencode | **Filament tenant()->slug**: `->tenant(Tenant::class, slugAttribute: 'slug')` en AdminPanelProvider. URLs cambian a `/admin/{slug}/...`. Rutas Filament ahora requieren parámetro `{tenant}`. 60/60 tests. | Implementar HasTenants en User |
+| 2026-05-28 | opencode | **HasTenants contract**: User implementa `Filament\Models\Contracts\HasTenants`. `getTenants()` devuelve todos los tenants para superadmin, `[$this->tenant]` para usuarios normales. `canAccessTenant()` valida por `$this->tenant_id`. Fix: `Support\Collection` vs `Eloquent\Collection`. 60/60 tests. | — |
+| 2026-05-28 | opencode | **Fix route tenant param**: `DemoStatsOverview` reemplaza `route('filament.admin.resources.*')` por `XxxResource::getUrl('index')` que resuelve `{tenant}` automáticamente. 60/60 tests. | — |
+| 2026-05-28 | opencode | **Superadmin Resources**: `TenantResource` (CRUD completo: tabla, formulario, filtros, badges), `GlobalWorkOrderResource` (read-only global, columna tenant.name, sin scope de tenant), `GlobalAssetResource` (read-only global, columna tenant.name, sin scope de tenant). 3 resources en menú izquierdo del panel rojo `/superadmin`. Rutas verificadas. 60/60 tests pasando. | Vistas/resource superadmin propias |
+
+## 8. Notas Técnicas Críticas
+
+### BelongsToTenant — Superadmin Exception
+
+El trait `BelongsToTenant` en `app/Models/Concerns/BelongsToTenant.php` fue modificado para permitir `tenant_id = null`:
+
+```php
+static::creating(function (Model $model) {
+    if (empty($model->tenant_id)) {
+        $isSuperadmin = isset($model->is_superadmin) && $model->is_superadmin;
+        if ($isSuperadmin) {
+            return; // ← salta exception, permite tenant_id=null
+        }
+        // ... resto del código original
+    }
+});
+```
+
+### Superadmin — tenant_id nullable
+
+- Migración `2026_05_28_032815_alter_users_table_make_tenant_id_nullable`: `ALTER COLUMN tenant_id DROP NOT NULL`
+- Superadmins tienen `tenant_id = null` + `is_superadmin = true`
+- `SetTenantContext` middleware retorna 403 si `tenant_id` está vacío → superadmins no pueden acceder al panel `/admin`, solo al `/superadmin`
+- RLS en tabla `users` no tiene políticas, por lo que el cambio no afecta RLS
+
+### Onboarding — Defaults Automáticos
+
+- `config/industry-defaults.php` define 5 industrias: `general`, `mechanic`, `restaurant`, `construction`, `clinic`
+- Cada industria tiene: `categories` (array de strings) e `items` (array con name, item_type, price, sku)
+- `RegisterService::register()` ejecuta `createDefaults($industry)` después de crear user + asignar rol
+- Defaults creados: 1 Location (Sede Principal), 4-5 Categories, 3 Items, 2 Contacts (cliente + proveedor), 3 módulos activados (inventory, transactions, contacts)
+- `modules_catalog` es tabla global (sin RLS, sin tenant_id) — seedeada por `ModulesCatalogSeeder`
+- `categories` y `locations` usan `TenantModel` con `SoftDeletes`
+- `tenant_modules` usa `TenantModel` con `SoftDeletes` y unique constraint `(tenant_id, module_slug)`
+
+### Filament 5 API Changes (vs Filament 3)
+- `Resource::form()` usa `Schema` no `Form`: `form(Schema $schema): Schema`
+- `Section` y `Grid` están en `Filament\Schemas\Components\`, no en `Filament\Forms\Components\`
+- Componentes de formulario (TextInput, Select, DatePicker, Textarea) siguen en `Filament\Forms\Components\`
+- Propiedades como `$navigationIcon` requieren tipo `string|\BackedEnum|null` (no `?string`)
+- Propiedades como `$navigationGroup` requieren tipo `string|\UnitEnum|null` (no `?string`)
+- **Acciones de tabla movidas:** `Filament\Tables\Actions\*` → `Filament\Actions\*` (EditAction, DeleteAction, CreateAction, BulkActionGroup, DeleteBulkAction)
+- **Widgets en `Filament\Widgets\`:** StatsOverviewWidget, ChartWidget (BarChartWidget, PieChartWidget, etc.), TableWidget
+- Activar assets: `php artisan filament:assets`
+
+### Base de datos
+- `testing` database configurada en `phpunit.xml`
+- 16 migraciones, 21 tablas con RLS + FORCE RLS, 4 políticas c/u + 1 tabla global (modules_catalog)
+- `users` tiene política SELECT que permite login sin contexto de tenant
+- `BelongsToTenant` global scope se salta silenciosamente si no hay contexto (no lanza error)
+- `sail` DB user es SUPERUSER → RLS bypasseado en desarrollo. Doble-lock: BelongsToTenant scope compensa.
+- `tenants.settings` es JSONB. Almacenar como array PHP (no json_encode) para evitar doble encode. El contador de factura vive en `settings.transactions.{type}_counter`, incrementado atómicamente vía `jsonb ||` con RETURNING.
+- Spatie cache configurado como `array` (per-request, no persistente entre requests cruzados)
+- Permission names son genéricos y cross-tenant idénticos (`create_work_orders`). Aislamiento por `tenant_id` FK + RLS + global scope, no por unicidad de nombre.
+
+### Spatie Permission — Opción B (implementada)
+- `config/permission.php` → `teams = false` (no usar Spatie teams), `store = array`
+- Modelos custom: `App\Models\Role`, `App\Models\Permission` (extienden Spatie + BelongsToTenant + HasUuids)
+- `tenant_id` en todas las tablas con `DEFAULT public.current_tenant_id()` (para pivotes que Spatie inserta sin team_id)
+- 21 tablas con RLS + FORCE RLS (previas + 5 Spatie + 2 Transactions + 3 nuevas: categories, locations, tenant_modules)
+- 10 test suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1) — 60 tests total
+- `current_tenant_id()` PG function regex actualizada: acepta cualquier versión UUID (v4 y v7) — Laravel 13 genera v7 por defecto
+- **20 permisos totales**: work_orders, assets, items, contacts, transactions (× 4 acciones c/u)
+- **18 migraciones**: 17 previas + `alter_users_table_make_tenant_id_nullable` para soporte superadmin
+
+### Paneles Filament
+
+| Panel | Path | Tenant | Middleware extra | Recursos |
+|---|---|---|---|---|
+| Admin | `/admin/{tenant:slug}` | ✅ `->tenant(Tenant::class, slugAttribute: 'slug')` | `SetTenantContext` (inyecta `app.current_tenant_id` para RLS) | 6 Resources (Asset, Contact, Item, WorkOrder, Transaction, Location) |
+| Superadmin | `/superadmin` | ❌ Sin tenant context | `EnsureIsSuperAdmin` (403 si no superadmin) | 3 Resources (Tenant, GlobalAsset, GlobalWorkOrder) |
+
+### Filament Multi-Tenant Architecture
+
+- **URL con slug**: `->tenant(Tenant::class, slugAttribute: 'slug')` en AdminPanelProvider cambia las rutas de `/admin/items` a `/admin/{tenant:slug}/items`
+- **HasTenants contract**: `App\Models\User` implementa `Filament\Models\Contracts\HasTenants`
+  - `getTenants(Panel $panel)`: superadmin → `Tenant::all()`, normal → `collect([$this->tenant])->filter()`
+  - `canAccessTenant(Model $tenant)`: superadmin → `true`, normal → `$this->tenant_id === $tenant->id`
+- **SetTenantContext se mantiene**: necesario para setear `app.current_tenant_id` en PostgreSQL (para RLS). Se ejecuta después de que Filament resuelve el tenant de la URL
+- **Resource::getUrl('index')**: Los widgets y enlaces deben usar `XxxResource::getUrl('index')` en vez de `route('filament.admin.resources.*')` porque `getUrl()` incluye automáticamente el `{tenant}` resuelto
+
+### HasTenants Contract
+
+```php
+class User extends Authenticatable implements HasTenants
+{
+    public function getTenants(Panel $panel): Collection
+    {
+        if ($this->is_superadmin) {
+            return Tenant::all();
+        }
+        return collect([$this->tenant])->filter();
+    }
+
+    public function canAccessTenant(Model $tenant): bool
+    {
+        if ($this->is_superadmin) {
+            return true;
+        }
+        return $this->tenant_id === $tenant->id;
+    }
+}
+```
+
+### Comandos de Consola (Deploy Tools)
+
+```bash
+# Crear superadmin global (tenant_id=null, is_superadmin=true)
+php artisan jaosoft:make-superadmin
+# → Pregunta interactiva: Nombre, Email, Contraseña
+# → Crea usuario sin amarre a tenant
+
+# Crear tenant + admin (transaccional)
+php artisan jaosoft:create-tenant-admin
+# → Pregunta interactiva: Empresa, Slug, Admin Nombre, Admin Email, Contraseña
+# → Transacción: Tenant → setTenantContext → User (owner) → commit
+```
+
+### Sistema de Autenticación
+
+- Registro público en `/register` con selección de industria (dropdown con 5 opciones)
+- Login en `/admin/login` con rate limiting nativo de Filament 5 (5 intentos)
+- Password reset con token de 30 minutos, notificación por email (template Blade)
+- API tokens via Sanctum: crear/revocar/listar en `/api/sanctum/token`
+- Rate limiter de registro: 10 intentos/hora por IP
+- Requisitos de password: mínimo 8 caracteres, 1 mayúscula, 1 número, 1 especial
+
+### Onboarding Post-Registro
+
+- `config/industry-defaults.php` con 5 industrias: general, mechanic, restaurant, construction, clinic
+- Cada industria define categorías (4) e items (3) predeterminados
+- Después del registro se crean automáticamente:
+  - 1 Location "Sede Principal" (is_main=true)
+  - 4-5 Categories según industria
+  - 3 Items según industria
+  - 2 Contacts (Cliente Ejemplo + Proveedor Ejemplo)
+  - 3 TenantModules activados: inventory, transactions, contacts
+- `modules_catalog` tabla global seedeada con 5 módulos
+
+### Comandos frecuentes
+```bash
+# Docker/Sail
+docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan <comando>
+
+# Tests
+docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan test
+docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan test --filter=Transaction
+docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan test --filter=WorkOrder
+docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan migrate:fresh
+
+# Ver RLS
+docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker --execute="DB::select(\"SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public'\")"
+```
+
+---
+
+*Si abres este proyecto por primera vez, lee `docs/LEARNING_GUIDE.md` para contexto completo y `docs/WORKFLOW.md` para entender cómo operar.*

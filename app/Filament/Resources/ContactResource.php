@@ -8,6 +8,10 @@ use App\Filament\Resources\ContactResource\Pages\CreateContact;
 use App\Filament\Resources\ContactResource\Pages\EditContact;
 use App\Filament\Resources\ContactResource\Pages\ListContacts;
 use App\Models\Contact;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -15,14 +19,10 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ContactResource extends Resource
 {
@@ -57,10 +57,10 @@ class ContactResource extends Resource
                             ->label(__('Tipo'))
                             ->required()
                             ->options([
-                                'client'   => __('Cliente'),
+                                'client' => __('Cliente'),
                                 'supplier' => __('Proveedor'),
                                 'employee' => __('Empleado'),
-                                'other'    => __('Otro'),
+                                'other' => __('Otro'),
                             ]),
                         TextInput::make('email')
                             ->label(__('Correo electrónico'))
@@ -101,16 +101,16 @@ class ContactResource extends Resource
                     ->label(__('Tipo'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'client'   => 'info',
+                        'client' => 'info',
                         'supplier' => 'warning',
                         'employee' => 'success',
-                        'other'    => 'gray',
+                        'other' => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'client'   => __('Cliente'),
+                        'client' => __('Cliente'),
                         'supplier' => __('Proveedor'),
                         'employee' => __('Empleado'),
-                        'other'    => __('Otro'),
+                        'other' => __('Otro'),
                     }),
                 TextColumn::make('tax_id')
                     ->label(__('RFC / ID Fiscal'))
@@ -130,10 +130,10 @@ class ContactResource extends Resource
                 SelectFilter::make('contact_type')
                     ->label(__('Tipo'))
                     ->options([
-                        'client'   => __('Cliente'),
+                        'client' => __('Cliente'),
                         'supplier' => __('Proveedor'),
                         'employee' => __('Empleado'),
-                        'other'    => __('Otro'),
+                        'other' => __('Otro'),
                     ]),
             ])
             ->actions([
@@ -153,13 +153,13 @@ class ContactResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListContacts::route('/'),
+            'index' => ListContacts::route('/'),
             'create' => CreateContact::route('/create'),
-            'edit'   => EditContact::route('/{record}/edit'),
+            'edit' => EditContact::route('/{record}/edit'),
         ];
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->whereNull('deleted_at');
     }

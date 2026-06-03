@@ -26,9 +26,9 @@ class Item extends TenantModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'price'    => 'decimal:2',
-            'cost'     => 'decimal:2',
-            'stock'    => 'integer',
+            'price' => 'decimal:2',
+            'cost' => 'decimal:2',
+            'stock' => 'integer',
             'min_stock' => 'integer',
             'metadata' => 'array',
         ]);

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Security;
 
-use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
@@ -109,7 +108,7 @@ class SpatieTenantIsolationTest extends TestCase
 
         foreach ($tables as $table) {
             $policies = DB::select(
-                "SELECT policyname, cmd FROM pg_policies WHERE tablename = ? ORDER BY cmd",
+                'SELECT policyname, cmd FROM pg_policies WHERE tablename = ? ORDER BY cmd',
                 [$table]
             );
             $this->assertCount(4, $policies, "Table {$table} should have 4 RLS policies");
@@ -118,7 +117,7 @@ class SpatieTenantIsolationTest extends TestCase
             $this->assertEquals(['DELETE', 'INSERT', 'SELECT', 'UPDATE'], $cmds);
 
             $forced = DB::select(
-                "SELECT relforcerowsecurity FROM pg_class WHERE relname = ?",
+                'SELECT relforcerowsecurity FROM pg_class WHERE relname = ?',
                 [$table]
             );
             $this->assertTrue(

@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Models;
 
-use App\Services\Transactions\TransactionService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -77,10 +76,10 @@ class Transaction extends TenantModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'subtotal'         => 'decimal:2',
-            'total_tax'        => 'decimal:2',
+            'subtotal' => 'decimal:2',
+            'total_tax' => 'decimal:2',
             'total_retentions' => 'decimal:2',
-            'total_amount'     => 'decimal:2',
+            'total_amount' => 'decimal:2',
         ]);
     }
 }

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Security;
 
+use App\Models\Permission;
 use App\Models\Role;
 use App\Models\Tenant;
-use App\Models\User;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\PermissionRegistrar;
@@ -60,7 +61,7 @@ class SpatiePermissionBypassTest extends TestCase
 
         $this->expectException(\RuntimeException::class);
         $this->expectExceptionMessage('Cannot create');
-        \App\Models\Permission::create(['name' => 'orphan_perm']);
+        Permission::create(['name' => 'orphan_perm']);
     }
 
     public function test_querying_roles_via_direct_sql_shows_all_but_scope_blocks(): void
@@ -86,7 +87,7 @@ class SpatiePermissionBypassTest extends TestCase
 
     public function test_current_tenant_id_function_validates_uuid(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
         DB::statement("SELECT set_config('app.current_tenant_id', 'not-a-uuid', false)");
         DB::select('SELECT public.current_tenant_id()');
     }

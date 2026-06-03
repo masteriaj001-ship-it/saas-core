@@ -8,6 +8,10 @@ use App\Filament\Resources\ItemResource\Pages\CreateItem;
 use App\Filament\Resources\ItemResource\Pages\EditItem;
 use App\Filament\Resources\ItemResource\Pages\ListItems;
 use App\Models\Item;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -15,11 +19,6 @@ use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -64,9 +63,9 @@ class ItemResource extends Resource
                             ->required()
                             ->default('product')
                             ->options([
-                                'spare'        => __('Repuesto'),
-                                'product'      => __('Producto'),
-                                'service'      => __('Servicio'),
+                                'spare' => __('Repuesto'),
+                                'product' => __('Producto'),
+                                'service' => __('Servicio'),
                                 'raw_material' => __('Materia prima'),
                             ]),
                         Select::make('unit')
@@ -74,10 +73,10 @@ class ItemResource extends Resource
                             ->required()
                             ->default('unit')
                             ->options([
-                                'unit'  => __('Unidad'),
-                                'kg'    => __('Kg'),
-                                'lt'    => __('Litro'),
-                                'm'     => __('Metro'),
+                                'unit' => __('Unidad'),
+                                'kg' => __('Kg'),
+                                'lt' => __('Litro'),
+                                'm' => __('Metro'),
                                 'piece' => __('Pieza'),
                             ]),
                         TextInput::make('price')
@@ -135,15 +134,15 @@ class ItemResource extends Resource
                     ->label(__('Tipo'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'spare'        => 'info',
-                        'product'      => 'success',
-                        'service'      => 'warning',
+                        'spare' => 'info',
+                        'product' => 'success',
+                        'service' => 'warning',
                         'raw_material' => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'spare'        => __('Repuesto'),
-                        'product'      => __('Producto'),
-                        'service'      => __('Servicio'),
+                        'spare' => __('Repuesto'),
+                        'product' => __('Producto'),
+                        'service' => __('Servicio'),
                         'raw_material' => __('Materia prima'),
                     }),
                 TextColumn::make('stock')
@@ -167,9 +166,9 @@ class ItemResource extends Resource
                 SelectFilter::make('item_type')
                     ->label(__('Tipo'))
                     ->options([
-                        'spare'        => __('Repuesto'),
-                        'product'      => __('Producto'),
-                        'service'      => __('Servicio'),
+                        'spare' => __('Repuesto'),
+                        'product' => __('Producto'),
+                        'service' => __('Servicio'),
                         'raw_material' => __('Materia prima'),
                     ]),
                 Filter::make('stock_below_min')
@@ -193,13 +192,13 @@ class ItemResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListItems::route('/'),
+            'index' => ListItems::route('/'),
             'create' => CreateItem::route('/create'),
-            'edit'   => EditItem::route('/{record}/edit'),
+            'edit' => EditItem::route('/{record}/edit'),
         ];
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()->whereNull('deleted_at');
     }

@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
     {
         // Registrado como Singleton absoluto del ciclo de vida de la petición
         $this->app->singleton(TenantManager::class, function ($app) {
-            return new TenantManager();
+            return new TenantManager;
         });
     }
 

@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Filament\Superadmin\Resources;
 
 use App\Filament\Superadmin\Resources\GlobalWorkOrderResource\Pages\ListGlobalWorkOrders;
-use App\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Resources\Resource;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GlobalWorkOrderResource extends Resource
 {
@@ -50,27 +49,27 @@ class GlobalWorkOrderResource extends Resource
                     ->label(__('Estado'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'open'        => 'info',
+                        'open' => 'info',
                         'in_progress' => 'warning',
-                        'completed'   => 'success',
-                        'cancelled'   => 'danger',
-                        default       => 'gray',
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => __(match ($state) {
-                        'open'        => 'Abierta',
+                        'open' => 'Abierta',
                         'in_progress' => 'En progreso',
-                        'completed'   => 'Completada',
-                        'cancelled'   => 'Cancelada',
-                        default       => $state,
+                        'completed' => 'Completada',
+                        'cancelled' => 'Cancelada',
+                        default => $state,
                     })),
                 TextColumn::make('priority')
                     ->label(__('Prioridad'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'low'    => 'info',
+                        'low' => 'info',
                         'medium' => 'warning',
-                        'high'   => 'danger',
-                        default  => 'gray',
+                        'high' => 'danger',
+                        default => 'gray',
                     }),
                 TextColumn::make('contact.name')
                     ->label(__('Cliente'))
@@ -97,7 +96,7 @@ class GlobalWorkOrderResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScope('tenant')

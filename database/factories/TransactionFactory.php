@@ -9,6 +9,7 @@ use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 class TransactionFactory extends Factory
 {
@@ -62,7 +63,7 @@ class TransactionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'issued',
-            'cufe' => 'CUFE-' . strtoupper((string) \Illuminate\Support\Str::uuid()),
+            'cufe' => 'CUFE-'.strtoupper((string) Str::uuid()),
         ]);
     }
 
@@ -70,7 +71,7 @@ class TransactionFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'status' => 'cancelled',
-            'cufe' => 'CUFE-' . strtoupper((string) \Illuminate\Support\Str::uuid()),
+            'cufe' => 'CUFE-'.strtoupper((string) Str::uuid()),
         ]);
     }
 }

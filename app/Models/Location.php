@@ -20,7 +20,7 @@ class Location extends TenantModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'is_main'   => 'boolean',
+            'is_main' => 'boolean',
             'is_active' => 'boolean',
         ]);
     }

@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\TransactionResource\RelationManagers;
 
-use Filament\Forms\Components\Select;
-use Filament\Forms\Components\TextInput;
-use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Schema;
+use App\Models\Item;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
@@ -31,10 +32,10 @@ class ItemsRelationManager extends RelationManager
                     ->required()
                     ->live()
                     ->afterStateUpdated(function (callable $set, callable $get, $state) {
-                        if (!$state) {
+                        if (! $state) {
                             return;
                         }
-                        $item = \App\Models\Item::find($state);
+                        $item = Item::find($state);
                         if ($item) {
                             $set('unit_price', (string) $item->price);
                         }
@@ -60,8 +61,8 @@ class ItemsRelationManager extends RelationManager
                 Select::make('tax_rate')
                     ->label('IVA %')
                     ->options([
-                        0  => '0% (Exento)',
-                        5  => '5%',
+                        0 => '0% (Exento)',
+                        5 => '5%',
                         19 => '19%',
                     ])
                     ->default(19)
@@ -109,7 +110,7 @@ class ItemsRelationManager extends RelationManager
                     ->numeric(thousandsSeparator: '.'),
                 TextColumn::make('tax_rate')
                     ->label('IVA %')
-                    ->formatStateUsing(fn ($state): string => $state . '%'),
+                    ->formatStateUsing(fn ($state): string => $state.'%'),
                 TextColumn::make('tax_amount')
                     ->label('IVA')
                     ->numeric(thousandsSeparator: '.'),

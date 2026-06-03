@@ -19,6 +19,9 @@ class Permission extends SpatiePermission
     protected $guarded = [
         'id',
         'tenant_id',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     protected $casts = [

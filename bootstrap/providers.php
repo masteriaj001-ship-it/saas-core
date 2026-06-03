@@ -1,7 +1,15 @@
 <?php
 
+use App\Modules\Shared\Providers\SharedServiceProvider;
+use App\Modules\Talleres\Providers\TalleresServiceProvider;
+use App\Providers\AppServiceProvider;
+use App\Providers\Filament\AdminPanelProvider;
+use App\Providers\Filament\SuperadminPanelProvider;
+
 return [
-    App\Providers\AppServiceProvider::class,
-    App\Providers\Filament\AdminPanelProvider::class,
-    App\Providers\Filament\SuperadminPanelProvider::class,
+    AppServiceProvider::class,
+    AdminPanelProvider::class,
+    SuperadminPanelProvider::class,
+    TalleresServiceProvider::class,
+    SharedServiceProvider::class,
 ];

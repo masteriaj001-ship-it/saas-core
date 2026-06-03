@@ -2,8 +2,12 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Modules\Talleres\Models;
 
+use App\Enums\WorkOrderStatusEnum;
+use App\Models\Contact;
+use App\Models\TenantModel;
+use Database\Factories\WorkOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,12 +16,18 @@ class WorkOrder extends TenantModel
 {
     use HasFactory;
 
+    protected static function newFactory(): WorkOrderFactory
+    {
+        return WorkOrderFactory::new();
+    }
+
     protected $fillable = [
         'asset_id',
         'contact_id',
         'code',
         'title',
         'description',
+        'service_description',
         'priority',
         'status',
         'started_at',
@@ -28,9 +38,10 @@ class WorkOrder extends TenantModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'metadata'     => 'array',
-            'started_at'   => 'datetime',
+            'metadata' => 'array',
+            'started_at' => 'datetime',
             'completed_at' => 'datetime',
+            'status' => WorkOrderStatusEnum::class,
         ]);
     }
 

@@ -17,11 +17,16 @@ final class SetTenantContext
 
     public function handle(Request $request, \Closure $next): Response
     {
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             return $next($request);
         }
 
         $user = Auth::user();
+
+        if ($user->is_superadmin) {
+            return $next($request);
+        }
+
         $tenantId = $user->tenant_id;
 
         if (empty($tenantId)) {

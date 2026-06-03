@@ -12,6 +12,7 @@ use App\Models\ModuleCatalog;
 use App\Models\Tenant;
 use App\Models\TenantModule;
 use App\Models\User;
+use App\Modules\Talleres\Models\Asset;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Auth;
@@ -31,11 +32,14 @@ class RegisterService
                 ->slug()
                 ->append('-', Str::random(4));
 
+            $industry = $data['industry'] ?? 'general';
+
             $tenant = Tenant::create([
                 'name' => $data['business_name'],
                 'slug' => $slug,
                 'plan' => 'free',
                 'is_active' => true,
+                'settings' => ['industry' => $industry],
             ]);
 
             $this->tenantManager->setTenantContext($tenant->id);
@@ -51,7 +55,6 @@ class RegisterService
 
             $user->assignRole('owner');
 
-            $industry = $data['industry'] ?? 'general';
             $this->createDefaults($industry);
 
             Auth::login($user);
@@ -63,12 +66,12 @@ class RegisterService
     private function createDefaults(string $industry): void
     {
         Location::create([
-            'name'     => 'Sede Principal',
-            'is_main'  => true,
+            'name' => 'Sede Principal',
+            'is_main' => true,
             'is_active' => true,
         ]);
 
-        $defaults = config("industry-defaults.{$industry}", config('industry-defaults.general'));
+        $defaults = config("industry-defaults.industries.{$industry}", config('industry-defaults.industries.general'));
 
         foreach ($defaults['categories'] as $catName) {
             Category::create(['name' => $catName]);
@@ -76,20 +79,28 @@ class RegisterService
 
         foreach ($defaults['items'] as $itemData) {
             Item::create([
-                'sku'       => $itemData['sku'] . '-' . Str::random(4),
-                'name'      => $itemData['name'],
+                'sku' => $itemData['sku'].'-'.Str::random(4),
+                'name' => $itemData['name'],
                 'item_type' => $itemData['item_type'],
-                'price'     => $itemData['price'],
+                'price' => $itemData['price'],
+            ]);
+        }
+
+        foreach ($defaults['assets'] ?? [] as $assetData) {
+            Asset::create([
+                'name' => $assetData['name'],
+                'asset_type' => $assetData['asset_type'],
+                'status' => $assetData['status'],
             ]);
         }
 
         Contact::create([
-            'name'         => 'Cliente Ejemplo',
+            'name' => 'Cliente Ejemplo',
             'contact_type' => 'client',
         ]);
 
         Contact::create([
-            'name'         => 'Proveedor Ejemplo',
+            'name' => 'Proveedor Ejemplo',
             'contact_type' => 'supplier',
         ]);
 
@@ -98,8 +109,8 @@ class RegisterService
 
         foreach ($modules as $moduleSlug) {
             TenantModule::create([
-                'module_slug'  => $moduleSlug,
-                'is_active'    => true,
+                'module_slug' => $moduleSlug,
+                'is_active' => true,
                 'activated_at' => now(),
             ]);
         }

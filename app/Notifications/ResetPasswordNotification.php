@@ -23,7 +23,7 @@ class ResetPasswordNotification extends Notification
         $url = route('password.reset', ['token' => $this->token, 'email' => $notifiable->getEmailForPasswordReset()]);
 
         return (new MailMessage)
-            ->subject('Recuperación de contraseña - ' . config('app.name'))
+            ->subject('Recuperación de contraseña - '.config('app.name'))
             ->view('emails.password-reset', ['url' => $url]);
     }
 }
