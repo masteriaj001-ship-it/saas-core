@@ -8,6 +8,7 @@ use App\Models\Category;
 use App\Models\Item;
 use App\Models\Tenant;
 use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ServiceCatalog;
 use Illuminate\Support\Str;
 
 class TenantTemplateSeeder
@@ -43,6 +44,18 @@ class TenantTemplateSeeder
                 [
                     'asset_type' => $assetData['asset_type'],
                     'status' => $assetData['status'],
+                ]
+            );
+        }
+
+        foreach ($defaults['service_catalogs'] ?? [] as $catalogData) {
+            ServiceCatalog::firstOrCreate(
+                ['name' => $catalogData['name']],
+                [
+                    'description' => $catalogData['description'] ?? null,
+                    'base_price' => $catalogData['base_price'],
+                    'estimated_minutes' => $catalogData['estimated_minutes'] ?? null,
+                    'is_active' => true,
                 ]
             );
         }

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\WorkOrders;
 
+use App\Enums\WorkOrderStatusEnum;
 use App\Models\Item;
 use App\Models\Tenant;
 use App\Models\User;
@@ -88,9 +89,9 @@ class WorkOrderTest extends TestCase
         ]);
 
         $workOrder->update(['status' => 'in_progress', 'started_at' => now()]);
-        $this->assertEquals('in_progress', $workOrder->fresh()->status);
+        $this->assertEquals(WorkOrderStatusEnum::InProgress, $workOrder->fresh()->status);
 
         $workOrder->update(['status' => 'completed', 'completed_at' => now()]);
-        $this->assertEquals('completed', $workOrder->fresh()->status);
+        $this->assertEquals(WorkOrderStatusEnum::Completed, $workOrder->fresh()->status);
     }
 }

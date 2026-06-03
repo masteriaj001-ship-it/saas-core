@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\WorkOrderStatusEnum;
 use App\Models\Contact;
 use App\Models\Tenant;
 use App\Modules\Talleres\Models\Asset;
@@ -23,7 +24,7 @@ class WorkOrderFactory extends Factory
             'code' => fake()->unique()->bothify('WO-####'),
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
-            'status' => fake()->randomElement(['draft', 'in_progress', 'completed', 'cancelled']),
+            'status' => fake()->randomElement(WorkOrderStatusEnum::cases())->value,
             'priority' => fake()->randomElement(['low', 'normal', 'high', 'urgent']),
         ];
     }

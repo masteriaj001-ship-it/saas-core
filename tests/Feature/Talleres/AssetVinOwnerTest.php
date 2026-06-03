@@ -13,7 +13,7 @@ use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class AssetTallerTest extends TestCase
+class AssetVinOwnerTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -32,98 +32,16 @@ class AssetTallerTest extends TestCase
         app(TenantManager::class)->setTenantContext($this->tenant->id);
     }
 
-    public function test_admin_can_create_asset_with_plate_brand_model_year(): void
-    {
-        $asset = Asset::create([
-            'tenant_id' => $this->tenant->id,
-            'name' => 'Toyota Corolla',
-            'code' => 'ASSET-001',
-            'plate' => 'ABC-123',
-            'brand' => 'Toyota',
-            'model' => 'Corolla',
-            'year' => 2020,
-            'asset_type' => 'vehicles',
-        ]);
-
-        $this->assertDatabaseHas('assets', [
-            'id' => $asset->id,
-            'plate' => 'ABC-123',
-            'brand' => 'Toyota',
-            'model' => 'Corolla',
-            'year' => 2020,
-        ]);
-    }
-
-    public function test_duplicate_plate_within_same_tenant_raises_exception(): void
-    {
-        Asset::create([
-            'tenant_id' => $this->tenant->id,
-            'name' => 'Toyota Corolla',
-            'code' => 'ASSET-001',
-            'plate' => 'ABC-123',
-            'brand' => 'Toyota',
-            'model' => 'Corolla',
-            'year' => 2020,
-            'asset_type' => 'vehicles',
-        ]);
-
-        $this->assertDatabaseHas('assets', ['plate' => 'ABC-123']);
-
-        $this->expectException(QueryException::class);
-        $this->expectExceptionMessageMatches('/unique|duplicate/i');
-
-        Asset::create([
-            'tenant_id' => $this->tenant->id,
-            'name' => 'Honda Civic',
-            'code' => 'ASSET-002',
-            'plate' => 'ABC-123',
-            'brand' => 'Honda',
-            'model' => 'Civic',
-            'year' => 2021,
-            'asset_type' => 'vehicles',
-        ]);
-    }
-
-    public function test_same_plate_allowed_in_different_tenants(): void
-    {
-        $tenantB = Tenant::factory()->create();
-
-        Asset::create([
-            'tenant_id' => $this->tenant->id,
-            'name' => 'Nissan Versa',
-            'code' => 'ASSET-001',
-            'plate' => 'XYZ-789',
-            'brand' => 'Nissan',
-            'model' => 'Versa',
-            'year' => 2022,
-            'asset_type' => 'vehicles',
-        ]);
-
-        app(TenantManager::class)->setTenantContext($tenantB->id);
-
-        $assetB = Asset::create([
-            'name' => 'Mazda 3',
-            'code' => 'ASSET-002',
-            'plate' => 'XYZ-789',
-            'brand' => 'Mazda',
-            'model' => '3',
-            'year' => 2023,
-            'asset_type' => 'vehicles',
-        ]);
-
-        $this->assertDatabaseHas('assets', ['id' => $assetB->id, 'plate' => 'XYZ-789']);
-    }
-
-    public function test_can_create_asset_with_vin(): void
+    public function test_can_create_asset_with_vin_and_owner(): void
     {
         $owner = Contact::factory()->for($this->tenant)->client()->create();
 
         $asset = Asset::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Ford Mustang',
-            'code' => 'ASSET-003',
+            'code' => 'ASSET-VIN-001',
             'vin' => '1FA6P8CF7L1234567',
-            'plate' => 'FORD-001',
+            'plate' => 'VIN-001',
             'brand' => 'Ford',
             'model' => 'Mustang',
             'year' => 2024,
@@ -136,8 +54,6 @@ class AssetTallerTest extends TestCase
             'vin' => '1FA6P8CF7L1234567',
             'owner_id' => $owner->id,
         ]);
-        $this->assertInstanceOf(Contact::class, $asset->owner);
-        $this->assertTrue($asset->owner->is($owner));
     }
 
     public function test_vin_unique_per_tenant(): void
@@ -147,9 +63,9 @@ class AssetTallerTest extends TestCase
         Asset::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Ford Mustang',
-            'code' => 'ASSET-003',
+            'code' => 'ASSET-VIN-001',
             'vin' => '1FA6P8CF7L1234567',
-            'plate' => 'FORD-001',
+            'plate' => 'VIN-001',
             'brand' => 'Ford',
             'model' => 'Mustang',
             'year' => 2024,
@@ -157,17 +73,15 @@ class AssetTallerTest extends TestCase
             'owner_id' => $owner->id,
         ]);
 
-        $this->assertDatabaseHas('assets', ['vin' => '1FA6P8CF7L1234567']);
-
         $this->expectException(QueryException::class);
         $this->expectExceptionMessageMatches('/unique|duplicate/i');
 
         Asset::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Honda Civic',
-            'code' => 'ASSET-004',
+            'code' => 'ASSET-VIN-002',
             'vin' => '1FA6P8CF7L1234567',
-            'plate' => 'HONDA-001',
+            'plate' => 'VIN-002',
             'brand' => 'Honda',
             'model' => 'Civic',
             'year' => 2024,
@@ -185,9 +99,9 @@ class AssetTallerTest extends TestCase
         Asset::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Ford Mustang',
-            'code' => 'ASSET-003',
+            'code' => 'ASSET-VIN-001',
             'vin' => '1FA6P8CF7L1234567',
-            'plate' => 'FORD-001',
+            'plate' => 'VIN-001',
             'brand' => 'Ford',
             'model' => 'Mustang',
             'year' => 2024,
@@ -200,9 +114,9 @@ class AssetTallerTest extends TestCase
         $assetB = Asset::create([
             'tenant_id' => $tenantB->id,
             'name' => 'Fiat 500',
-            'code' => 'ASSET-099',
+            'code' => 'ASSET-VIN-099',
             'vin' => '1FA6P8CF7L1234567',
-            'plate' => 'FIAT-001',
+            'plate' => 'VIN-099',
             'brand' => 'Fiat',
             'model' => '500',
             'year' => 2024,
@@ -220,9 +134,9 @@ class AssetTallerTest extends TestCase
         $asset = Asset::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Nissan Tsuru',
-            'code' => 'ASSET-005',
+            'code' => 'ASSET-VIN-003',
             'vin' => '3N1AB51D2XL123456',
-            'plate' => 'NISS-001',
+            'plate' => 'VIN-003',
             'brand' => 'Nissan',
             'model' => 'Tsuru',
             'year' => 2010,

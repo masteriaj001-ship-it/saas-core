@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
+use App\Enums\VehicleTypeEnum;
 use App\Filament\Resources\AssetResource\Pages\CreateAsset;
 use App\Filament\Resources\AssetResource\Pages\EditAsset;
 use App\Filament\Resources\AssetResource\Pages\ListAssets;
@@ -33,6 +34,16 @@ class AssetResource extends Resource
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-cube';
 
     protected static ?int $navigationSort = 1;
+
+    public static function getModelLabel(): string
+    {
+        return __('Vehículo');
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return __('Vehículos');
+    }
 
     public static function getNavigationLabel(): string
     {
@@ -67,6 +78,24 @@ class AssetResource extends Resource
                                     $rule->where('tenant_id', $tenantId);
                                 }
                             }),
+                        TextInput::make('vin')
+                            ->label(__('VIN'))
+                            ->maxLength(100)
+                            ->unique(ignoreRecord: true, modifyRuleUsing: function (Unique $rule) {
+                                $tenantId = app(TenantManager::class)->getCurrentTenantId();
+                                if ($tenantId) {
+                                    $rule->where('tenant_id', $tenantId);
+                                }
+                            }),
+                        Select::make('vehicle_type')
+                            ->label(__('Tipo de vehículo'))
+                            ->options(VehicleTypeEnum::class)
+                            ->searchable(),
+                        Select::make('owner_id')
+                            ->label(__('Propietario'))
+                            ->relationship('owner', 'name')
+                            ->searchable()
+                            ->preload(),
                         TextInput::make('brand')
                             ->label(__('Marca'))
                             ->maxLength(100),
@@ -132,6 +161,14 @@ class AssetResource extends Resource
                 TextColumn::make('plate')
                     ->label(__('Placa'))
                     ->searchable(),
+                TextColumn::make('vin')
+                    ->label(__('VIN'))
+                    ->searchable()
+                    ->toggleable(),
+                TextColumn::make('owner.name')
+                    ->label(__('Propietario'))
+                    ->searchable()
+                    ->toggleable(),
                 TextColumn::make('brand')
                     ->label(__('Marca'))
                     ->searchable(),

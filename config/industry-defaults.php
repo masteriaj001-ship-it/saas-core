@@ -28,6 +28,38 @@ return [
                 ['name' => 'Vehículo de Prueba (Sedán)',    'asset_type' => 'vehicle',  'status' => 'active'],
                 ['name' => 'Equipo de Diagnóstico Escáner', 'asset_type' => 'equipment', 'status' => 'active'],
             ],
+            'service_catalogs' => [
+                [
+                    'name' => 'Cambio de aceite y filtro',
+                    'description' => 'Cambio de aceite mineral, sintético o semisintético + filtro',
+                    'base_price' => 45000,
+                    'estimated_minutes' => 30,
+                ],
+                [
+                    'name' => 'Revisión de frenos',
+                    'description' => 'Inspección de pastillas, discos y líquido de frenos',
+                    'base_price' => 35000,
+                    'estimated_minutes' => 45,
+                ],
+                [
+                    'name' => 'Diagnóstico electrónico',
+                    'description' => 'Lectura de códigos de falla con escáner OBD2',
+                    'base_price' => 25000,
+                    'estimated_minutes' => 20,
+                ],
+                [
+                    'name' => 'Alineación y balanceo',
+                    'description' => 'Alineación de dirección + balanceo de 4 ruedas',
+                    'base_price' => 55000,
+                    'estimated_minutes' => 60,
+                ],
+                [
+                    'name' => 'Sincronización de motor',
+                    'description' => 'Bujías, cables, distribuidor y carburación',
+                    'base_price' => 120000,
+                    'estimated_minutes' => 90,
+                ],
+            ],
         ],
         'restaurant' => [
             'label' => 'Restaurantes y Gastronomía',

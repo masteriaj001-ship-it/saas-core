@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Talleres\Models;
 
+use App\Enums\WorkOrderStatusEnum;
 use App\Models\Contact;
 use App\Models\TenantModel;
 use Database\Factories\WorkOrderFactory;
@@ -40,6 +41,7 @@ class WorkOrder extends TenantModel
             'metadata' => 'array',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
+            'status' => WorkOrderStatusEnum::class,
         ]);
     }
 

@@ -47,7 +47,7 @@ class Onboarding extends Page
         if ($this->detectedIndustry) {
             $steps[] = Wizard\Step::make(__('¡Bienvenido a Jaosoft!'))
                 ->description(__('Hemos pre-configurado tu negocio'))
-                ->icon('heroicon-o-hand-wave')
+                ->icon('heroicon-o-face-smile')
                 ->schema([
                     Placeholder::make('welcome')
                         ->label('')

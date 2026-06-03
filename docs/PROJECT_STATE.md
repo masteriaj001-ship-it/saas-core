@@ -1,21 +1,21 @@
 # PROJECT STATE — ProyectDashboard
 
 > Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
-> Última actualización: 2026-06-03 (Fase 2 UX/UI)
+> Última actualización: 2026-06-03 (VehicleTypeEnum + ServiceCatalog)
 
 ---
 
 ## 1. Resumen Ejecutivo
 
-SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 18 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` + trait `BelongsToTenant` con global scope.
+SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 21 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` + trait `BelongsToTenant` con global scope.
 
-**Fase actual:** Panel admin (`/admin/{slug}`) con 6 Resources + Dashboard widgets + **VerifyTenantStatus middleware** (bloquea tenants suspendidos). Panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy, **Arquitectura Modular (DDD Lite)** con `app/Modules/Talleres/`. **UX/UI Fase 2 completada**: sistema de diseño "Neon Garage" (Dark/Neon Premium) con 9 Blade Components + Wizard de onboarding de 3 pasos. **80 tests pasando, 205 assertions.**
+**Fase actual:** Panel admin (`/admin/{slug}`) con 7 Resources (nuevo: ServiceCatalog) + Dashboard widgets + **VerifyTenantStatus middleware** (bloquea tenants suspendidos). Panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy, **Arquitectura Modular (DDD Lite)** con `app/Modules/Talleres/`. **UX/UI Fase 2 completada**: sistema de diseño "Neon Garage" (Dark/Neon Premium) con 9 Blade Components + Wizard de onboarding de 3 pasos. **VehicleTypeEnum + ServiceCatalog + seeder mechanic**. **93 tests pasando, 234 assertions.**
 
 ---
 
 ## 2. Estado Actual
 
-### Migraciones ejecutadas (18/18)
+### Migraciones ejecutadas (21/21)
 
 | Orden | Archivo | Tabla | RLS |
 |---|---|---|---|---|---|---|---|
@@ -42,8 +42,18 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | 16 | `2026_05_28_000004_create_tenant_modules_table` | `tenant_modules` | 4 políticas |
 | 17 | `2026_05_28_000005_add_is_superadmin_to_users_table` | `users` (add col) | `is_superadmin boolean NOT NULL DEFAULT false` |
 | 18 | `2026_05_28_032815_alter_users_table_make_tenant_id_nullable` | `users` (alter) | `ALTER COLUMN tenant_id DROP NOT NULL` (soporte superadmin global) |
+| 19 | `2026_06_03_230122_add_vin_and_owner_to_assets` | `assets` (add cols) | `vin VARCHAR(100)` + `owner_id UUID FK→contacts` + índices `idx_assets_tenant_vin` (UNIQUE, partial WHERE deleted_at IS NULL) + `idx_assets_owner` |
+| 20 | `2026_06_03_232437_add_vehicle_type_to_assets` | `assets` (add col) | `vehicle_type VARCHAR(50)` NULL |
+| 21 | `2026_06_03_232437_create_service_catalogs_table` | `service_catalogs` | 7 columnas + RLS 4 políticas + índices `(tenant_id)`, `UNIQUE (tenant_id, name) WHERE deleted_at IS NULL`, `(tenant_id, is_active)` |
 
-### Modelos (17 + trait)
+### Enums
+
+| Enum | Values | Contracts | Uso |
+|---|---|---|---|
+| `WorkOrderStatusEnum` | Draft, Received, Diagnosing, Quoted, InProgress, Completed, Delivered, Cancelled | `HasLabel`, `HasColor` | WorkOrder.model status cast + WorkOrderStatusChart + Factory |
+| `VehicleTypeEnum` | Sedan, Motorcycle, PickupTruck, Suv, Van, Truck, Other | `HasLabel`, `HasColor` | Asset.model vehicle_type cast + Select form field |
+
+### Modelos (19 + trait)
 
 | Modelo | Extiende | UUID PK | BelongsToTenant | SoftDeletes | Notas |
 |---|---|---|---|---|---|---|---|---|
@@ -60,6 +70,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `Permission` | `Spatie\Permission\Models\Permission` | ✅ HasUuids + $incrementing=false + $keyType=string | ✅ trait | ❌ | |
 | `Location` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `Category` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `ServiceCatalog` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | Catálogo de servicios por taller |
 | `TenantModule` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `ModuleCatalog` | `Model` | ✅ HasUuids | ❌ (global) | ❌ | |
 | `TenantModel` | `Model` | Abstracto base | — | — | |
@@ -76,7 +87,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `AssetFactory` | Asset |
 | `ContactFactory` | Contact |
 | `ItemFactory` | Item |
-| `WorkOrderFactory` | WorkOrder |
+| `WorkOrderFactory` | WorkOrder (enum random status via `WorkOrderStatusEnum::cases()`) |
 | `WorkOrderItemFactory` | WorkOrderItem |
 | `TransactionFactory` | Transaction (states: sale/purchase/draft/issued/cancelled) |
 | `TransactionItemFactory` | TransactionItem |
@@ -119,6 +130,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `RolePermissionSeeder` | Crea 20 permisos + 4 roles (`owner`/`admin`/`editor`/`viewer`) por tenant |
 | `ModulesCatalogSeeder` | Crea 5 módulos globales: inventory, transactions, contacts, work_orders, reports |
 | `DatabaseSeeder` | Crea datos de prueba (actualizado: no crea usuarios huérfanos) |
+| `TenantTemplateSeeder` | Crea defaults por industria: categories, items, assets, service_catalogs + marca onboarding_completed |
 
 ### Comandos Artisan
 
@@ -132,12 +144,13 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 
 | Recurso | Páginas |
 |---|---|
-| `AssetResource` | List / Create / Edit — name, code, asset_type, status, metadata, acquired_at |
+| `AssetResource` | List / Create / Edit — name, code, plate, vin, vehicle_type, owner, brand, model, year, asset_type, status, metadata, acquired_at |
 | `ContactResource` | List / Create / Edit — contact_type, name, tax_id, email, phone, address, metadata |
 | `ItemResource` | List / Create / Edit — sku, name, item_type, unit, price, cost, stock, min_stock, metadata |
 | `WorkOrderResource` | List (con permisos Spatie) / Create (con auto-código) / Edit + ItemsRelationManager |
 | `TransactionResource` | List / Create / Edit + ItemsRelationManager — type (sale/purchase), contact, invoice_number, CUFE, resolución DIAN, payment_method, items con IVA, totes automáticos, acciones de Emitir/Anular |
 | `LocationResource` | List / Create / Edit — name, address, is_main (badge Principal), is_active |
+| `ServiceCatalogResource` | List / Create / Edit — name, base_price, estimated_minutes, is_active |
 
 ### Filament Resources (Superadmin Panel — `/superadmin`)
 
@@ -160,15 +173,17 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | Widget | Tipo | Datos |
 |---|---|---|
 | `DemoStatsOverview` | StatsOverviewWidget | 5 cards: Assets, Items (+stock bajo), Contacts, WorkOrders, Stock Bajo |
-| `WorkOrderStatusChart` | BarChartWidget | WOs agrupadas por status con colores |
+| `WorkOrderStatusChart` | BarChartWidget | WOs agrupadas por status dinámico desde `WorkOrderStatusEnum::cases()` con colores mapeados |
 | `LatestWorkOrdersTable` | TableWidget | Últimas 5 WOs con código, título, asset, status, fecha |
 
-### Tests (80 pasando, 205 assertions)
+### Tests (93 pasando, 234 assertions)
 
 | Test Suite | Archivos | Tests | Propósito |
 |---|---|---|---|---|---|---|
 | WorkOrderTest | `tests/Feature/WorkOrders/` | 4 | CRUD + status transitions |
-| AssetTallerTest | `tests/Feature/Talleres/` | 2 | Plate/brand/model/year + unique plate |
+| AssetTallerTest | `tests/Feature/Talleres/` | 7 | Plate/brand/model/year + unique plate + VIN/owner CRUD + VIN unique per tenant + VIN cross-tenant + owner relationship |
+| AssetVinOwnerTest | `tests/Feature/Talleres/` | 4 | VIN/owner CRUD (separado), VIN unique tenant, VIN cross-tenant, owner relationship |
+| ServiceCatalogTest | `tests/Feature/Talleres/` | 5 | ServiceCatalog CRUD + tenant isolation + validación + VehicleTypeEnum values + mechanic template seeds 5 catalogs |
 | WorkOrderTallerTest | `tests/Feature/Talleres/` | 1 | WorkOrder con service_description |
 | WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 2 | Aislamiento cross-tenant WorkOrders + Assets |
 | TallerOnboardingTest | `tests/Feature/Talleres/` | — | (pendiente — wizard requiere test de integración) |
@@ -343,6 +358,10 @@ php artisan make:command Nombre            # Crear comando Artisan
 | 2026-05-28 | opencode | **Tenant Suspension**: Middleware `VerifyTenantStatus` bloquea `/admin/{slug}` si `tenant->is_active === false`. Superadmins bypass. Vista personalizada `errors/tenant-suspended.blade.php`. 3 tests. Pipeline: SetTenantContext → VerifyTenantStatus. 63/63 tests, 168 assertions. | — |
 | 2026-06-03 | opencode | **Arquitectura Modular (DDD Lite)**: ARCHITECTURE_MANIFEST.md creado con 5 reglas SOLID. R-01 agregado a AGENTS.md. Asset, WorkOrder, WorkOrderItem movidos a app/Modules/Talleres/Models/. WorkOrderService movido a app/Modules/Talleres/Services/. CreateAssetAction y CreateWorkOrderAction creados en app/Modules/Talleres/Actions/. TalleresServiceProvider creado y registrado. Factories con $model property corregido. 80/80 tests, 205 assertions. 3 commits. | Documentar migración legacy restante |
 | 2026-06-03 | opencode | **UX/UI Fase 2 — Neon Garage**: UI_UX_SPEC.md creado con sistema de diseño Dark/Neon Premium. talleres-theme.css con variables neon + @source. 9 Blade Components (PlateBadge, StatusDot, GlassCard, DataRow, NeonButton, GlowInput, MetricTile, TimelineStep) — todos dumb, cero lógica de negocio. TalleresServiceProvider extendido: loadViewsFrom + Blade::componentNamespace('talleres'). Wizard de 3 pasos (Identidad → Workflow → Lanzamiento) con TallerOnboarding page, datos persistidos en tenants.metadata vía DB::transaction. AdminPanelProvider registra TallerOnboarding::class. @source agregado a app.css para escaneo Tailwind de módulos. 80/80 tests, 205 assertions. 0 regresiones. | Probar wizard en navegador |
+| 2026-06-03 | opencode | **VIN + Owner en Assets**: migración `add_vin_and_owner_to_assets` (vin VARCHAR(100), owner_id UUID FK→contacts, índices UNIQUE tenant+vin + tenant+owner). Modelo Asset actualizado (fillable + owner()+workOrders()). Resource AssetResource actualizado (vin + owner_id form/table). 4 tests nuevos en AssetTallerTest + 4 en AssetVinOwnerTest. 88/88 tests, 222 assertions. | WorkOrderStatusEnum |
+| 2026-06-03 | opencode | **WorkOrderStatusEnum**: `app/Enums/WorkOrderStatusEnum.php` creado con 8 cases (Draft→Delivered) + HasLabel/HasColor de Filament. Cast agregado a WorkOrder.model. WorkOrderStatusChart migrado a labels/colors dinámicos desde enum. Factory usa `randomElement(WorkOrderStatusEnum::cases())`. Tests corregidos para compatibilidad con enum. 0 migraciones (strings en BD). 88/88 tests, 222 assertions. | VehicleTypeEnum + ServiceCatalog |
+| 2026-06-03 | opencode | **VehicleTypeEnum + ServiceCatalog**: `app/Enums/VehicleTypeEnum.php` con 7 tipos de vehículo (Sedan→Other) + HasLabel/HasColor. Asset.model +vehicle_type fillable/cast. AssetResource +Select vehicle_type. 2 migraciones: `add_vehicle_type_to_assets` + `create_service_catalogs_table` (con RLS). ServiceCatalog.model creado. ServiceCatalogResource con List/Create/Edit. 4 tests. 92/92 tests, 228 assertions. | ServiceCatalog seeder |
+| 2026-06-03 | opencode | **ServiceCatalog seeder mechanic**: service_catalogs agregado a config/industry-defaults.php (5 servicios: cambio aceite, frenos, diagnóstico, alineación, sincronización). TenantTemplateSeeder extendido con foreach firstOrCreate para ServiceCatalog. 5 tests en ServiceCatalogTest. 93/93 tests, 234 assertions. | — |
 
 ## 8. Arquitectura Modular (DDD Lite)
 
@@ -354,7 +373,8 @@ app/Modules/
 │   ├── Models/
 │   │   ├── Asset.php              ← movido desde app/Models/Asset.php
 │   │   ├── WorkOrder.php          ← movido desde app/Models/WorkOrder.php
-│   │   └── WorkOrderItem.php      ← movido desde app/Models/WorkOrderItem.php
+│   │   ├── WorkOrderItem.php      ← movido desde app/Models/WorkOrderItem.php
+│   │   └── ServiceCatalog.php     ← nuevo (catálogo de servicios)
 │   ├── Actions/
 │   │   ├── CreateAssetAction.php
 │   │   └── CreateWorkOrderAction.php
@@ -439,7 +459,7 @@ static::creating(function (Model $model) {
 
 ### Base de datos
 - `testing` database configurada en `phpunit.xml`
-- 16 migraciones, 21 tablas con RLS + FORCE RLS, 4 políticas c/u + 1 tabla global (modules_catalog)
+- 21 migraciones, 22 tablas con RLS + FORCE RLS, 4 políticas c/u + 1 tabla global (modules_catalog) + 1 función PG
 - `users` tiene política SELECT que permite login sin contexto de tenant
 - `BelongsToTenant` global scope se salta silenciosamente si no hay contexto (no lanza error)
 - `sail` DB user es SUPERUSER → RLS bypasseado en desarrollo. Doble-lock: BelongsToTenant scope compensa.
@@ -451,17 +471,17 @@ static::creating(function (Model $model) {
 - `config/permission.php` → `teams = false` (no usar Spatie teams), `store = array`
 - Modelos custom: `App\Models\Role`, `App\Models\Permission` (extienden Spatie + BelongsToTenant + HasUuids)
 - `tenant_id` en todas las tablas con `DEFAULT public.current_tenant_id()` (para pivotes que Spatie inserta sin team_id)
-- 21 tablas con RLS + FORCE RLS (previas + 5 Spatie + 2 Transactions + 3 nuevas: categories, locations, tenant_modules)
-- 11 test suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1), TenantSuspension (1) — 63 tests total, 168 assertions
+- 22 tablas con RLS + FORCE RLS (previas + 5 Spatie + 2 Transactions + 4 nuevas: categories, locations, tenant_modules, service_catalogs)
+- 13 test suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1), TenantSuspension (1), VIN+Owner (2: AssetTallerTest+AssetVinOwnerTest), ServiceCatalog (1) — 92 tests total, 228 assertions
 - `current_tenant_id()` PG function regex actualizada: acepta cualquier versión UUID (v4 y v7) — Laravel 13 genera v7 por defecto
 - **20 permisos totales**: work_orders, assets, items, contacts, transactions (× 4 acciones c/u)
-- **18 migraciones**: 17 previas + `alter_users_table_make_tenant_id_nullable` para soporte superadmin
+- **21 migraciones**: 18 previas + `add_vin_and_owner_to_assets` + `add_vehicle_type_to_assets` + `create_service_catalogs_table`
 
 ### Paneles Filament
 
 | Panel | Path | Tenant | Middleware extra | Recursos |
 |---|---|---|---|---|
-| Admin | `/admin/{tenant:slug}` | ✅ `->tenant(Tenant::class, slugAttribute: 'slug')` | `SetTenantContext` → `VerifyTenantStatus` (bloquea si `is_active=false`) | 6 Resources (Asset, Contact, Item, WorkOrder, Transaction, Location) |
+| Admin | `/admin/{tenant:slug}` | ✅ `->tenant(Tenant::class, slugAttribute: 'slug')` | `SetTenantContext` → `VerifyTenantStatus` (bloquea si `is_active=false`) | 7 Resources (Asset, Contact, Item, WorkOrder, Transaction, Location, ServiceCatalog) |
 | Superadmin | `/superadmin` | ❌ Sin tenant context | `EnsureIsSuperAdmin` (403 si no superadmin) | 3 Resources (Tenant, GlobalAsset, GlobalWorkOrder) |
 
 ### Filament Multi-Tenant Architecture
@@ -561,7 +581,7 @@ docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker
 
 ---
 
-## Governance Audit — 2026-06-03
+## Governance Audit — 2026-06-03 (actualizado)
 
 ### Violaciones corregidas
 - **`app/Models/Permission.php:19`** — `$guarded` incompleto (faltaban `created_at`, `updated_at`, `deleted_at`)
@@ -578,19 +598,24 @@ docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker
 ## LAST_DECISION_LOG (últimas 5 decisiones)
 
 | Fecha | Decisión | Alternativa descartada | Razón |
-|---|---|---|---|
+|---|---|---|---|---|
 | 2026-06-03 | industry en metadata JSON | columna dedicada | evitar migración |
 | 2026-06-03 | Boost instalado | solo CLAUDE.md manual | docs versionadas |
 | 2026-06-03 | Talleres Mecánicos Fase 1 | — | assets con plate/brand/model/year + service_description en work_orders + índice único (tenant_id, plate) WHERE deleted_at IS NULL |
 | 2026-06-03 | Migración a DDD Lite (ARCHITECTURE_MANIFEST.md) | todo en app/Models/ | SRP, modularidad, mantenibilidad. Asset/WorkOrder/WorkOrderItem movidos a Modules |
 | 2026-06-03 | CreateAssetAction + CreateWorkOrderAction | lógica en Filament Resources | encapsular validación unique plate + generación código en casos de uso dedicados |
 | 2026-06-03 | Neon Garage Design System (UI_UX_SPEC.md) | — | Dark/Neon Premium: Gray-950, acentos Cyan/Emerald, glassmorphism, glow, monospaced data. Fase 2 UX/UI |
+| 2026-06-03 | VIN + Owner en Assets | `vin` en metadata JSONB | `vin` es columna directa como `plate` — no viola CLAUDE.md. Índice UNIQUE (tenant_id, vin) WHERE deleted_at IS NULL |
+| 2026-06-03 | Arquitectura modular: `app/Modules/Talleres/` extiende TenantModel | Modelos duplicados | Single-table con modular models. Assets en Modules/Talleres/Models/ usa misma tabla `assets` |
+| 2026-06-03 | WorkOrderStatusEnum con 8 estados | 4 estados originales | Workflow completo de taller: Draft→Received→Diagnosing→Quoted→InProgress→Completed→Delivered→Cancelled |
+| 2026-06-03 | VehicleTypeEnum + ServiceCatalog | vehicle_type en metadata JSONB | Enumerar tipos mejora filtros. ServiceCatalog como tabla separada permite precios por taller con RLS |
+| 2026-06-03 | ServiceCatalog integrado en TenantTemplateSeeder vía industry-defaults.php — patrón extensible a otros verticales | Seeder separado `MechanicShopTemplateSeeder` | Reutiliza el mismo patrón firstOrCreate que categories/items/assets. Mecanic obtiene 5 servicios de catálogo al registrarse |
 
 ---
 
 ## Fase 1 — Talleres Mecánicos (Core)
 
-Implementada con éxito. Validada con 80 tests (205 assertions).
+Implementada con éxito. Validada con 93 tests (234 assertions).
 Estructura de activos y órdenes de servicio operativa con aislamiento multi-tenant total.
 
 ## Fase 2 — UX/UI Neon Garage (Diseño)

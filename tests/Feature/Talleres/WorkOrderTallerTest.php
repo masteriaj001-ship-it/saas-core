@@ -42,7 +42,7 @@ class WorkOrderTallerTest extends TestCase
             'code' => 'WO-0001',
             'title' => 'Cambio de aceite',
             'service_description' => 'Cambio de aceite y filtros',
-            'status' => 'pending',
+            'status' => 'draft',
         ]);
 
         $this->assertDatabaseHas('work_orders', [
