@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\SetTenantContext;
 use App\Http\Middleware\VerifyTenantStatus;
 use App\Models\Tenant;
+use App\Modules\Talleres\Http\Pages\TallerOnboarding;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -44,6 +45,7 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 Dashboard::class,
+                TallerOnboarding::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
