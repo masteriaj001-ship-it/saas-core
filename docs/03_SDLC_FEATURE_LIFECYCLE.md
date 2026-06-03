@@ -139,7 +139,7 @@ declare(strict_types=1);
 
 namespace App\Services\Assets;
 
-use App\Models\Asset;
+use App\Modules\Talleres\Models\Asset;
 use App\Http\Requests\Assets\CreateAssetRequest;
 use App\Http\Requests\Assets\UpdateAssetRequest;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -213,7 +213,7 @@ class CreateAssetRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()->can('create', \App\Models\Asset::class);
+        return $this->user()->can('create', \App\Modules\Talleres\Models\Asset::class);
     }
 
     public function rules(): array

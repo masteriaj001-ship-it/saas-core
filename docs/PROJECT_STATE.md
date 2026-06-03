@@ -1,7 +1,7 @@
 # PROJECT STATE — ProyectDashboard
 
 > Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
-> Última actualización: 2026-05-28
+> Última actualización: 2026-06-03
 
 ---
 
@@ -9,7 +9,7 @@
 
 SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 18 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` + trait `BelongsToTenant` con global scope.
 
-**Fase actual:** Panel admin (`/admin/{slug}`) con 6 Resources + Dashboard widgets + **VerifyTenantStatus middleware** (bloquea tenants suspendidos). Panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy. **63 tests pasando, 168 assertions.**
+**Fase actual:** Panel admin (`/admin/{slug}`) con 6 Resources + Dashboard widgets + **VerifyTenantStatus middleware** (bloquea tenants suspendidos). Panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy, **Arquitectura Modular (DDD Lite)** con `app/Modules/Talleres/`. **80 tests pasando, 205 assertions.**
 
 ---
 
@@ -49,11 +49,11 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 |---|---|---|---|---|---|---|---|---|
 | `Tenant` | `Model` | ✅ HasUuids | ❌ (raíz) | ❌ | Slug usado como route key en Filament |
 | `User` | `Authenticatable` | ✅ HasUuids + $incrementing=false + $keyType=string | ✅ trait (con excepción: salta si is_superadmin=true) | ✅ | Implementa `Filament\Models\Contracts\HasTenants` |
-| `Asset` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `Asset` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | **Movido a `Modules\Talleres\Models\Asset`** |
 | `Item` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `Contact` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
-| `WorkOrder` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
-| `WorkOrderItem` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
+| `WorkOrder` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | **Movido a `Modules\Talleres\Models\WorkOrder`** |
+| `WorkOrderItem` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | **Movido a `Modules\Talleres\Models\WorkOrderItem`** |
 | `Transaction` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `TransactionItem` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `Role` | `Spatie\Permission\Models\Role` | ✅ HasUuids + $incrementing=false + $keyType=string | ✅ trait | ❌ | |
@@ -91,7 +91,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `TenantManager` | `app/Services/` | Singleton, puente PHP ↔ PostgreSQL |
 | `BelongsToTenant` | `app/Models/Concerns/` | Trait con global scope + creating event. Modificado para omitir exception si `is_superadmin=true` |
 | `current_tenant_id()` | BD (función PG) | Firewall que valida UUID y lanza error si falta contexto |
-| `WorkOrderService` | `app/Services/WorkOrders/` | CRUD + generación de códigos WO-XXXX |
+| `WorkOrderService` | `app/Modules/Talleres/Services/` | CRUD + generación de códigos WO-XXXX (**movido a módulo**) |
 | `TransactionService` | `app/Services/Transactions/` | Generación secuencial de facturas (contador atómico en tenants.settings), cálculo de IVA/totales, emitir/anular transacciones |
 | `RegisterService` | `app/Services/Auth/` | Registro + creación tenant + defaults automáticos (location, categories, items, contacts, módulos) por industria |
 
@@ -155,11 +155,14 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `WorkOrderStatusChart` | BarChartWidget | WOs agrupadas por status con colores |
 | `LatestWorkOrdersTable` | TableWidget | Últimas 5 WOs con código, título, asset, status, fecha |
 
-### Tests (63 pasando, 168 assertions)
+### Tests (80 pasando, 205 assertions)
 
 | Test Suite | Archivos | Tests | Propósito |
-|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|
 | WorkOrderTest | `tests/Feature/WorkOrders/` | 4 | CRUD + status transitions |
+| AssetTallerTest | `tests/Feature/Talleres/` | 2 | Plate/brand/model/year + unique plate |
+| WorkOrderTallerTest | `tests/Feature/Talleres/` | 1 | WorkOrder con service_description |
+| WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 2 | Aislamiento cross-tenant WorkOrders + Assets |
 | WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 1 | Aislamiento cross-tenant WorkOrders |
 | SpatieTenantIsolationTest | `tests/Feature/Security/` | 4 | Roles/permissions aislados entre tenants, global scope filtra, RLS policies existen |
 | SpatiePermissionBypassTest | `tests/Feature/Security/` | 5 | Scope bloquea cross-tenant, creating event evita huérfanos, SQL directo muestra todo pero scope filtra, current_tenant_id() valida UUID |
@@ -328,8 +331,41 @@ php artisan make:command Nombre            # Crear comando Artisan
 | 2026-05-28 | opencode | **Fix route tenant param**: `DemoStatsOverview` reemplaza `route('filament.admin.resources.*')` por `XxxResource::getUrl('index')` que resuelve `{tenant}` automáticamente. 60/60 tests. | — |
 | 2026-05-28 | opencode | **Superadmin Resources**: `TenantResource` (CRUD completo: tabla, formulario, filtros, badges), `GlobalWorkOrderResource` (read-only global, columna tenant.name, sin scope de tenant), `GlobalAssetResource` (read-only global, columna tenant.name, sin scope de tenant). 3 resources en menú izquierdo del panel rojo `/superadmin`. Rutas verificadas. 60/60 tests pasando. | Vistas/resource superadmin propias |
 | 2026-05-28 | opencode | **Tenant Suspension**: Middleware `VerifyTenantStatus` bloquea `/admin/{slug}` si `tenant->is_active === false`. Superadmins bypass. Vista personalizada `errors/tenant-suspended.blade.php`. 3 tests. Pipeline: SetTenantContext → VerifyTenantStatus. 63/63 tests, 168 assertions. | — |
+| 2026-06-03 | opencode | **Arquitectura Modular (DDD Lite)**: ARCHITECTURE_MANIFEST.md creado con 5 reglas SOLID. R-01 agregado a AGENTS.md. Asset, WorkOrder, WorkOrderItem movidos a app/Modules/Talleres/Models/. WorkOrderService movido a app/Modules/Talleres/Services/. CreateAssetAction y CreateWorkOrderAction creados en app/Modules/Talleres/Actions/. TalleresServiceProvider creado y registrado. Factories con $model property corregido. 80/80 tests, 205 assertions. 3 commits. | Documentar migración legacy restante |
 
-## 8. Notas Técnicas Críticas
+## 8. Arquitectura Modular (DDD Lite)
+
+A partir de 2026-06-03, el proyecto migra a `app/Modules/{Modulo}/` siguiendo el Manifiesto en `ARCHITECTURE_MANIFEST.md`.
+
+```
+app/Modules/
+├── Talleres/
+│   ├── Models/
+│   │   ├── Asset.php          ← movido desde app/Models/Asset.php
+│   │   ├── WorkOrder.php      ← movido desde app/Models/WorkOrder.php
+│   │   └── WorkOrderItem.php  ← movido desde app/Models/WorkOrderItem.php
+│   ├── Actions/
+│   │   ├── CreateAssetAction.php
+│   │   └── CreateWorkOrderAction.php
+│   ├── Services/
+│   │   └── WorkOrderService.php  ← movido desde app/Services/WorkOrders/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   └── Resources/
+│   └── Providers/
+│       └── TalleresServiceProvider.php  ← registrado en bootstrap/providers.php
+├── Ventas/        ← (futuro)
+├── Inventario/    ← (futuro)
+└── ...
+```
+
+### Reglas de migración
+- Cada bloque se mueve con su Factory y Policy
+- Factories requieren `$model` property o `newFactory()` para mantener resolución correcta
+- Los `use` statements se actualizan en todos los archivos que importan los modelos
+- Cada bloque se commit por separado para permitir rollback granular
+
+## 9. Notas Técnicas Críticas
 
 ### BelongsToTenant — Superadmin Exception
 
@@ -519,6 +555,8 @@ docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker
 | 2026-06-03 | industry en metadata JSON | columna dedicada | evitar migración |
 | 2026-06-03 | Boost instalado | solo CLAUDE.md manual | docs versionadas |
 | 2026-06-03 | Talleres Mecánicos Fase 1 | — | assets con plate/brand/model/year + service_description en work_orders + índice único (tenant_id, plate) WHERE deleted_at IS NULL |
+| 2026-06-03 | Migración a DDD Lite (ARCHITECTURE_MANIFEST.md) | todo en app/Models/ | SRP, modularidad, mantenibilidad. Asset/WorkOrder/WorkOrderItem movidos a Modules |
+| 2026-06-03 | CreateAssetAction + CreateWorkOrderAction | lógica en Filament Resources | encapsular validación unique plate + generación código en casos de uso dedicados |
 
 ---
 
