@@ -2,13 +2,20 @@
 
 declare(strict_types=1);
 
-namespace App\Models;
+namespace App\Modules\Talleres\Models;
 
+use App\Models\TenantModel;
+use Database\Factories\AssetFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Asset extends TenantModel
 {
     use HasFactory;
+
+    protected static function newFactory(): AssetFactory
+    {
+        return AssetFactory::new();
+    }
 
     protected $fillable = [
         'name',

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Superadmin\Resources;
 
 use App\Filament\Superadmin\Resources\GlobalAssetResource\Pages\ListGlobalAssets;
-use App\Models\Asset;
+use App\Modules\Talleres\Models\Asset;
 use Filament\Resources\Resource;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;

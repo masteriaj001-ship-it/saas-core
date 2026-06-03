@@ -7,7 +7,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AssetResource\Pages\CreateAsset;
 use App\Filament\Resources\AssetResource\Pages\EditAsset;
 use App\Filament\Resources\AssetResource\Pages\ListAssets;
-use App\Models\Asset;
+use App\Modules\Talleres\Models\Asset;
 use App\Services\TenantManager;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;

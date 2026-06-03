@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Talleres;
 
-use App\Models\Asset;
+use App\Modules\Talleres\Models\Asset;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;

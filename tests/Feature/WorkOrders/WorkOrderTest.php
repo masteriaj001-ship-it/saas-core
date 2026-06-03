@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\WorkOrders;
 
-use App\Models\Asset;
+use App\Modules\Talleres\Models\Asset;
 use App\Models\Item;
 use App\Models\Tenant;
 use App\Models\User;

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Models\Asset;
+use App\Modules\Talleres\Models\Asset;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\Tenant;

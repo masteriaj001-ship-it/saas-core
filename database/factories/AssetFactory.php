@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 
 class AssetFactory extends Factory
 {
+    protected $model = \App\Modules\Talleres\Models\Asset::class;
+
     public function definition(): array
     {
         $types = ['phones', 'computers', 'vehicles'];
