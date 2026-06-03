@@ -1,7 +1,7 @@
 # PROJECT STATE — ProyectDashboard
 
 > Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
-> Última actualización: 2026-06-03
+> Última actualización: 2026-06-03 (Fase 2 UX/UI)
 
 ---
 
@@ -9,7 +9,7 @@
 
 SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 18 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` + trait `BelongsToTenant` con global scope.
 
-**Fase actual:** Panel admin (`/admin/{slug}`) con 6 Resources + Dashboard widgets + **VerifyTenantStatus middleware** (bloquea tenants suspendidos). Panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy, **Arquitectura Modular (DDD Lite)** con `app/Modules/Talleres/`. **80 tests pasando, 205 assertions.**
+**Fase actual:** Panel admin (`/admin/{slug}`) con 6 Resources + Dashboard widgets + **VerifyTenantStatus middleware** (bloquea tenants suspendidos). Panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy, **Arquitectura Modular (DDD Lite)** con `app/Modules/Talleres/`. **UX/UI Fase 2 completada**: sistema de diseño "Neon Garage" (Dark/Neon Premium) con 9 Blade Components + Wizard de onboarding de 3 pasos. **80 tests pasando, 205 assertions.**
 
 ---
 
@@ -147,6 +147,14 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `GlobalAssetResource` | List (read-only) | `withoutGlobalScope('tenant')` — todos los activos de la BD con columna tenant.name |
 | `GlobalWorkOrderResource` | List (read-only) | `withoutGlobalScope('tenant')` — todas las WOs de la BD con columna tenant.name |
 
+### Filament Pages (Admin Panel)
+
+| Página | Ruta | Propósito |
+|---|---|---|
+| `Dashboard` | `/admin/{tenant:slug}` | Dashboard principal con widgets |
+| `Onboarding` | `/admin/{tenant:slug}/onboarding` | Onboarding post-registro (industria + defaults) |
+| `TallerOnboarding` | `/admin/{tenant:slug}/talleres/onboarding` | Wizard 3 pasos Neon Garage (Fase 2 UX/UI) |
+
 ### Dashboard Widgets (3)
 
 | Widget | Tipo | Datos |
@@ -163,7 +171,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | AssetTallerTest | `tests/Feature/Talleres/` | 2 | Plate/brand/model/year + unique plate |
 | WorkOrderTallerTest | `tests/Feature/Talleres/` | 1 | WorkOrder con service_description |
 | WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 2 | Aislamiento cross-tenant WorkOrders + Assets |
-| WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 1 | Aislamiento cross-tenant WorkOrders |
+| TallerOnboardingTest | `tests/Feature/Talleres/` | — | (pendiente — wizard requiere test de integración) |
 | SpatieTenantIsolationTest | `tests/Feature/Security/` | 4 | Roles/permissions aislados entre tenants, global scope filtra, RLS policies existen |
 | SpatiePermissionBypassTest | `tests/Feature/Security/` | 5 | Scope bloquea cross-tenant, creating event evita huérfanos, SQL directo muestra todo pero scope filtra, current_tenant_id() valida UUID |
 | SpatieCacheIsolationTest | `tests/Feature/Security/` | 3 | Cache aislado por tenant, forgetCachedPermissions limpia ambos niveles, permisos recargan con RLS |
@@ -179,6 +187,8 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | Documento | Propósito |
 |---|---|
 | `AGENTS.md` | Reglas mandatorias para agentes IA (no negociables) |
+| `ARCHITECTURE_MANIFEST.md` | 5 reglas SOLID para arquitectura modular |
+| `UI_UX_SPEC.md` | Sistema de diseño "Neon Garage" (Dark/Neon Premium) |
 | `docs/LEARNING_GUIDE.md` | Guía de aprendizaje para el equipo |
 | `docs/WORKFLOW.md` | Cómo pedir features y operar con agentes |
 | `docs/features/FEATURE_SPEC_TEMPLATE.md` | Plantilla para specs de nuevos features |
@@ -332,6 +342,7 @@ php artisan make:command Nombre            # Crear comando Artisan
 | 2026-05-28 | opencode | **Superadmin Resources**: `TenantResource` (CRUD completo: tabla, formulario, filtros, badges), `GlobalWorkOrderResource` (read-only global, columna tenant.name, sin scope de tenant), `GlobalAssetResource` (read-only global, columna tenant.name, sin scope de tenant). 3 resources en menú izquierdo del panel rojo `/superadmin`. Rutas verificadas. 60/60 tests pasando. | Vistas/resource superadmin propias |
 | 2026-05-28 | opencode | **Tenant Suspension**: Middleware `VerifyTenantStatus` bloquea `/admin/{slug}` si `tenant->is_active === false`. Superadmins bypass. Vista personalizada `errors/tenant-suspended.blade.php`. 3 tests. Pipeline: SetTenantContext → VerifyTenantStatus. 63/63 tests, 168 assertions. | — |
 | 2026-06-03 | opencode | **Arquitectura Modular (DDD Lite)**: ARCHITECTURE_MANIFEST.md creado con 5 reglas SOLID. R-01 agregado a AGENTS.md. Asset, WorkOrder, WorkOrderItem movidos a app/Modules/Talleres/Models/. WorkOrderService movido a app/Modules/Talleres/Services/. CreateAssetAction y CreateWorkOrderAction creados en app/Modules/Talleres/Actions/. TalleresServiceProvider creado y registrado. Factories con $model property corregido. 80/80 tests, 205 assertions. 3 commits. | Documentar migración legacy restante |
+| 2026-06-03 | opencode | **UX/UI Fase 2 — Neon Garage**: UI_UX_SPEC.md creado con sistema de diseño Dark/Neon Premium. talleres-theme.css con variables neon + @source. 9 Blade Components (PlateBadge, StatusDot, GlassCard, DataRow, NeonButton, GlowInput, MetricTile, TimelineStep) — todos dumb, cero lógica de negocio. TalleresServiceProvider extendido: loadViewsFrom + Blade::componentNamespace('talleres'). Wizard de 3 pasos (Identidad → Workflow → Lanzamiento) con TallerOnboarding page, datos persistidos en tenants.metadata vía DB::transaction. AdminPanelProvider registra TallerOnboarding::class. @source agregado a app.css para escaneo Tailwind de módulos. 80/80 tests, 205 assertions. 0 regresiones. | Probar wizard en navegador |
 
 ## 8. Arquitectura Modular (DDD Lite)
 
@@ -341,19 +352,35 @@ A partir de 2026-06-03, el proyecto migra a `app/Modules/{Modulo}/` siguiendo el
 app/Modules/
 ├── Talleres/
 │   ├── Models/
-│   │   ├── Asset.php          ← movido desde app/Models/Asset.php
-│   │   ├── WorkOrder.php      ← movido desde app/Models/WorkOrder.php
-│   │   └── WorkOrderItem.php  ← movido desde app/Models/WorkOrderItem.php
+│   │   ├── Asset.php              ← movido desde app/Models/Asset.php
+│   │   ├── WorkOrder.php          ← movido desde app/Models/WorkOrder.php
+│   │   └── WorkOrderItem.php      ← movido desde app/Models/WorkOrderItem.php
 │   ├── Actions/
 │   │   ├── CreateAssetAction.php
 │   │   └── CreateWorkOrderAction.php
 │   ├── Services/
-│   │   └── WorkOrderService.php  ← movido desde app/Services/WorkOrders/
+│   │   └── WorkOrderService.php   ← movido desde app/Services/WorkOrders/
 │   ├── Http/
-│   │   ├── Controllers/
-│   │   └── Resources/
+│   │   └── Pages/
+│   │       └── TallerOnboarding.php ← wizard 3 pasos (Fase 2 UX/UI)
+│   ├── Resources/
+│   │   ├── css/
+│   │   │   └── talleres-theme.css ← variables neon + @source tailwind
+│   │   └── Views/
+│   │       ├── Components/
+│   │       │   ├── PlateBadge.blade.php     ← placa con glow emerald
+│   │       │   ├── StatusDot.blade.php      ← punto animado x estado
+│   │       │   ├── GlassCard.blade.php      ← card glassmorphism
+│   │       │   ├── DataRow.blade.php        ← label + valor mono
+│   │       │   ├── NeonButton.blade.php     ← 4 variantes con glow
+│   │       │   ├── GlowInput.blade.php      ← input con neon focus
+│   │       │   ├── MetricTile.blade.php     ← ficha de métrica
+│   │       │   └── TimelineStep.blade.php   ← timeline vertical
+│   │       ├── pages/
+│   │       │   └── taller-onboarding.blade.php
+│   │       └── layouts/                    ← (futuro)
 │   └── Providers/
-│       └── TalleresServiceProvider.php  ← registrado en bootstrap/providers.php
+│       └── TalleresServiceProvider.php      ← registra views + blade components
 ├── Ventas/        ← (futuro)
 ├── Inventario/    ← (futuro)
 └── ...
@@ -557,13 +584,35 @@ docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker
 | 2026-06-03 | Talleres Mecánicos Fase 1 | — | assets con plate/brand/model/year + service_description en work_orders + índice único (tenant_id, plate) WHERE deleted_at IS NULL |
 | 2026-06-03 | Migración a DDD Lite (ARCHITECTURE_MANIFEST.md) | todo en app/Models/ | SRP, modularidad, mantenibilidad. Asset/WorkOrder/WorkOrderItem movidos a Modules |
 | 2026-06-03 | CreateAssetAction + CreateWorkOrderAction | lógica en Filament Resources | encapsular validación unique plate + generación código en casos de uso dedicados |
+| 2026-06-03 | Neon Garage Design System (UI_UX_SPEC.md) | — | Dark/Neon Premium: Gray-950, acentos Cyan/Emerald, glassmorphism, glow, monospaced data. Fase 2 UX/UI |
 
 ---
 
-## Fase 1 Talleres Mecánicos
+## Fase 1 — Talleres Mecánicos (Core)
 
 Implementada con éxito. Validada con 80 tests (205 assertions).
 Estructura de activos y órdenes de servicio operativa con aislamiento multi-tenant total.
+
+## Fase 2 — UX/UI Neon Garage (Diseño)
+
+Implementada con éxito. Sistema de diseño Dark/Neon Premium para el módulo Talleres.
+
+| Componente | Archivos | Estado |
+|---|---|---|
+| UI_UX_SPEC.md | `UI_UX_SPEC.md` | ✅ Creado |
+| Theme CSS | `app/Modules/Talleres/Resources/css/talleres-theme.css` | ✅ Creado |
+| 9 Blade Components | `app/Modules/Talleres/Resources/Views/Components/*.blade.php` | ✅ Creados |
+| Namespace Blade | `TalleresServiceProvider::boot()` → `Blade::componentNamespace('talleres')` | ✅ Registrado |
+| View namespace | `TalleresServiceProvider::boot()` → `loadViewsFrom()` | ✅ Registrado |
+| @source Tailwind | `resources/css/app.css` → `@source '../../app/Modules/**/*.blade.php'` | ✅ Agregado |
+| Wizard Onboarding | `app/Modules/Talleres/Http/Pages/TallerOnboarding.php` | ✅ Creado (3 pasos) |
+| Wizard View | `app/Modules/Talleres/Resources/Views/pages/taller-onboarding.blade.php` | ✅ Creada |
+| Ruta en panel | `AdminPanelProvider` → `TallerOnboarding::class` | ✅ Registrada |
+
+### Próximos pasos UX/UI
+- Probar wizard de onboarding en navegador
+- Aplicar componentes Neon Garage a vistas de AssetResource y WorkOrderResource
+- Probar glassmorphism y glow en producción
 
 ---
 
