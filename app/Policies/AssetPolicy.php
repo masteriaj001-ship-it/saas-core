@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace App\Policies;
 
-use App\Modules\Talleres\Models\Asset;
 use App\Models\User;
+use App\Modules\Talleres\Models\Asset;
 
 class AssetPolicy
 {

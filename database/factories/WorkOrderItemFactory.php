@@ -6,11 +6,12 @@ namespace Database\Factories;
 
 use App\Models\Item;
 use App\Modules\Talleres\Models\WorkOrder;
+use App\Modules\Talleres\Models\WorkOrderItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class WorkOrderItemFactory extends Factory
 {
-    protected $model = \App\Modules\Talleres\Models\WorkOrderItem::class;
+    protected $model = WorkOrderItem::class;
 
     public function definition(): array
     {

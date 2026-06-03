@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services\Auth;
 
-use App\Modules\Talleres\Models\Asset;
 use App\Models\Category;
 use App\Models\Contact;
 use App\Models\Item;
@@ -13,6 +12,7 @@ use App\Models\ModuleCatalog;
 use App\Models\Tenant;
 use App\Models\TenantModule;
 use App\Models\User;
+use App\Modules\Talleres\Models\Asset;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\Auth;

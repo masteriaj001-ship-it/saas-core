@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
-use App\Modules\Talleres\Models\Asset;
 use App\Models\Contact;
 use App\Models\Tenant;
+use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\WorkOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class WorkOrderFactory extends Factory
 {
-    protected $model = \App\Modules\Talleres\Models\WorkOrder::class;
+    protected $model = WorkOrder::class;
 
     public function definition(): array
     {

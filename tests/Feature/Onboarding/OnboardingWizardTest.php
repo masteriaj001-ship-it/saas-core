@@ -5,11 +5,11 @@ declare(strict_types=1);
 namespace Tests\Feature\Onboarding;
 
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
-use App\Modules\Talleres\Models\Asset;
 use App\Models\Category;
 use App\Models\Item;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Talleres\Models\Asset;
 use App\Services\TenantTemplateSeeder;
 use Database\Seeders\ModulesCatalogSeeder;
 use Filament\Facades\Filament;
