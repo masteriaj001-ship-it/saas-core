@@ -9,7 +9,6 @@ use App\Http\Requests\WorkOrders\UpdateWorkOrderRequest;
 use App\Models\WorkOrder;
 use App\Models\WorkOrderItem;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Support\Str;
 
 final class WorkOrderService
 {
@@ -19,22 +18,22 @@ final class WorkOrderService
             ->with(['asset:id,name,code', 'contact:id,name'])
             ->latest();
 
-        if (!empty($filters['status'])) {
+        if (! empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
-        if (!empty($filters['asset_id'])) {
+        if (! empty($filters['asset_id'])) {
             $query->where('asset_id', $filters['asset_id']);
         }
 
-        if (!empty($filters['priority'])) {
+        if (! empty($filters['priority'])) {
             $query->where('priority', $filters['priority']);
         }
 
-        if (!empty($filters['search'])) {
+        if (! empty($filters['search'])) {
             $query->where(function ($q) use ($filters) {
                 $q->where('title', 'ilike', "%{$filters['search']}%")
-                  ->orWhere('code', 'ilike', "%{$filters['search']}%");
+                    ->orWhere('code', 'ilike', "%{$filters['search']}%");
             });
         }
 
@@ -54,6 +53,7 @@ final class WorkOrderService
     {
         $workOrder = WorkOrder::findOrFail($id);
         $workOrder->update($request->validated());
+
         return $workOrder->fresh();
     }
 
@@ -80,7 +80,7 @@ final class WorkOrderService
         $prefix = 'WO-';
         $last = WorkOrder::withTrashed()
             ->where('code', 'ilike', "{$prefix}%")
-            ->orderByRaw("CAST(SUBSTRING(code, 4) AS INTEGER) DESC")
+            ->orderByRaw('CAST(SUBSTRING(code, 4) AS INTEGER) DESC')
             ->first();
 
         if ($last) {
@@ -89,6 +89,6 @@ final class WorkOrderService
             $num = 1;
         }
 
-        return $prefix . str_pad((string) $num, 4, '0', STR_PAD_LEFT);
+        return $prefix.str_pad((string) $num, 4, '0', STR_PAD_LEFT);
     }
 }

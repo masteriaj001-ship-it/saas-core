@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services\Auth;
 
+use App\Models\Asset;
 use App\Models\Category;
 use App\Models\Contact;
 use App\Models\Item;
@@ -63,12 +64,12 @@ class RegisterService
     private function createDefaults(string $industry): void
     {
         Location::create([
-            'name'     => 'Sede Principal',
-            'is_main'  => true,
+            'name' => 'Sede Principal',
+            'is_main' => true,
             'is_active' => true,
         ]);
 
-        $defaults = config("industry-defaults.{$industry}", config('industry-defaults.general'));
+        $defaults = config("industry-defaults.industries.{$industry}", config('industry-defaults.industries.general'));
 
         foreach ($defaults['categories'] as $catName) {
             Category::create(['name' => $catName]);
@@ -76,20 +77,28 @@ class RegisterService
 
         foreach ($defaults['items'] as $itemData) {
             Item::create([
-                'sku'       => $itemData['sku'] . '-' . Str::random(4),
-                'name'      => $itemData['name'],
+                'sku' => $itemData['sku'].'-'.Str::random(4),
+                'name' => $itemData['name'],
                 'item_type' => $itemData['item_type'],
-                'price'     => $itemData['price'],
+                'price' => $itemData['price'],
+            ]);
+        }
+
+        foreach ($defaults['assets'] ?? [] as $assetData) {
+            Asset::create([
+                'name' => $assetData['name'],
+                'asset_type' => $assetData['asset_type'],
+                'status' => $assetData['status'],
             ]);
         }
 
         Contact::create([
-            'name'         => 'Cliente Ejemplo',
+            'name' => 'Cliente Ejemplo',
             'contact_type' => 'client',
         ]);
 
         Contact::create([
-            'name'         => 'Proveedor Ejemplo',
+            'name' => 'Proveedor Ejemplo',
             'contact_type' => 'supplier',
         ]);
 
@@ -98,8 +107,8 @@ class RegisterService
 
         foreach ($modules as $moduleSlug) {
             TenantModule::create([
-                'module_slug'  => $moduleSlug,
-                'is_active'    => true,
+                'module_slug' => $moduleSlug,
+                'is_active' => true,
                 'activated_at' => now(),
             ]);
         }

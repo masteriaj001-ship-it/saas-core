@@ -18,6 +18,7 @@ class WorkOrder extends TenantModel
         'code',
         'title',
         'description',
+        'service_description',
         'priority',
         'status',
         'started_at',
@@ -28,8 +29,8 @@ class WorkOrder extends TenantModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'metadata'     => 'array',
-            'started_at'   => 'datetime',
+            'metadata' => 'array',
+            'started_at' => 'datetime',
             'completed_at' => 'datetime',
         ]);
     }

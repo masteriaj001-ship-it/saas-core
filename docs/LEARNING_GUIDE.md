@@ -1,6 +1,6 @@
 # ProyectDashboard — Guía de Aprendizaje
 
-> Stack: Laravel 13 · PHP 8.5 · PostgreSQL 18 · Filament 5 · RLS Nativo
+> Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
 > Jaosoft Engineering Standards v1.0
 
 ---
@@ -261,6 +261,39 @@ SetTenantContext Middleware
 | `TenantModel` | `app/Models/` | Clase abstracta base que unifica el trait + UUID + SoftDeletes. |
 
 ---
+
+## 2.2 MVC + Service Layer (por qué no es solo MVC)
+
+Laravel es MVC. Pero este proyecto agrega una capa de Service:
+
+```
+MVC puro:
+Request → Controller → Model → View
+
+Este proyecto:
+Request → Controller → Service → Model → View
+                       ↑
+              aquí vive la lógica de negocio
+```
+
+**Responsabilidad de cada capa:**
+
+| Capa | Responsabilidad | Ejemplo |
+|---|---|---|
+| Controller | Recibe request, llama service, retorna response | `WorkOrderController::store()` |
+| Service | Lógica de negocio, orquesta modelos | `WorkOrderService::create()` |
+| Model | Datos, relaciones, scopes, casts | `WorkOrder::belongsTo(Asset::class)` |
+| Policy | Autorización por rol | `WorkOrderPolicy::create()` |
+| FormRequest | Validación de input | `CreateWorkOrderRequest::rules()` |
+
+**Regla práctica:** Si un Controller tiene más de 20 líneas de lógica, esa lógica debería estar en un Service.
+
+**¿Por qué en este proyecto es obligatorio?**
+- Multi-tenancy con RLS requiere orquestación limpia
+- TransactionService maneja IVA, contadores atómicos, emitir/anular
+- WorkOrderService genera códigos WO-XXXX y valida estados
+- RegisterService crea tenant + defaults por industria en una transacción
+- Filament Resources y API comparten el mismo Service sin duplicar código
 
 ## 3. Las Migraciones Explicadas
 
@@ -639,26 +672,31 @@ class User extends Authenticatable
 
 ### 5.1 Tu rol como desarrollador (John)
 
-```
-TÚ dices QUÉ quieres lograr (en lenguaje natural)
-  ↓
-EL AGENTE analiza, investiga el código existente, y propone CÓMO hacerlo
-  ↓
-TÚ revisas la propuesta y dices "APROBADO" o pides cambios
-  ↓
-EL AGENTE ejecuta TODO: edita archivos, crea migraciones, etc.
-  ↓
-EL AGENTE reporta qué cambió
-  ↓
+TÚ describes QUÉ quieres lograr (lenguaje natural)
+↓
+AGENTE produce FEATURE_SPEC.md
+↓
+TÚ escribes APROBADO (activa GATE 1)
+↓
+AGENTE propone Schema SQL
+↓
+TÚ escribes APROBADO (activa migración)
+↓
+TÚ escribes APROBADO (activa ejecución migrate)
+↓
+AGENTE ejecuta en orden estricto:
+
+  Tests (primero — TDD)
+  Docs actualizadas
+  Código hasta que tests pasen
+  Reporte de cobertura
+  FEATURE_SPEC actualizado
+↓
 TÚ pruebas en el navegador
-```
 
-**No necesitas saber la sintaxis exacta de Laravel.** Me dices cosas como:
-- "Necesito un formulario para registrar órdenes de trabajo"
-- "Quiero que cada orden pertenezca a un Asset"
-- "Los campos son: fecha, responsable, descripción y estado"
-
-Yo me encargo de determinar si es tabla nueva o existe, generar migración, modelo, etc.
+**No necesitas saber la sintaxis exacta de Laravel.**
+Dime qué necesitas, yo determino si es tabla nueva o existente,
+genero la migración, modelo, service y resource.
 
 ### 5.2 Cómo pedir un feature nuevo
 
@@ -688,7 +726,7 @@ Módulo para gestionar órdenes de trabajo asignadas a assets.
 
 **Paso 3:** Revisas el spec y dices **"APROBADO"** (solo esa palabra activa la ejecución).
 
-**Paso 4:** Yo ejecuto todo en orden: migración → modelo → policy → form request → service → controller → filament resource → tests.
+**Paso 4:** Ejecuto en orden estricto: Tests → Docs → Code → Report → Update. No empiezo a codificar sin tests escritos primero.
 
 ### 5.3 Reglas que los agentes siguen (y tú debes conocer)
 

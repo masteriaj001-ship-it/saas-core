@@ -1,6 +1,6 @@
 # PROJECT STATE — ProyectDashboard
 
-> Stack: Laravel 13 · PHP 8.5 · PostgreSQL 18 · Filament 5 · RLS Nativo
+> Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
 > Última actualización: 2026-05-28
 
 ---
@@ -421,7 +421,7 @@ static::creating(function (Model $model) {
   - `test_active_tenant_user_can_access_panel` → 200
   - `test_inactive_tenant_user_is_blocked_with_403` → 403
   - `test_superadmin_bypasses_suspension_on_inactive_tenant` → 200
-- **Mocking**: Tests usan `createMock` + `Filament::swap()` (no Mockery) para evitar crash PHP 8.5 con `tempnam()`
+- **Mocking**: Tests usan `createMock` + `Filament::swap()` (no Mockery) para evitar crash PHP ^8.3 con `tempnam()`
 
 ### HasTenants Contract
 
@@ -495,6 +495,37 @@ docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan migrat
 # Ver RLS
 docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker --execute="DB::select(\"SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public'\")"
 ```
+
+---
+
+## Governance Audit — 2026-06-03
+
+### Violaciones corregidas
+- **`app/Models/Permission.php:19`** — `$guarded` incompleto (faltaban `created_at`, `updated_at`, `deleted_at`)
+- **`app/Models/Role.php:19`** — `$guarded` incompleto (faltaban `created_at`, `updated_at`, `deleted_at`)
+
+### Sin violaciones (verificado)
+- **Filament 5**: Todas las `form()` usan `Schema $schema): Schema`. No hay `Filament\Tables\Actions\` ni `$navigationGroup` estático.
+- **Tenant Isolation**: `withoutGlobalScope('tenant')` solo en recursos Superadmin. Ningún `::all()` en producción sin scope.
+- **Naming Zero Redundancy**: Tablas, modelos y clases usan nombres canónicos (`Asset`, `Item`, `Contact`, `Transaction`, `Member`). Los términos prohibidos aparecen solo como valores discriminante en columnas (`asset_type`, `contact_type`, `item_type`).
+- **Dependencias**: No hay Prisma, stancl/tenancy ni spatie/laravel-multitenancy.
+
+---
+
+## LAST_DECISION_LOG (últimas 5 decisiones)
+
+| Fecha | Decisión | Alternativa descartada | Razón |
+|---|---|---|---|
+| 2026-06-03 | industry en metadata JSON | columna dedicada | evitar migración |
+| 2026-06-03 | Boost instalado | solo CLAUDE.md manual | docs versionadas |
+| 2026-06-03 | Talleres Mecánicos Fase 1 | — | assets con plate/brand/model/year + service_description en work_orders + índice único (tenant_id, plate) WHERE deleted_at IS NULL |
+
+---
+
+## Fase 1 Talleres Mecánicos
+
+Implementada con éxito. Validada con 80 tests (205 assertions).
+Estructura de activos y órdenes de servicio operativa con aislamiento multi-tenant total.
 
 ---
 

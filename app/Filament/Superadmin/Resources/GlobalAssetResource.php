@@ -7,11 +7,10 @@ namespace App\Filament\Superadmin\Resources;
 use App\Filament\Superadmin\Resources\GlobalAssetResource\Pages\ListGlobalAssets;
 use App\Models\Asset;
 use Filament\Resources\Resource;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class GlobalAssetResource extends Resource
 {
@@ -50,31 +49,35 @@ class GlobalAssetResource extends Resource
                     ->label(__('Tipo'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'phones'    => 'info',
+                        'phones' => 'info',
                         'computers' => 'success',
-                        'vehicles'  => 'warning',
-                        default     => 'gray',
+                        'vehicles' => 'warning',
+                        'equipment' => 'info',
+                        'space' => 'success',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => __(match ($state) {
-                        'phones'    => 'Celulares',
+                        'phones' => 'Celulares',
                         'computers' => 'Cómputo',
-                        'vehicles'  => 'Vehículos',
-                        default     => $state,
+                        'vehicles' => 'Vehículos',
+                        'equipment' => 'Equipamiento / Maquinaria',
+                        'space' => 'Espacio / Infraestructura',
+                        default => $state,
                     })),
                 TextColumn::make('status')
                     ->label(__('Estado'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'active'      => 'success',
+                        'active' => 'success',
                         'maintenance' => 'warning',
-                        'disposed'    => 'danger',
-                        default       => 'gray',
+                        'disposed' => 'danger',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => __(match ($state) {
-                        'active'      => 'Activo',
+                        'active' => 'Activo',
                         'maintenance' => 'En mantenimiento',
-                        'disposed'    => 'Dado de baja',
-                        default       => $state,
+                        'disposed' => 'Dado de baja',
+                        default => $state,
                     })),
                 TextColumn::make('created_at')
                     ->label(__('Registrado'))
@@ -85,16 +88,16 @@ class GlobalAssetResource extends Resource
                 SelectFilter::make('asset_type')
                     ->label(__('Tipo'))
                     ->options([
-                        'phones'    => __('Celulares'),
+                        'phones' => __('Celulares'),
                         'computers' => __('Cómputo'),
-                        'vehicles'  => __('Vehículos'),
+                        'vehicles' => __('Vehículos'),
                     ]),
                 SelectFilter::make('status')
                     ->label(__('Estado'))
                     ->options([
-                        'active'      => __('Activo'),
+                        'active' => __('Activo'),
                         'maintenance' => __('En mantenimiento'),
-                        'disposed'    => __('Dado de baja'),
+                        'disposed' => __('Dado de baja'),
                     ]),
             ])
             ->actions([])
@@ -108,7 +111,7 @@ class GlobalAssetResource extends Resource
         ];
     }
 
-    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
             ->withoutGlobalScope('tenant')

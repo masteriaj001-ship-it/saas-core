@@ -40,20 +40,20 @@ class LatestWorkOrdersTable extends BaseTableWidget
                     ->label(__('Estado'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'pending'     => 'gray',
-                        'draft'       => 'gray',
+                        'pending' => 'gray',
+                        'draft' => 'gray',
                         'in_progress' => 'warning',
-                        'completed'   => 'success',
-                        'cancelled'   => 'danger',
-                        default       => 'gray',
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
+                        default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending'     => __('Pendiente'),
-                        'draft'       => __('Borrador'),
+                        'pending' => __('Pendiente'),
+                        'draft' => __('Borrador'),
                         'in_progress' => __('En Progreso'),
-                        'completed'   => __('Completada'),
-                        'cancelled'   => __('Cancelada'),
-                        default       => $state,
+                        'completed' => __('Completada'),
+                        'cancelled' => __('Cancelada'),
+                        default => $state,
                     }),
                 TextColumn::make('created_at')
                     ->label(__('Creada'))

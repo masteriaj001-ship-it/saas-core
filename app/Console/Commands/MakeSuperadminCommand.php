@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 class MakeSuperadminCommand extends Command
 {
     protected $signature = 'jaosoft:make-superadmin';
+
     protected $description = 'Create a global superadmin user (tenant_id=null, is_superadmin=true)';
 
     public function handle(): int
@@ -21,15 +22,16 @@ class MakeSuperadminCommand extends Command
 
         if (User::where('email', $email)->exists()) {
             $this->error("Ya existe un usuario con el email {$email}.");
+
             return Command::FAILURE;
         }
 
         $user = User::create([
-            'name'          => $name,
-            'email'         => $email,
-            'password'      => Hash::make($password),
+            'name' => $name,
+            'email' => $email,
+            'password' => Hash::make($password),
             'is_superadmin' => true,
-            'tenant_id'     => null,
+            'tenant_id' => null,
         ]);
 
         $this->info("Superadmin creado: {$user->email}");

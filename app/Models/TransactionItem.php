@@ -35,11 +35,11 @@ class TransactionItem extends TenantModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'quantity'          => 'decimal:4',
-            'unit_price'        => 'decimal:4',
-            'tax_rate'          => 'decimal:2',
-            'tax_amount'        => 'decimal:2',
-            'discount_amount'   => 'decimal:2',
+            'quantity' => 'decimal:4',
+            'unit_price' => 'decimal:4',
+            'tax_rate' => 'decimal:2',
+            'tax_amount' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'total_item_amount' => 'decimal:2',
         ]);
     }

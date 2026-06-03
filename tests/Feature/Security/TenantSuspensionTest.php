@@ -7,8 +7,11 @@ namespace Tests\Feature\Security;
 use App\Http\Middleware\VerifyTenantStatus;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Services\TenantManager;
+use Filament\Facades\Filament;
+use Filament\FilamentManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
 /**
@@ -48,7 +51,7 @@ class TenantSuspensionTest extends TestCase
     private function createTenantUser(Tenant $tenant): User
     {
         return User::factory()->create([
-            'tenant_id'     => $tenant->id,
+            'tenant_id' => $tenant->id,
             'is_superadmin' => false,
         ]);
     }
@@ -59,7 +62,7 @@ class TenantSuspensionTest extends TestCase
     private function createSuperadmin(): User
     {
         return User::factory()->create([
-            'tenant_id'     => null,
+            'tenant_id' => null,
             'is_superadmin' => true,
         ]);
     }
@@ -72,16 +75,16 @@ class TenantSuspensionTest extends TestCase
      * para mantener la suite rápida y sin dependencias del servidor HTTP.
      * Mockeamos Filament::getTenant() con el tenant de prueba.
      */
-    private function callMiddleware(User $user, ?Tenant $tenant): \Symfony\Component\HttpFoundation\Response
+    private function callMiddleware(User $user, ?Tenant $tenant): Response
     {
-        $filamentMock = $this->createMock(\Filament\FilamentManager::class);
+        $filamentMock = $this->createMock(FilamentManager::class);
         $filamentMock->method('getTenant')->willReturn($tenant);
-        \Filament\Facades\Filament::swap($filamentMock);
+        Filament::swap($filamentMock);
 
-        $request = \Illuminate\Http\Request::create('/admin/test-tenant/dashboard', 'GET');
+        $request = Request::create('/admin/test-tenant/dashboard', 'GET');
         $request->setUserResolver(fn () => $user);
 
-        $middleware = new VerifyTenantStatus();
+        $middleware = new VerifyTenantStatus;
 
         return $middleware->handle($request, fn ($req) => response('OK', 200));
     }
@@ -96,7 +99,7 @@ class TenantSuspensionTest extends TestCase
     public function test_active_tenant_user_can_access_panel(): void
     {
         $tenant = $this->createTenant(isActive: true);
-        $user   = $this->createTenantUser($tenant);
+        $user = $this->createTenantUser($tenant);
 
         $response = $this->callMiddleware($user, $tenant);
 
@@ -110,7 +113,7 @@ class TenantSuspensionTest extends TestCase
     public function test_inactive_tenant_user_is_blocked_with_403(): void
     {
         $tenant = $this->createTenant(isActive: false);
-        $user   = $this->createTenantUser($tenant);
+        $user = $this->createTenantUser($tenant);
 
         $response = $this->callMiddleware($user, $tenant);
 
@@ -123,7 +126,7 @@ class TenantSuspensionTest extends TestCase
      */
     public function test_superadmin_bypasses_suspension_on_inactive_tenant(): void
     {
-        $tenant     = $this->createTenant(isActive: false);
+        $tenant = $this->createTenant(isActive: false);
         $superadmin = $this->createSuperadmin();
 
         $response = $this->callMiddleware($superadmin, $tenant);

@@ -7,6 +7,7 @@ namespace App\Services\Transactions;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class TransactionService
 {
@@ -27,7 +28,7 @@ class TransactionService
             RETURNING settings
         ", [$transaction->tenant_id]);
 
-        if (!$result) {
+        if (! $result) {
             throw new \RuntimeException('Tenant no encontrado al generar número de factura.');
         }
 
@@ -35,7 +36,7 @@ class TransactionService
         $counter = $settings['transactions']["{$type}_counter"] ?? 1;
         $prefix = $type === 'sale' ? 'FAC' : 'OC';
 
-        return "{$prefix}-" . str_pad((string) $counter, 5, '0', STR_PAD_LEFT);
+        return "{$prefix}-".str_pad((string) $counter, 5, '0', STR_PAD_LEFT);
     }
 
     public function calculateItemTotals(TransactionItem $item): TransactionItem
@@ -75,12 +76,12 @@ class TransactionService
 
     public function issue(Transaction $transaction): Transaction
     {
-        if (!$transaction->canIssue()) {
+        if (! $transaction->canIssue()) {
             throw new \RuntimeException('Solo transacciones en draft pueden emitirse.');
         }
 
         $transaction->status = 'issued';
-        $transaction->cufe = 'CUFE-' . strtoupper((string) \Illuminate\Support\Str::uuid());
+        $transaction->cufe = 'CUFE-'.strtoupper((string) Str::uuid());
         $transaction->save();
 
         return $transaction;
@@ -88,7 +89,7 @@ class TransactionService
 
     public function cancel(Transaction $transaction): Transaction
     {
-        if (!$transaction->canCancel()) {
+        if (! $transaction->canCancel()) {
             throw new \RuntimeException('Solo transacciones emitidas pueden anularse.');
         }
 

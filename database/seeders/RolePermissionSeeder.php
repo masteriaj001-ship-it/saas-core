@@ -24,8 +24,8 @@ class RolePermissionSeeder extends Seeder
             Permission::findOrCreate($perm);
         }
 
-        $owner  = Role::findOrCreate('owner');
-        $admin  = Role::findOrCreate('admin');
+        $owner = Role::findOrCreate('owner');
+        $admin = Role::findOrCreate('admin');
         $editor = Role::findOrCreate('editor');
         $viewer = Role::findOrCreate('viewer');
 

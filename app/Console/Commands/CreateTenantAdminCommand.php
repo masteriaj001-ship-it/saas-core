@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Hash;
 class CreateTenantAdminCommand extends Command
 {
     protected $signature = 'jaosoft:create-tenant-admin';
+
     protected $description = 'Create a tenant with its admin user (transactional)';
 
     public function handle(TenantManager $tenantManager): int
@@ -27,11 +28,13 @@ class CreateTenantAdminCommand extends Command
 
         if (Tenant::where('slug', $slug)->exists()) {
             $this->error("Ya existe un tenant con el slug {$slug}.");
+
             return Command::FAILURE;
         }
 
         if (User::where('email', $adminEmail)->exists()) {
             $this->error("Ya existe un usuario con el email {$adminEmail}.");
+
             return Command::FAILURE;
         }
 
@@ -39,18 +42,18 @@ class CreateTenantAdminCommand extends Command
 
         try {
             $tenant = Tenant::create([
-                'name'      => $companyName,
-                'slug'      => $slug,
-                'plan'      => 'basic',
+                'name' => $companyName,
+                'slug' => $slug,
+                'plan' => 'basic',
                 'is_active' => true,
-                'settings'  => '{}',
+                'settings' => '{}',
             ]);
 
             $tenantManager->setTenantContext($tenant->id);
 
             $user = User::create([
-                'name'     => $adminName,
-                'email'    => $adminEmail,
+                'name' => $adminName,
+                'email' => $adminEmail,
                 'password' => Hash::make($password),
             ]);
 
@@ -64,6 +67,7 @@ class CreateTenantAdminCommand extends Command
         } catch (\Throwable $e) {
             DB::rollBack();
             $this->error("Error: {$e->getMessage()}");
+
             return Command::FAILURE;
         }
 

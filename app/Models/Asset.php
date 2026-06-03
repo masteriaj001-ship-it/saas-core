@@ -13,6 +13,10 @@ class Asset extends TenantModel
     protected $fillable = [
         'name',
         'code',
+        'plate',
+        'brand',
+        'model',
+        'year',
         'asset_type',
         'status',
         'metadata',
@@ -22,7 +26,7 @@ class Asset extends TenantModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'metadata'    => 'array',
+            'metadata' => 'array',
             'acquired_at' => 'date',
             'disposed_at' => 'date',
         ]);

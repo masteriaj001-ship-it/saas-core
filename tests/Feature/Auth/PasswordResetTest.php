@@ -19,6 +19,7 @@ class PasswordResetTest extends TestCase
     use RefreshDatabase;
 
     private Tenant $tenant;
+
     private TenantManager $tenantManager;
 
     protected function setUp(): void

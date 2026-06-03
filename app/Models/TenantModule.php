@@ -16,8 +16,8 @@ class TenantModule extends TenantModel
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
-            'is_active'    => 'boolean',
-            'config'       => 'array',
+            'is_active' => 'boolean',
+            'config' => 'array',
             'activated_at' => 'datetime',
         ]);
     }

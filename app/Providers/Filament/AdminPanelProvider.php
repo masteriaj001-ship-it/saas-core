@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Http\Middleware\SetTenantContext;
 use App\Http\Middleware\VerifyTenantStatus;
 use App\Models\Tenant;
@@ -59,9 +60,12 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
-                SetTenantContext::class,
-                VerifyTenantStatus::class, // ← NUEVO: bloquea tenants con is_active = false
             ])
+            ->tenantMiddleware([
+                SetTenantContext::class,
+                EnsureOnboardingIsCompleted::class,
+                VerifyTenantStatus::class,
+            ], isPersistent: true)
             ->authMiddleware([
                 Authenticate::class,
             ]);

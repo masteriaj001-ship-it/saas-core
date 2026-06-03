@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models\Concerns;
 
+use App\Models\Tenant;
 use App\Services\TenantManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -17,12 +18,12 @@ trait BelongsToTenant
         static::addGlobalScope('tenant', function (Builder $builder) {
             $tenantManager = app(TenantManager::class);
 
-            if (!$tenantManager->hasContext()) {
+            if (! $tenantManager->hasContext()) {
                 return;
             }
 
             $builder->where(
-                $builder->getModel()->getTable() . '.tenant_id',
+                $builder->getModel()->getTable().'.tenant_id',
                 $tenantManager->getCurrentTenantId()
             );
         });
@@ -37,9 +38,9 @@ trait BelongsToTenant
 
                 $tenantManager = app(TenantManager::class);
 
-                if (!$tenantManager->hasContext()) {
+                if (! $tenantManager->hasContext()) {
                     throw new RuntimeException(
-                        'Cannot create ' . static::class . ' without tenant context.'
+                        'Cannot create '.static::class.' without tenant context.'
                     );
                 }
 
@@ -50,7 +51,7 @@ trait BelongsToTenant
 
     public function tenant(): BelongsTo
     {
-        return $this->belongsTo(\App\Models\Tenant::class);
+        return $this->belongsTo(Tenant::class);
     }
 
     public function scopeWithoutTenantScope(Builder $query): Builder
@@ -62,12 +63,12 @@ trait BelongsToTenant
     {
         $tenantManager = app(TenantManager::class);
 
-        if (!$tenantManager->hasContext()) {
+        if (! $tenantManager->hasContext()) {
             return;
         }
 
         $query->where(
-            $query->getModel()->getTable() . '.tenant_id',
+            $query->getModel()->getTable().'.tenant_id',
             $tenantManager->getCurrentTenantId()
         );
     }

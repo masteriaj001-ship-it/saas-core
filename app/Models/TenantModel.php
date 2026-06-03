@@ -30,8 +30,8 @@ abstract class TenantModel extends Model
     protected function casts(): array
     {
         return [
-            'id'         => 'string',
-            'tenant_id'  => 'string',
+            'id' => 'string',
+            'tenant_id' => 'string',
             'created_at' => 'datetime',
             'updated_at' => 'datetime',
             'deleted_at' => 'datetime',

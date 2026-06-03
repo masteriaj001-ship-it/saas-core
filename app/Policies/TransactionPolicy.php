@@ -26,7 +26,7 @@ class TransactionPolicy
 
     public function update(User $user, Transaction $transaction): bool
     {
-        if (!$transaction->canEdit()) {
+        if (! $transaction->canEdit()) {
             return false;
         }
 
@@ -35,7 +35,7 @@ class TransactionPolicy
 
     public function delete(User $user, Transaction $transaction): bool
     {
-        if (!$transaction->canEdit()) {
+        if (! $transaction->canEdit()) {
             return false;
         }
 

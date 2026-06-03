@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
 {
     public function run(TenantManager $tenantManager): void
     {
-        if (!app()->environment('local', 'testing')) {
+        if (! app()->environment('local', 'testing')) {
             $this->command?->warn('DatabaseSeeder solo se ejecuta en local/testing.');
 
             return;
@@ -131,7 +131,7 @@ class DatabaseSeeder extends Seeder
             ['sku' => 'ITEM-0017', 'name' => 'Guantes Mecánico Reforzados',      'item_type' => 'product',      'unit' => 'piece', 'price' => 28000,   'cost' => 19000,   'stock' => 1,   'min_stock' => 20],
             ['sku' => 'ITEM-0018', 'name' => 'Overol Mecánico Talla M',          'item_type' => 'product',      'unit' => 'unit',  'price' => 95000,   'cost' => 68000,   'stock' => 15,  'min_stock' => 10],
             ['sku' => 'ITEM-0019', 'name' => 'Servicio de Scanner Automotriz',   'item_type' => 'service',      'unit' => 'unit',  'price' => 120000,  'cost' => 0,       'stock' => 999, 'min_stock' => 1],
-            ['sku' => 'ITEM-0020', 'name' => 'Servicio de Alineación y Balanceo','item_type' => 'service',      'unit' => 'unit',  'price' => 80000,   'cost' => 0,       'stock' => 999, 'min_stock' => 1],
+            ['sku' => 'ITEM-0020', 'name' => 'Servicio de Alineación y Balanceo', 'item_type' => 'service',      'unit' => 'unit',  'price' => 80000,   'cost' => 0,       'stock' => 999, 'min_stock' => 1],
             ['sku' => 'ITEM-0021', 'name' => 'Servicio de Cambio de Aceite',     'item_type' => 'service',      'unit' => 'unit',  'price' => 35000,   'cost' => 0,       'stock' => 999, 'min_stock' => 1],
             ['sku' => 'ITEM-0022', 'name' => 'Servicio de Frenos (eje)',         'item_type' => 'service',      'unit' => 'unit',  'price' => 150000,  'cost' => 0,       'stock' => 999, 'min_stock' => 1],
             ['sku' => 'ITEM-0023', 'name' => 'Servicio de Diagnóstico General',  'item_type' => 'service',      'unit' => 'unit',  'price' => 60000,   'cost' => 0,       'stock' => 999, 'min_stock' => 1],
@@ -158,7 +158,7 @@ class DatabaseSeeder extends Seeder
             ['contact_type' => 'supplier', 'name' => 'Autorepuestos El Tigre',     'email' => 'ventas@eltigre.com',            'phone' => '3151234567', 'tax_id' => '901234567', 'address' => 'Av Caracas #34-12, Bogotá'],
             ['contact_type' => 'supplier', 'name' => 'Lubricantes Total Colombia',  'email' => 'pedidos@total.co',             'phone' => '3152345678', 'tax_id' => '901234568', 'address' => 'Cra 68 #56-78, Bogotá'],
             ['contact_type' => 'supplier', 'name' => 'Distribuidora Michelin',      'email' => 'ventas@michelin.co',           'phone' => '3153456789', 'tax_id' => '901234569', 'address' => 'Av 68 #12-45, Bogotá'],
-            ['contact_type' => 'supplier', 'name' => 'Herramientas Industriales SAS','email' => 'info@herramientas.com',        'phone' => '3154567890', 'tax_id' => '901234570', 'address' => 'Cll 13 #27-50, Bogotá'],
+            ['contact_type' => 'supplier', 'name' => 'Herramientas Industriales SAS', 'email' => 'info@herramientas.com',        'phone' => '3154567890', 'tax_id' => '901234570', 'address' => 'Cll 13 #27-50, Bogotá'],
             ['contact_type' => 'supplier', 'name' => 'Baterías MAC S.A.S.',         'email' => 'comercial@bateriasmac.com',     'phone' => '3155678901', 'tax_id' => '901234571', 'address' => 'Autop Norte #100-20, Bogotá'],
             ['contact_type' => 'employee', 'name' => 'Jorge Enrique Morales',       'email' => 'jorge.morales@taller.com',      'phone' => '3001112233', 'tax_id' => '800111222', 'address' => 'Cra 20 #15-10, Bogotá'],
             ['contact_type' => 'employee', 'name' => 'Ricardo Antonio Castro',      'email' => 'ricardo.castro@taller.com',     'phone' => '3102223344', 'tax_id' => '800333444', 'address' => 'Cll 40 #22-18, Bogotá'],
@@ -205,7 +205,7 @@ class DatabaseSeeder extends Seeder
             $contact = $clients[$wo['contact_idx']] ?? $clients[0];
 
             $num = $i + 1;
-            $code = $woPrefix . str_pad((string) $num, 4, '0', STR_PAD_LEFT);
+            $code = $woPrefix.str_pad((string) $num, 4, '0', STR_PAD_LEFT);
 
             $startedAt = null;
             $completedAt = null;
@@ -232,7 +232,7 @@ class DatabaseSeeder extends Seeder
 
             foreach ($wo['item_indices'] as [$itemIdx, $qty]) {
                 $item = $items[$itemIdx] ?? null;
-                if (!$item) {
+                if (! $item) {
                     continue;
                 }
 
@@ -282,10 +282,10 @@ class DatabaseSeeder extends Seeder
             foreach ($sale['items'] as [$itemIdx, $qty, $taxRate]) {
                 $item = $items[$itemIdx] ?? $items[0];
                 $itemsData[] = [
-                    'item_id'    => $item->id,
-                    'quantity'   => $qty,
+                    'item_id' => $item->id,
+                    'quantity' => $qty,
                     'unit_price' => $item->price,
-                    'tax_rate'   => $taxRate,
+                    'tax_rate' => $taxRate,
                     'tax_amount' => 0,
                     'discount_amount' => 0,
                     'total_item_amount' => 0,
@@ -293,13 +293,13 @@ class DatabaseSeeder extends Seeder
             }
 
             $transaction = $service->createWithItems([
-                'tenant_id'   => Tenant::first()->id,
-                'contact_id'  => $contact->id,
-                'type'        => 'sale',
-                'status'      => 'draft',
+                'tenant_id' => Tenant::first()->id,
+                'contact_id' => $contact->id,
+                'type' => 'sale',
+                'status' => 'draft',
                 'payment_method' => $sale['payment_method'],
-                'notes'       => null,
-                'created_by'  => $admin?->id,
+                'notes' => null,
+                'created_by' => $admin?->id,
                 'total_retentions' => fake()->randomFloat(2, 0, 50000),
             ], $itemsData);
 
@@ -317,10 +317,10 @@ class DatabaseSeeder extends Seeder
             foreach ($purchase['items'] as [$itemIdx, $qty, $taxRate]) {
                 $item = $items[$itemIdx] ?? $items[0];
                 $itemsData[] = [
-                    'item_id'    => $item->id,
-                    'quantity'   => $qty,
+                    'item_id' => $item->id,
+                    'quantity' => $qty,
                     'unit_price' => $item->cost,
-                    'tax_rate'   => $taxRate,
+                    'tax_rate' => $taxRate,
                     'tax_amount' => 0,
                     'discount_amount' => 0,
                     'total_item_amount' => 0,
@@ -328,13 +328,13 @@ class DatabaseSeeder extends Seeder
             }
 
             $transaction = $service->createWithItems([
-                'tenant_id'   => Tenant::first()->id,
-                'contact_id'  => $contact->id,
-                'type'        => 'purchase',
-                'status'      => 'draft',
+                'tenant_id' => Tenant::first()->id,
+                'contact_id' => $contact->id,
+                'type' => 'purchase',
+                'status' => 'draft',
                 'payment_method' => $purchase['payment_method'],
-                'notes'       => null,
-                'created_by'  => $admin?->id,
+                'notes' => null,
+                'created_by' => $admin?->id,
                 'total_retentions' => fake()->randomFloat(2, 0, 30000),
             ], $itemsData);
 

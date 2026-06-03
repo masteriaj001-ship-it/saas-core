@@ -16,14 +16,14 @@ class UpdateWorkOrderRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'contact_id'  => ['nullable', 'uuid', 'exists:contacts,id'],
-            'title'       => ['sometimes', 'string', 'max:255'],
+            'contact_id' => ['nullable', 'uuid', 'exists:contacts,id'],
+            'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'priority'    => ['nullable', 'string', 'in:low,normal,high,urgent'],
-            'status'      => ['sometimes', 'string', 'in:draft,in_progress,completed,cancelled'],
-            'started_at'  => ['nullable', 'date'],
-            'completed_at'=> ['nullable', 'date'],
-            'metadata'    => ['nullable', 'array'],
+            'priority' => ['nullable', 'string', 'in:low,normal,high,urgent'],
+            'status' => ['sometimes', 'string', 'in:draft,in_progress,completed,cancelled'],
+            'started_at' => ['nullable', 'date'],
+            'completed_at' => ['nullable', 'date'],
+            'metadata' => ['nullable', 'array'],
         ];
     }
 }

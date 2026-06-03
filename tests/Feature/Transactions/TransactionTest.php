@@ -15,6 +15,7 @@ use App\Services\Transactions\TransactionService;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class TransactionTest extends TestCase
@@ -22,11 +23,17 @@ class TransactionTest extends TestCase
     use RefreshDatabase;
 
     private Tenant $tenant;
+
     private TenantManager $tenantManager;
+
     private TransactionService $service;
+
     private User $admin;
+
     private Contact $client;
+
     private Contact $supplier;
+
     private Item $item;
 
     protected function setUp(): void
@@ -55,17 +62,17 @@ class TransactionTest extends TestCase
     public function test_can_create_sale_transaction(): void
     {
         $transaction = $this->service->createWithItems([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'contact_id' => $this->client->id,
-            'type'       => 'sale',
-            'status'     => 'draft',
+            'type' => 'sale',
+            'status' => 'draft',
             'created_by' => $this->admin->id,
         ], [
             [
-                'item_id'    => $this->item->id,
-                'quantity'   => 2,
+                'item_id' => $this->item->id,
+                'quantity' => 2,
                 'unit_price' => 50000,
-                'tax_rate'   => 19,
+                'tax_rate' => 19,
                 'tax_amount' => 0,
                 'total_item_amount' => 0,
             ],
@@ -84,17 +91,17 @@ class TransactionTest extends TestCase
     public function test_can_create_purchase_transaction(): void
     {
         $transaction = $this->service->createWithItems([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'contact_id' => $this->supplier->id,
-            'type'       => 'purchase',
-            'status'     => 'draft',
+            'type' => 'purchase',
+            'status' => 'draft',
             'created_by' => $this->admin->id,
         ], [
             [
-                'item_id'    => $this->item->id,
-                'quantity'   => 10,
+                'item_id' => $this->item->id,
+                'quantity' => 10,
                 'unit_price' => 25000,
-                'tax_rate'   => 19,
+                'tax_rate' => 19,
                 'tax_amount' => 0,
                 'total_item_amount' => 0,
             ],
@@ -109,10 +116,10 @@ class TransactionTest extends TestCase
     public function test_invoice_number_counter_increments(): void
     {
         $data = [
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'contact_id' => $this->client->id,
-            'type'       => 'sale',
-            'status'     => 'draft',
+            'type' => 'sale',
+            'status' => 'draft',
             'created_by' => $this->admin->id,
         ];
 
@@ -131,7 +138,7 @@ class TransactionTest extends TestCase
     public function test_can_issue_transaction(): void
     {
         $transaction = Transaction::factory()->sale()->draft()->create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'contact_id' => $this->client->id,
             'created_by' => $this->admin->id,
         ]);
@@ -147,11 +154,11 @@ class TransactionTest extends TestCase
     public function test_can_cancel_issued_transaction(): void
     {
         $transaction = Transaction::factory()->sale()->create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'contact_id' => $this->client->id,
             'created_by' => $this->admin->id,
-            'status'     => 'issued',
-            'cufe'       => 'CUFE-' . strtoupper((string) \Illuminate\Support\Str::uuid()),
+            'status' => 'issued',
+            'cufe' => 'CUFE-'.strtoupper((string) Str::uuid()),
         ]);
 
         $this->service->cancel($transaction);
@@ -165,11 +172,11 @@ class TransactionTest extends TestCase
         $this->expectException(\RuntimeException::class);
 
         $transaction = Transaction::factory()->sale()->create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'contact_id' => $this->client->id,
             'created_by' => $this->admin->id,
-            'status'     => 'issued',
-            'cufe'       => 'CUFE-' . strtoupper((string) \Illuminate\Support\Str::uuid()),
+            'status' => 'issued',
+            'cufe' => 'CUFE-'.strtoupper((string) Str::uuid()),
         ]);
 
         $this->service->issue($transaction);
@@ -180,7 +187,7 @@ class TransactionTest extends TestCase
         $this->expectException(\RuntimeException::class);
 
         $transaction = Transaction::factory()->sale()->draft()->create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'contact_id' => $this->client->id,
             'created_by' => $this->admin->id,
         ]);
@@ -198,14 +205,14 @@ class TransactionTest extends TestCase
 
         DB::statement('SELECT set_config(\'app.current_tenant_id\', ?, false)', [$tenantA->id]);
         Transaction::factory()->sale()->issued()->create([
-            'tenant_id'  => $tenantA->id,
+            'tenant_id' => $tenantA->id,
             'contact_id' => $clientA->id,
             'created_by' => $this->admin->id,
         ]);
 
         DB::statement('SELECT set_config(\'app.current_tenant_id\', ?, false)', [$tenantB->id]);
         Transaction::factory()->sale()->issued()->create([
-            'tenant_id'  => $tenantB->id,
+            'tenant_id' => $tenantB->id,
             'contact_id' => $clientB->id,
             'created_by' => $this->admin->id,
         ]);
@@ -223,19 +230,19 @@ class TransactionTest extends TestCase
     public function test_recalculate_updates_totals_after_item_changes(): void
     {
         $transaction = Transaction::factory()->sale()->draft()->create([
-            'tenant_id'  => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'contact_id' => $this->client->id,
             'created_by' => $this->admin->id,
         ]);
 
         TransactionItem::create([
-            'tenant_id'     => $this->tenant->id,
+            'tenant_id' => $this->tenant->id,
             'transaction_id' => $transaction->id,
-            'item_id'       => $this->item->id,
-            'quantity'      => 3,
-            'unit_price'    => 100000,
-            'tax_rate'      => 19,
-            'tax_amount'    => 0,
+            'item_id' => $this->item->id,
+            'quantity' => 3,
+            'unit_price' => 100000,
+            'tax_rate' => 19,
+            'tax_amount' => 0,
             'total_item_amount' => 0,
         ]);
 

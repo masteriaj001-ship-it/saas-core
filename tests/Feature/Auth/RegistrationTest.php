@@ -6,6 +6,7 @@ namespace Tests\Feature\Auth;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
@@ -107,7 +108,7 @@ class RegistrationTest extends TestCase
     public function test_registration_fails_with_duplicate_email(): void
     {
         $tenant = Tenant::factory()->create();
-        app(\App\Services\TenantManager::class)->setTenantContext($tenant->id);
+        app(TenantManager::class)->setTenantContext($tenant->id);
 
         $this->seed(RolePermissionSeeder::class);
 
@@ -196,7 +197,7 @@ class RegistrationTest extends TestCase
         $response1->assertRedirect('/admin');
 
         auth()->logout();
-        app(\App\Services\TenantManager::class)->clearTenantContext();
+        app(TenantManager::class)->clearTenantContext();
 
         $response2 = $this->post(route('register'), [
             'name' => 'Beta',

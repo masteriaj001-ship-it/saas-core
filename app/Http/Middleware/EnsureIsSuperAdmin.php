@@ -12,7 +12,7 @@ final class EnsureIsSuperAdmin
 {
     public function handle(Request $request, Closure $next): Response
     {
-        if (!$request->user() || !$request->user()->is_superadmin) {
+        if (! $request->user() || ! $request->user()->is_superadmin) {
             abort(403, __('Acceso denegado. Se requieren permisos de superadministrador.'));
         }
 

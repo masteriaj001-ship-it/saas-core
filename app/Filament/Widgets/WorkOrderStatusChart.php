@@ -25,10 +25,10 @@ class WorkOrderStatusChart extends BarChartWidget
             ->toArray();
 
         $labels = [
-            'draft'       => __('Borrador'),
+            'draft' => __('Borrador'),
             'in_progress' => __('En Progreso'),
-            'completed'   => __('Completadas'),
-            'cancelled'   => __('Canceladas'),
+            'completed' => __('Completadas'),
+            'cancelled' => __('Canceladas'),
         ];
 
         $data = [];

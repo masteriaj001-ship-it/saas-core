@@ -8,17 +8,16 @@ use App\Filament\Superadmin\Resources\TenantResource\Pages\CreateTenant;
 use App\Filament\Superadmin\Resources\TenantResource\Pages\EditTenant;
 use App\Filament\Superadmin\Resources\TenantResource\Pages\ListTenants;
 use App\Models\Tenant;
+use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Filament\Actions\BulkActionGroup;
-use Filament\Actions\CreateAction;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -64,9 +63,9 @@ class TenantResource extends Resource
                             ->required()
                             ->default('basic')
                             ->options([
-                                'basic'       => __('Basic'),
-                                'premium'     => __('Premium'),
-                                'enterprise'  => __('Enterprise'),
+                                'basic' => __('Basic'),
+                                'premium' => __('Premium'),
+                                'enterprise' => __('Enterprise'),
                             ]),
                         Toggle::make('is_active')
                             ->label(__('Activo'))
@@ -102,8 +101,8 @@ class TenantResource extends Resource
                 SelectFilter::make('plan')
                     ->label(__('Plan'))
                     ->options([
-                        'basic'      => __('Basic'),
-                        'premium'    => __('Premium'),
+                        'basic' => __('Basic'),
+                        'premium' => __('Premium'),
                         'enterprise' => __('Enterprise'),
                     ]),
                 SelectFilter::make('is_active')
@@ -127,9 +126,9 @@ class TenantResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index'  => ListTenants::route('/'),
+            'index' => ListTenants::route('/'),
             'create' => CreateTenant::route('/create'),
-            'edit'   => EditTenant::route('/{record}/edit'),
+            'edit' => EditTenant::route('/{record}/edit'),
         ];
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Models\Asset;
+use App\Models\Contact;
 use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -13,8 +15,8 @@ class WorkOrderFactory extends Factory
     {
         return [
             'tenant_id' => Tenant::factory(),
-            'asset_id' => \App\Models\Asset::factory(),
-            'contact_id' => \App\Models\Contact::factory()->client(),
+            'asset_id' => Asset::factory(),
+            'contact_id' => Contact::factory()->client(),
             'code' => fake()->unique()->bothify('WO-####'),
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),

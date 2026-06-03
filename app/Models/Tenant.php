@@ -18,11 +18,13 @@ class Tenant extends Model
         'plan',
         'is_active',
         'settings',
+        'onboarding_completed',
     ];
 
     protected $casts = [
-        'id'        => 'string',
+        'id' => 'string',
         'is_active' => 'boolean',
-        'settings'  => 'array',
+        'settings' => 'array',
+        'onboarding_completed' => 'boolean',
     ];
 }
