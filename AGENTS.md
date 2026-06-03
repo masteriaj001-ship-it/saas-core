@@ -474,6 +474,11 @@ Ciclo de desarrollo (en este orden estricto):
 GATE 3: /commit
   └─ 0 tests rojos → merge permitido
 
+### REGLA R-01 — Manifiesto Jaosoft (Arquitectura Modular SOLID)
+Obligatorio leer `ARCHITECTURE_MANIFEST.md` antes de tocar código nuevo.
+Prohibido crear lógica de negocio fuera de `app/Modules/{Modulo}/`.
+Código legacy en `app/Models/` y `app/Services/` se migrará progresivamente.
+
 ### Filament 5 — Complemento crítico
 - Firma correcta: form(Schema $schema): Schema — NO Form
 - Navigation group: método getNavigationGroup(): string — NO static property
