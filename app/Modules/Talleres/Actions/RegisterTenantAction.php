@@ -11,6 +11,7 @@ use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Spatie\Permission\PermissionRegistrar;
 
 final class RegisterTenantAction
 {
@@ -45,7 +46,10 @@ final class RegisterTenantAction
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'password' => $data['password'],
+                'tenant_id' => $tenant->id,
             ]);
+
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
 
             app(RolePermissionSeeder::class)->run();
 

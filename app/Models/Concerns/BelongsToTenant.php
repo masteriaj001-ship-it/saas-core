@@ -9,6 +9,7 @@ use App\Services\TenantManager;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 use RuntimeException;
 
 trait BelongsToTenant
@@ -38,13 +39,23 @@ trait BelongsToTenant
 
                 $tenantManager = app(TenantManager::class);
 
-                if (! $tenantManager->hasContext()) {
-                    throw new RuntimeException(
-                        'Cannot create '.static::class.' without tenant context.'
-                    );
+                if ($tenantManager->hasContext()) {
+                    $model->tenant_id = $tenantManager->getCurrentTenantId();
+
+                    return;
                 }
 
-                $model->tenant_id = $tenantManager->getCurrentTenantId();
+                $user = Auth::user();
+
+                if ($user && ! empty($user->tenant_id)) {
+                    $model->tenant_id = $user->tenant_id;
+
+                    return;
+                }
+
+                throw new RuntimeException(
+                    'Cannot create '.static::class.' without tenant context or authenticated user.'
+                );
             }
         });
     }
