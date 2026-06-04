@@ -9,6 +9,7 @@ use App\Filament\Resources\WorkOrderResource\Pages\EditWorkOrder;
 use App\Filament\Resources\WorkOrderResource\Pages\ListWorkOrders;
 use App\Filament\Resources\WorkOrderResource\RelationManagers\ItemsRelationManager;
 use App\Models\Item;
+use App\Modules\Talleres\Models\Asset;
 use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -79,7 +80,18 @@ class WorkOrderResource extends Resource
                             ]),
                         Select::make('asset_id')
                             ->label(__('Dispositivo / Recurso'))
-                            ->relationship('asset', 'plate')
+                            ->relationship(
+                                name: 'asset',
+                                titleAttribute: 'name',
+                                modifyQueryUsing: fn (Builder $query) => $query
+                                    ->orderBy('name')
+                                    ->select(['id', 'name', 'plate']),
+                            )
+                            ->getOptionLabelFromRecordUsing(
+                                fn (Asset $record) => $record->plate
+                                    ? "{$record->name} — {$record->plate}"
+                                    : $record->name,
+                            )
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
