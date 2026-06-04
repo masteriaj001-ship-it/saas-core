@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
+use App\Enums\VehicleTypeEnum;
+use App\Enums\WorkOrderStatusEnum;
 use App\Filament\Resources\WorkOrderResource\Pages\CreateWorkOrder;
 use App\Filament\Resources\WorkOrderResource\Pages\EditWorkOrder;
 use App\Filament\Resources\WorkOrderResource\Pages\ListWorkOrders;
 use App\Filament\Resources\WorkOrderResource\RelationManagers\ItemsRelationManager;
+use App\Models\Contact;
 use App\Models\Item;
+use App\Modules\Talleres\Models\Asset;
 use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -56,51 +60,59 @@ class WorkOrderResource extends Resource
                     ->columns(2)
                     ->schema([
                         Select::make('contact_id')
-                            ->label(__('Cliente'))
+                            ->label('Cliente')
                             ->relationship('contact', 'name')
                             ->searchable()
                             ->preload()
                             ->createOptionForm([
                                 TextInput::make('name')
-                                    ->label(__('Nombre'))
+                                    ->label('Nombre completo')
                                     ->required()
                                     ->maxLength(255),
                                 TextInput::make('phone')
-                                    ->label(__('Teléfono'))
-                                    ->tel(),
-                                TextInput::make('tax_id')
-                                    ->label(__('Documento / NIT')),
-                                Select::make('contact_type')
-                                    ->label(__('Tipo'))
-                                    ->required()
-                                    ->default('client')
-                                    ->options(['client' => __('Cliente')])
-                                    ->selectablePlaceholder(false),
-                            ]),
+                                    ->label('Teléfono')
+                                    ->tel()
+                                    ->maxLength(50),
+                            ])
+                            ->createOptionUsing(function (array $data): string {
+                                return Contact::create([
+                                    'name' => $data['name'],
+                                    'phone' => $data['phone'] ?? null,
+                                    'contact_type' => 'client',
+                                ])->id;
+                            }),
                         Select::make('asset_id')
-                            ->label(__('Dispositivo / Recurso'))
-                            ->relationship('asset', 'plate')
+                            ->label('Vehículo')
+                            ->relationship('asset', 'name')
                             ->searchable()
                             ->preload()
+                            ->getOptionLabelFromRecordUsing(
+                                fn (Asset $record) => $record->plate
+                                    ? "{$record->name} — {$record->plate}"
+                                    : $record->name,
+                            )
                             ->createOptionForm([
                                 TextInput::make('name')
-                                    ->label(__('Nombre / Placa'))
+                                    ->label('Nombre / Alias')
                                     ->required()
                                     ->maxLength(255),
-                                Select::make('asset_type')
-                                    ->label(__('Tipo'))
-                                    ->required()
-                                    ->default('vehicles')
-                                    ->options([
-                                        'phones' => __('Celulares'),
-                                        'computers' => __('Cómputo'),
-                                        'vehicles' => __('Vehículos'),
-                                    ]),
-                                TextInput::make('metadata.marca')
-                                    ->label(__('Marca')),
-                                TextInput::make('metadata.modelo')
-                                    ->label(__('Modelo')),
-                            ]),
+                                TextInput::make('plate')
+                                    ->label('Placa')
+                                    ->maxLength(20),
+                                Select::make('vehicle_type')
+                                    ->label('Tipo de vehículo')
+                                    ->options(VehicleTypeEnum::class)
+                                    ->default(VehicleTypeEnum::Sedan->value),
+                            ])
+                            ->createOptionUsing(function (array $data): string {
+                                return Asset::create([
+                                    'name' => $data['name'],
+                                    'plate' => $data['plate'] ?? null,
+                                    'vehicle_type' => $data['vehicle_type'] ?? VehicleTypeEnum::Sedan->value,
+                                    'asset_type' => 'vehicle',
+                                    'status' => 'active',
+                                ])->id;
+                            }),
                     ]),
                 Section::make(__('Control'))
                     ->columnSpan(1)
@@ -108,13 +120,8 @@ class WorkOrderResource extends Resource
                         Select::make('status')
                             ->label(__('Estado'))
                             ->required()
-                            ->default('pending')
-                            ->options([
-                                'pending' => __('Pendiente'),
-                                'in_progress' => __('En progreso'),
-                                'completed' => __('Completada'),
-                                'cancelled' => __('Cancelada'),
-                            ]),
+                            ->default('received')
+                            ->options(WorkOrderStatusEnum::class),
                         Select::make('priority')
                             ->label(__('Prioridad'))
                             ->required()
@@ -312,18 +319,8 @@ class WorkOrderResource extends Resource
                 TextColumn::make('status')
                     ->label(__('Estado'))
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'gray',
-                        'in_progress' => 'warning',
-                        'completed' => 'success',
-                        'cancelled' => 'danger',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => __('Pendiente'),
-                        'in_progress' => __('En progreso'),
-                        'completed' => __('Completada'),
-                        'cancelled' => __('Cancelada'),
-                    }),
+                    ->color(fn (WorkOrderStatusEnum $state): string|array|null => $state->getColor())
+                    ->formatStateUsing(fn (WorkOrderStatusEnum $state): string => $state->getLabel()),
                 TextColumn::make('priority')
                     ->label(__('Prioridad'))
                     ->badge()

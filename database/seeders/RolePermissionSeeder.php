@@ -7,11 +7,13 @@ namespace Database\Seeders;
 use App\Models\Permission;
 use App\Models\Role;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\PermissionRegistrar;
 
 class RolePermissionSeeder extends Seeder
 {
     public function run(): void
     {
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
         $permissions = [
             'create_work_orders', 'edit_work_orders', 'delete_work_orders', 'view_work_orders',
             'create_assets', 'edit_assets', 'delete_assets', 'view_assets',

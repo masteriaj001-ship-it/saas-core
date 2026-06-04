@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Enums\WorkOrderStatusEnum;
 use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -39,22 +40,8 @@ class LatestWorkOrdersTable extends BaseTableWidget
                 TextColumn::make('status')
                     ->label(__('Estado'))
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'pending' => 'gray',
-                        'draft' => 'gray',
-                        'in_progress' => 'warning',
-                        'completed' => 'success',
-                        'cancelled' => 'danger',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'pending' => __('Pendiente'),
-                        'draft' => __('Borrador'),
-                        'in_progress' => __('En Progreso'),
-                        'completed' => __('Completada'),
-                        'cancelled' => __('Cancelada'),
-                        default => $state,
-                    }),
+                    ->color(fn (WorkOrderStatusEnum $state): string|array|null => $state->getColor())
+                    ->formatStateUsing(fn (WorkOrderStatusEnum $state): string => $state->getLabel()),
                 TextColumn::make('created_at')
                     ->label(__('Creada'))
                     ->dateTime(),

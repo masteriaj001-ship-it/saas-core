@@ -48,6 +48,6 @@ class RegisterController extends Controller
 
         $this->registerService->register($validated);
 
-        return redirect()->intended('/admin');
+        return redirect()->to('/admin');
     }
 }

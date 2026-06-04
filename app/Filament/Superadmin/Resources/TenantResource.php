@@ -72,6 +72,34 @@ class TenantResource extends Resource
                             ->label(__('Activo'))
                             ->default(true),
                     ]),
+                Section::make('Administrador del Taller')
+                    ->description('Usuario que administrará este tenant')
+                    ->columns(2)
+                    ->visibleOn('create')
+                    ->schema([
+                        TextInput::make('admin_name')
+                            ->label('Nombre completo')
+                            ->required()
+                            ->maxLength(255),
+                        TextInput::make('admin_email')
+                            ->label('Email')
+                            ->email()
+                            ->required()
+                            ->unique('users', 'email', ignoreRecord: true)
+                            ->maxLength(255),
+                        TextInput::make('admin_password')
+                            ->label('Contraseña')
+                            ->password()
+                            ->required()
+                            ->minLength(8)
+                            ->maxLength(255),
+                        TextInput::make('admin_password_confirmation')
+                            ->label('Confirmar contraseña')
+                            ->password()
+                            ->required()
+                            ->same('admin_password')
+                            ->dehydrated(false),
+                    ]),
             ]);
     }
 
