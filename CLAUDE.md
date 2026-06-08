@@ -14,7 +14,7 @@
 ## Data Model
 - **UUID PKs:** All entity tables use `uuid DEFAULT gen_random_uuid()`. Models must have `$incrementing = false` and `$keyType = 'string'` (required for Spatie eager loading).
 - **Tenant isolation:** `tenant_id uuid NOT NULL` on all multi-tenant tables (nullable only on `users` for superadmins).
-- **Soft delete:** `deleted_at timestamptz` on all TenantModel entities.
+- **Soft delete:** `deleted_at timestamptz` on all TenantModel entities. Exceptions: `WorkOrderActivity`, `WorkOrderInspection`, `WorkOrderMedia` (inmutables, sin SoftDeletes).
 - **Global tables (no tenant_id):** `tenants`, `modules_catalog`.
 
 ## Eloquent & Traits
@@ -28,6 +28,9 @@
 - **Properties as methods:** `$navigationGroup` and `$navigationLabel` must be getter methods (not static properties) when using `__()` translation.
 - **`match()` must have `default`** to avoid `UnhandledMatchError`.
 - **`->hidden()` renders nothing** — use `->selectablePlaceholder(false)` for selects with single option.
+- **`->hidden(fn ...)` vs `->visible(fn ...)`**: Cuando `$get()` retorna `null` en primer render (Repeaters), `->visible()` con comparación estricta falla. Usar `->hidden()` con lógica invertida: null no hace match con condiciones negativas → campo visible por defecto.
+- **Enum casteados en match**: `$record->type` es objeto Enum, no string. Usar `$record->type->value` en `match()`.
+- **`InspectionItemStatusEnum` en fill**: Pasar el objeto enum (`InspectionItemStatusEnum::Ok`), no el string `'ok'`.
 - **`ConvertEmptyStringsToNull`** — numeric fields need `->required()` to prevent null on NOT NULL columns.
 
 ## Spatie Permission
@@ -41,7 +44,7 @@
 - `tenant:create`: legacy, same as create-tenant-admin but non-interactive.
 
 ## Testing
-- Maintain **60/60** tests passing (165 assertions). 10 suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1).
+- Maintain **156/156** tests passing (442 assertions). 20 suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1), Talleres (Asset, ServiceCatalog, WorkOrderTaller, Sprint1, Sprint2, Activity, Inspection, Media, Fixes), SuperadminTenant, TenantSuspension, Wizard.
 - Test database uses `phpunit.xml` config — `sail` runs as SUPERUSER (RLS bypassed in dev; BelongsToTenant scope compensates).
 
 ## Prohibitions

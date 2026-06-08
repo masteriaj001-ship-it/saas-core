@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
-use App\Enums\VehicleTypeEnum;
 use App\Filament\Resources\AssetResource\Pages\CreateAsset;
 use App\Filament\Resources\AssetResource\Pages\EditAsset;
 use App\Filament\Resources\AssetResource\Pages\ListAssets;
+use App\Filament\Schemas\VehicleFormSchema;
 use App\Modules\Talleres\Models\Asset;
-use App\Services\TenantManager;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -25,7 +24,6 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Validation\Rules\Unique;
 
 class AssetResource extends Resource
 {
@@ -63,66 +61,28 @@ class AssetResource extends Resource
                     ->columns(2)
                     ->schema([
                         TextInput::make('name')
-                            ->label(__('Nombre'))
-                            ->required()
+                            ->label(__('Alias / Referencia interna'))
+                            ->placeholder('Ej: Corolla de Juan, Moto roja')
                             ->maxLength(255),
                         TextInput::make('code')
                             ->label(__('Código'))
                             ->maxLength(100),
-                        TextInput::make('plate')
-                            ->label(__('Placa'))
-                            ->maxLength(20)
-                            ->unique(ignoreRecord: true, modifyRuleUsing: function (Unique $rule) {
-                                $tenantId = app(TenantManager::class)->getCurrentTenantId();
-                                if ($tenantId) {
-                                    $rule->where('tenant_id', $tenantId);
-                                }
-                            }),
-                        TextInput::make('vin')
-                            ->label(__('VIN'))
-                            ->maxLength(100)
-                            ->unique(ignoreRecord: true, modifyRuleUsing: function (Unique $rule) {
-                                $tenantId = app(TenantManager::class)->getCurrentTenantId();
-                                if ($tenantId) {
-                                    $rule->where('tenant_id', $tenantId);
-                                }
-                            }),
-                        Select::make('vehicle_type')
-                            ->label(__('Tipo de vehículo'))
-                            ->options(VehicleTypeEnum::class)
-                            ->searchable(),
-                        Select::make('owner_id')
-                            ->label(__('Propietario'))
-                            ->relationship('owner', 'name')
-                            ->searchable()
-                            ->preload(),
-                        TextInput::make('brand')
-                            ->label(__('Marca'))
-                            ->maxLength(100),
-                        TextInput::make('model')
-                            ->label(__('Modelo'))
-                            ->maxLength(100),
-                        TextInput::make('year')
-                            ->label(__('Año'))
-                            ->numeric()
-                            ->minValue(1900)
-                            ->maxValue(2100),
                         Select::make('asset_type')
                             ->label(__('Tipo'))
                             ->required()
+                            ->live()
                             ->options([
+                                'vehicle' => __('Vehículos'),
+                                'equipment' => __('Equipamiento / Maquinaria'),
                                 'phones' => __('Celulares'),
                                 'computers' => __('Cómputo'),
-                                'vehicles' => __('Vehículos'),
-                                'equipment' => __('Equipamiento / Maquinaria'),
                                 'space' => __('Espacio / Infraestructura'),
                             ])
-                            ->live()
                             ->afterStateUpdated(function (string $operation, string $state, $set): void {
                                 $defaults = match ($state) {
                                     'phones' => ['marca' => '', 'modelo' => '', 'imei' => '', 'clave_acceso' => '', 'observaciones_fisicas' => ''],
                                     'computers' => ['marca' => '', 'modelo' => '', 'procesador' => '', 'ram' => '', 'almacenamiento' => ''],
-                                    'vehicles' => ['marca' => '', 'modelo' => '', 'anio' => '', 'placa' => '', 'color' => '', 'numero_serie' => ''],
+                                    'vehicle' => ['marca' => '', 'modelo' => '', 'anio' => '', 'placa' => '', 'color' => '', 'numero_serie' => ''],
                                     default => [],
                                 };
                                 $set('metadata', $defaults);
@@ -139,6 +99,7 @@ class AssetResource extends Resource
                         DatePicker::make('acquired_at')
                             ->label(__('Fecha de adquisición')),
                     ]),
+                ...VehicleFormSchema::make(),
                 Section::make(__('Metadatos'))
                     ->schema([
                         KeyValue::make('metadata')
@@ -178,6 +139,20 @@ class AssetResource extends Resource
                 TextColumn::make('year')
                     ->label(__('Año'))
                     ->sortable(),
+                TextColumn::make('version')
+                    ->label(__('Versión'))
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('current_mileage')
+                    ->label(__('Kilometraje'))
+                    ->numeric()
+                    ->sortable()
+                    ->toggleable(),
+                TextColumn::make('fuel_type')
+                    ->label(__('Combustible'))
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('color')
+                    ->label(__('Color'))
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('code')
                     ->label(__('Código'))
                     ->searchable(),
@@ -185,18 +160,18 @@ class AssetResource extends Resource
                     ->label(__('Tipo'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
+                        'vehicle' => 'warning',
+                        'equipment' => 'info',
                         'phones' => 'info',
                         'computers' => 'success',
-                        'vehicles' => 'warning',
-                        'equipment' => 'info',
                         'space' => 'success',
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'vehicle' => __('Vehículos'),
+                        'equipment' => __('Equipamiento / Maquinaria'),
                         'phones' => __('Celulares'),
                         'computers' => __('Cómputo'),
-                        'vehicles' => __('Vehículos'),
-                        'equipment' => __('Equipamiento / Maquinaria'),
                         'space' => __('Espacio / Infraestructura'),
                         default => $state,
                     }),
@@ -225,10 +200,10 @@ class AssetResource extends Resource
                 SelectFilter::make('asset_type')
                     ->label(__('Tipo'))
                     ->options([
+                        'vehicle' => __('Vehículos'),
+                        'equipment' => __('Equipamiento / Maquinaria'),
                         'phones' => __('Celulares'),
                         'computers' => __('Cómputo'),
-                        'vehicles' => __('Vehículos'),
-                        'equipment' => __('Equipamiento / Maquinaria'),
                         'space' => __('Espacio / Infraestructura'),
                     ]),
                 SelectFilter::make('status')

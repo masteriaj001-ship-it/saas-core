@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\Facturacion\Providers\FacturacionServiceProvider;
 use App\Modules\Shared\Providers\SharedServiceProvider;
 use App\Modules\Talleres\Providers\TalleresServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -10,6 +11,7 @@ return [
     AppServiceProvider::class,
     AdminPanelProvider::class,
     SuperadminPanelProvider::class,
+    FacturacionServiceProvider::class,
     TalleresServiceProvider::class,
     SharedServiceProvider::class,
 ];

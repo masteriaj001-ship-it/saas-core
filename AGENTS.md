@@ -483,3 +483,34 @@ Código legacy en `app/Models/` y `app/Services/` se migrará progresivamente.
 - Firma correcta: form(Schema $schema): Schema — NO Form
 - Navigation group: método getNavigationGroup(): string — NO static property
 - Namespace actions: Filament\Actions\ — NUNCA Filament\Tables\Actions\
+
+## Protocolo de operación Agente ↔ John
+
+### Regla de plan + OK
+1. Antes de CUALQUIER cambio de código, el agente presenta un **Plan de Ejecución** con:
+   - Archivos a modificar
+   - Cambio exacto (diff o descripción)
+   - Tests afectados
+   - Sin ambigüedades
+2. John responde **"OK"** (solo esa palabra) para autorizar.
+3. Sin "OK" el agente NO ejecuta código.
+
+### Ciclo de depuración (bug complejo)
+1. Mostrar código relevante con números de línea.
+2. Presentar hipótesis + plan de fix.
+3. Esperar OK.
+
+### Gobernanza post-ejecución
+1. `vendor/bin/sail bin pint --format agent` (formatear código).
+2. `vendor/bin/sail artisan test --compact` (tests completos).
+3. OpCache reset: `vendor/bin/sail php -r 'function_exists("opcache_reset") && opcache_reset();'`.
+4. Solo preguntar por documentación si John lo pide explícitamente.
+
+### Política de documentación
+- No crear FEATURE_SPEC ni docs por cambios pequeños (< 3 archivos, sin nueva tabla).
+- John pide "documenta" explícitamente para crear/actualizar docs.
+- El resumen de progreso (conversación) se mantiene siempre actualizado.
+
+### Manejo de errores
+- Si un plan falla, el agente: 1) diagnóstica mostrando código, 2) presenta nuevo plan, 3) espera OK.
+- No apilar parches sobre parches sin diagnóstico.

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Onboarding;
 
+use App\Filament\Pages\Onboarding;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
 use App\Models\Category;
 use App\Models\Item;
@@ -17,6 +18,7 @@ use Filament\FilamentManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
+use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
@@ -168,5 +170,48 @@ class OnboardingWizardTest extends TestCase
             'construction' => ['construction', 4, 3, 2],
             'clinic' => ['clinic',       4, 3, 2],
         ];
+    }
+
+    public function test_onboarding_wizard_renders_with_select_if_no_industry_detected(): void
+    {
+        $this->actingAs($this->incompleteUser);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setTenant($this->incompleteTenant);
+
+        Livewire::test(Onboarding::class)
+            ->assertSet('detectedIndustry', null);
+    }
+
+    public function test_onboarding_wizard_prepopulates_if_industry_is_detected(): void
+    {
+        $tenantWithIndustry = Tenant::factory()->create([
+            'onboarding_completed' => false,
+            'settings' => ['industry' => 'mechanic'],
+        ]);
+        $user = User::factory()->create([
+            'tenant_id' => $tenantWithIndustry->id,
+        ]);
+
+        $this->actingAs($user);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setTenant($tenantWithIndustry);
+
+        Livewire::test(Onboarding::class)
+            ->assertSet('detectedIndustry', 'mechanic')
+            ->assertSet('data.industry', 'mechanic');
+    }
+
+    public function test_onboarding_wizard_submits_successfully(): void
+    {
+        $this->actingAs($this->incompleteUser);
+        Filament::setCurrentPanel(Filament::getPanel('admin'));
+        Filament::setTenant($this->incompleteTenant);
+
+        Livewire::test(Onboarding::class)
+            ->set('data.industry', 'mechanic')
+            ->call('complete')
+            ->assertHasNoErrors();
+
+        $this->assertTrue($this->incompleteTenant->fresh()->onboarding_completed);
     }
 }

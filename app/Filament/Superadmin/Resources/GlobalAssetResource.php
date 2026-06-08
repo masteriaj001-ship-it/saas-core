@@ -51,6 +51,7 @@ class GlobalAssetResource extends Resource
                     ->color(fn (string $state): string => match ($state) {
                         'phones' => 'info',
                         'computers' => 'success',
+                        'vehicle' => 'warning',
                         'vehicles' => 'warning',
                         'equipment' => 'info',
                         'space' => 'success',
@@ -59,6 +60,7 @@ class GlobalAssetResource extends Resource
                     ->formatStateUsing(fn (string $state): string => __(match ($state) {
                         'phones' => 'Celulares',
                         'computers' => 'Cómputo',
+                        'vehicle' => 'Vehículos',
                         'vehicles' => 'Vehículos',
                         'equipment' => 'Equipamiento / Maquinaria',
                         'space' => 'Espacio / Infraestructura',

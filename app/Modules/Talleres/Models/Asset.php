@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Talleres\Models;
 
+use App\Enums\FuelTypeEnum;
 use App\Enums\VehicleTypeEnum;
 use App\Models\Contact;
 use App\Models\TenantModel;
@@ -29,12 +30,17 @@ class Asset extends TenantModel
         'brand',
         'model',
         'year',
+        'version',
+        'engine_number',
+        'current_mileage',
+        'fuel_type',
+        'color',
         'vehicle_type',
         'asset_type',
         'status',
         'metadata',
         'acquired_at',
-        'owner_id',
+        'owner_contact_id',
     ];
 
     protected function casts(): array
@@ -43,17 +49,25 @@ class Asset extends TenantModel
             'metadata' => 'array',
             'acquired_at' => 'date',
             'disposed_at' => 'date',
+            'year' => 'integer',
+            'current_mileage' => 'integer',
             'vehicle_type' => VehicleTypeEnum::class,
+            'fuel_type' => FuelTypeEnum::class,
         ]);
     }
 
     public function owner(): BelongsTo
     {
-        return $this->belongsTo(Contact::class);
+        return $this->belongsTo(Contact::class, 'owner_contact_id');
     }
 
     public function workOrders(): HasMany
     {
         return $this->hasMany(WorkOrder::class);
+    }
+
+    public function isVehicle(): bool
+    {
+        return $this->asset_type === 'vehicle';
     }
 }

@@ -1,21 +1,21 @@
 # PROJECT STATE — ProyectDashboard
 
 > Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
-> Última actualización: 2026-06-04 (TenantResource con admin user + Modal inline WorkOrder)
+> Última actualización: 2026-06-07 (BUG HUNT 403 — 3 ROOT CAUSES RESUELTAS, 174 TESTS, 497 ASSERTIONS)
 
 ---
 
 ## 1. Resumen Ejecutivo
 
-SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 21 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` + trait `BelongsToTenant` con global scope.
+SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 31 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` (sin clearTenantContext en finally) + trait `BelongsToTenant` con global scope.
 
-**Fase actual:** Panel admin (`/admin/{slug}`) con 7 Resources (nuevo: ServiceCatalog) + Dashboard widgets + **VerifyTenantStatus middleware** (bloquea tenants suspendidos). Panel superadmin (`/superadmin`) con 3 Resources globales (Tenant, GlobalAsset, GlobalWorkOrder). Módulo fiscal (Transactions), onboarding con defaults por industria, Spatie Permission, 2 comandos deploy, **Arquitectura Modular (DDD Lite)** con `app/Modules/Talleres/`. **UX/UI Fase 2 completada**: sistema de diseño "Neon Garage" (Dark/Neon Premium) con 9 Blade Components + Wizard de onboarding de 3 pasos. **VehicleTypeEnum + ServiceCatalog + seeder mechanic**. **TenantResource con creación de admin user** (admin_name, admin_email, admin_password + transactional handleRecordCreation). **Modal inline para Contact/Asset en WorkOrderResource**. **98 tests pasando, 260 assertions.**
+**Fase actual:** VERTICAL TALLERES — COMPLETO. Módulo Facturación — CREADO (invoices + invoice_items). Panel admin (`/admin/{slug}`) con 8 Resources + Dashboard widgets + bloqueo de tenants suspendidos. Panel superadmin (`/superadmin`) con 3 Resources globales. **Bug 403 en Livewire getSearchResultsUsing resuelto**: 3 causas raíz eliminadas (ContactPolicy faltante, clearTenantContext prematuro en SetTenantContext, PreventRequestForgery en middleware stack del panel). **174 tests, 497 assertions — 0 regresiones.**
 
 ---
 
 ## 2. Estado Actual
 
-### Migraciones ejecutadas (21/21)
+### Migraciones ejecutadas (31/31)
 
 | Orden | Archivo | Tabla | RLS |
 |---|---|---|---|---|---|---|---|
@@ -45,15 +45,31 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | 19 | `2026_06_03_230122_add_vin_and_owner_to_assets` | `assets` (add cols) | `vin VARCHAR(100)` + `owner_id UUID FK→contacts` + índices `idx_assets_tenant_vin` (UNIQUE, partial WHERE deleted_at IS NULL) + `idx_assets_owner` |
 | 20 | `2026_06_03_232437_add_vehicle_type_to_assets` | `assets` (add col) | `vehicle_type VARCHAR(50)` NULL |
 | 21 | `2026_06_03_232437_create_service_catalogs_table` | `service_catalogs` | 7 columnas + RLS 4 políticas + índices `(tenant_id)`, `UNIQUE (tenant_id, name) WHERE deleted_at IS NULL`, `(tenant_id, is_active)` |
+| 22 | `2026_06_04_000001_add_sprint1_fields_to_work_orders` | `work_orders` (add cols) | +10 columnas: `mechanic_id`/`advisor_id` UUID FK→contacts ON DELETE SET NULL, `reception_notes`, `fuel_level`, `diagnosis_summary`, `approval_channel`, `approval_at`, `qc_passed`, `qc_notes`, `delivery_at` + índices `idx_work_orders_mechanic (tenant_id, mechanic_id) WHERE deleted_at IS NULL` + `idx_work_orders_advisor` |
+| 23 | `2026_06_04_000002_add_type_to_work_order_items` | `work_order_items` (add col) | `type VARCHAR(50) NOT NULL DEFAULT 'part'` — distingue Part/Service/Labor en líneas de OT |
+| 24 | `2026_06_04_000003_create_work_order_activities_table` | `work_order_activities` | 4 políticas RLS + FORCE. Columnas: type, description, from_status, to_status, metadata JSONB. Índices: `(tenant_id)`, `(tenant_id, work_order_id)`, `(tenant_id, user_id)` partial. Sin deleted_at |
+| 25 | `2026_06_04_000004_create_work_order_inspections_table` | `work_order_inspections` | 4 políticas RLS + FORCE. Columnas: item_name, status, notes, photo_path (reservado), sort_order. Índices: `(tenant_id)`, `(tenant_id, work_order_id)`. Sin deleted_at |
+| 26 | `2026_06_04_000005_create_work_order_media_table` | `work_order_media` | 4 políticas RLS + FORCE. Columnas: storage_path, original_name, mime_type, size, metadata JSONB. Índices: `(tenant_id)`, `(tenant_id, work_order_id)`, `(tenant_id, work_order_inspection_id)` partial. Sin deleted_at |
+| 27 | `2026_06_06_000001_make_item_id_nullable_in_work_order_items` | `work_order_items` (alter) | `DROP NOT NULL item_id`. Soporta items type=service (solo service_catalog_id) y type=labor (solo description) sin violación de constraint |
+| 28 | `2026_06_06_000002_add_inspection_fields_and_code_index_to_work_orders` | `work_orders` (add cols + index) | `mileage_km INTEGER`, `battery_level VARCHAR(50)`, `aesthetic_notes TEXT`. Índice único parcial `(tenant_id, code) WHERE deleted_at IS NULL` |
+| 29 | `2026_06_07_000001_add_document_fields_to_contacts` | `contacts` (add cols + index) | `document_type VARCHAR(10)`, `document_number VARCHAR(30)`, `city VARCHAR(100)`. Índice parcial `(tenant_id, document_number) WHERE document_number IS NOT NULL AND deleted_at IS NULL` |
+| 30 | `2026_06_07_000002_create_invoices_table` | `invoices` | 20 columnas + RLS + 4 índices (incl. UNIQUE parcial tenant_id+document_number) |
+| 31 | `2026_06_07_000003_create_invoice_items_table` | `invoice_items` | 14 columnas + RLS + 2 índices. Sin SoftDeletes (ítems inmutables) |
 
 ### Enums
 
 | Enum | Values | Contracts | Uso |
-|---|---|---|---|
-| `WorkOrderStatusEnum` | Draft, Received, Diagnosing, Quoted, InProgress, Completed, Delivered, Cancelled | `HasLabel`, `HasColor` | WorkOrder.model status cast + WorkOrderStatusChart + Factory |
+|---|---|---|---|---|
+| `WorkOrderStatusEnum` | Draft, Received, Diagnosing, Quoted, WaitingApproval, WaitingParts, InProgress, Paused, Qc, Completed, Delivered, Cancelled | `HasLabel`, `HasColor` | WorkOrder.model status cast + WorkOrderStatusChart + Factory |
 | `VehicleTypeEnum` | Sedan, Motorcycle, PickupTruck, Suv, Van, Truck, Other | `HasLabel`, `HasColor` | Asset.model vehicle_type cast + Select form field |
+| `WorkOrderItemTypeEnum` | Part, Service, Labor | `HasLabel`, `HasColor` | WorkOrderItem.model type cast + Select + badge en ItemsRelationManager |
+| `WorkOrderActivityTypeEnum` | StatusChange, Note, Assignment, Qc | `HasLabel` | WorkOrderActivity.model type cast + badge en ActivitiesRelationManager |
+| `InspectionItemStatusEnum` | Ok, Damaged, Missing | `HasLabel`, `HasColor` | WorkOrderInspection.model status cast + Select + badge en InspectionsRelationManager |
+| `DocumentTypeEnum` | CC, NIT, CE, PAS, TI | `HasLabel`, `HasColor` | Contact.model document_type cast + Select en ContactResource + WorkOrderResource createOptionForm |
+| `InvoiceStatusEnum` | Draft, Issued, Paid, Cancelled | `HasLabel`, `HasColor` | Invoice.model status cast |
+| `InvoiceDocumentTypeEnum` | Invoice, CreditNote | `HasLabel` | Invoice.model document_type cast |
 
-### Modelos (19 + trait)
+### Modelos (23 + trait)
 
 | Modelo | Extiende | UUID PK | BelongsToTenant | SoftDeletes | Notas |
 |---|---|---|---|---|---|---|---|---|
@@ -61,9 +77,12 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `User` | `Authenticatable` | ✅ HasUuids + $incrementing=false + $keyType=string | ✅ trait (con excepción: salta si is_superadmin=true) | ✅ | Implementa `Filament\Models\Contracts\HasTenants` |
 | `Asset` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | **Movido a `Modules\Talleres\Models\Asset`** |
 | `Item` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
-| `Contact` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
-| `WorkOrder` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | **Movido a `Modules\Talleres\Models\WorkOrder`** |
-| `WorkOrderItem` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | **Movido a `Modules\Talleres\Models\WorkOrderItem`** |
+| `Contact` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | Sprint A: +document_type (DocumentTypeEnum cast), +document_number, +city |
+| `WorkOrder` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | **Movido a `Modules\Talleres\Models\WorkOrder`**. +10 campos Sprint 1: mechanic/advisor FK→contacts, reception_notes, fuel_level, diagnosis_summary, approval_channel/at, qc_passed/notes, delivery_at |
+| `WorkOrderItem` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | **Movido a `Modules\Talleres\Models\WorkOrderItem`**. Sprint 2: +type (WorkOrderItemTypeEnum cast) |
+| `WorkOrderActivity` | `Model` | ✅ HasUuids | ✅ trait | ❌ (inmutable) | `Modules\Talleres\Models`. Sin SoftDeletes. Relaciones: workOrder(), user(). Cast: metadata=>array, type=>WorkOrderActivityTypeEnum |
+| `WorkOrderInspection` | `Model` | ✅ HasUuids | ✅ trait | ❌ (inmutable) | `Modules\Talleres\Models`. Sin SoftDeletes. Relaciones: workOrder(), media(). Cast: status=>InspectionItemStatusEnum, sort_order=>integer. `photo_path` deprecated |
+| `WorkOrderMedia` | `Model` | ✅ HasUuids | ✅ trait | ❌ (inmutable) | `Modules\Talleres\Models`. Sin SoftDeletes. Relaciones: workOrder(), inspection(), user(). Cast: metadata=>array, size=>integer |
 | `Transaction` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `TransactionItem` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `Role` | `Spatie\Permission\Models\Role` | ✅ HasUuids + $incrementing=false + $keyType=string | ✅ trait | ❌ | |
@@ -71,6 +90,8 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `Location` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `Category` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `ServiceCatalog` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | Catálogo de servicios por taller |
+| `Invoice` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | Módulo Facturacion. +casts status (InvoiceStatusEnum), document_type (InvoiceDocumentTypeEnum). Relaciones: workOrder(), contact(), items() |
+| `InvoiceItem` | `Model` | ✅ HasUuids | ✅ BelongsToTenant trait | ❌ | Módulo Facturacion. Sin SoftDeletes (ítems inmutables). Relaciones: invoice(), workOrderItem() |
 | `TenantModule` | `TenantModel` | ✅ heredado | ✅ heredado | ✅ heredado | |
 | `ModuleCatalog` | `Model` | ✅ HasUuids | ❌ (global) | ❌ | |
 | `TenantModel` | `Model` | Abstracto base | — | — | |
@@ -78,7 +99,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 
 **Nota crítica:** `User`, `Role` y `Permission` requieren `$incrementing = false`, `$keyType = 'string'` y `HasUuids` para que Spatie's eager loading funcione (usa `whereIntegerInRaw` que falla con UUIDs si $incrementing es true).
 
-### Factories (9)
+### Factories (14)
 
 | Factory | Modelo |
 |---|---|
@@ -87,22 +108,29 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `AssetFactory` | Asset |
 | `ContactFactory` | Contact |
 | `ItemFactory` | Item |
-| `WorkOrderFactory` | WorkOrder (enum random status via `WorkOrderStatusEnum::cases()`) |
-| `WorkOrderItemFactory` | WorkOrderItem |
+| `WorkOrderFactory` | WorkOrder (enum random status via `WorkOrderStatusEnum::cases()`, +10 null fields Sprint 1, `withMechanic()` state) |
+| `WorkOrderItemFactory` | WorkOrderItem (default Part, states: asService, asLabor) |
+| `WorkOrderActivityFactory` | WorkOrderActivity (default StatusChange, states: asNote, asAssignment) |
+| `WorkOrderInspectionFactory` | WorkOrderInspection (default Ok, states: damaged, missing) |
+| `WorkOrderMediaFactory` | WorkOrderMedia (default image/jpeg, states: asPdf, asVideo, forInspection) |
 | `TransactionFactory` | Transaction (states: sale/purchase/draft/issued/cancelled) |
 | `TransactionItemFactory` | TransactionItem |
+| `InvoiceFactory` | Invoice (states: issued, paid, cancelled) |
+| `InvoiceItemFactory` | InvoiceItem |
 
 ### Middleware + Servicios
 
 | Componente | Ruta | Propósito |
 |---|---|---|---|
-| `SetTenantContext` | `app/Http/Middleware/` | Inyecta tenant_id en PG por request (registrado en web + Filament middleware stack). Retorna 403 si tenant_id está vacío (bloquea superadmins en /admin) |
+| `SetTenantContext` | `app/Http/Middleware/` | Inyecta tenant_id en PG por request (registrado como persistent middleware en Filament). Retorna 403 si tenant_id está vacío. Sin clearTenantContext en finally — el contexto persiste durante todo el lifecycle del componente Livewire, incluyendo getSearchResultsUsing |
 | `VerifyTenantStatus` | `app/Http/Middleware/` | Bloquea acceso al panel `/admin` si `tenant->is_active === false`. Corre después de `SetTenantContext`. Superadmins bypass. Retorna 403 con vista `errors/tenant-suspended.blade.php` |
 | `EnsureIsSuperAdmin` | `app/Http/Middleware/` | Middleware del panel superadmin: retorna 403 si `auth()->user()->is_superadmin !== true` |
 | `TenantManager` | `app/Services/` | Singleton, puente PHP ↔ PostgreSQL |
 | `BelongsToTenant` | `app/Models/Concerns/` | Trait con global scope + creating event. Modificado para omitir exception si `is_superadmin=true` |
 | `current_tenant_id()` | BD (función PG) | Firewall que valida UUID y lanza error si falta contexto |
 | `WorkOrderService` | `app/Modules/Talleres/Services/` | CRUD + generación de códigos WO-XXXX (**movido a módulo**) |
+| `WorkOrderCodeGenerator` | `app/Modules/Talleres/Services/` | Generación secuencial atómica con DB lock (via `lockForUpdate()`) |
+| `WorkOrderWebhookService` | `app/Modules/Talleres/Services/` | HTTP POST fire-and-forget a n8n cuando cambia status de una OT |
 | `TransactionService` | `app/Services/Transactions/` | Generación secuencial de facturas (contador atómico en tenants.settings), cálculo de IVA/totales, emitir/anular transacciones |
 | `RegisterService` | `app/Services/Auth/` | Registro + creación tenant + defaults automáticos (location, categories, items, contacts, módulos) por industria |
 
@@ -145,12 +173,13 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | Recurso | Páginas |
 |---|---|
 | `AssetResource` | List / Create / Edit — name, code, plate, vin, vehicle_type, owner, brand, model, year, asset_type, status, metadata, acquired_at |
-| `ContactResource` | List / Create / Edit — contact_type, name, tax_id, email, phone, address, metadata |
+| `ContactResource` | List / Create / Edit — contact_type, name, tax_id, email, phone, address, metadata, +Section "Identificación" (document_type Select, document_number, city) |
 | `ItemResource` | List / Create / Edit — sku, name, item_type, unit, price, cost, stock, min_stock, metadata |
-| `WorkOrderResource` | List (con permisos Spatie) / Create (con auto-código, modal inline Contact "Cliente" + Vehicle "Vehículo") / Edit + ItemsRelationManager |
+| `WorkOrderResource` | List (con permisos Spatie) / Create (wizard 3 pasos con auto-código, Selects async con búsqueda Client/Vehicle sin createOptionForm — usuarios crean Contact/Asset desde sus módulos dedicados) / Edit + ItemsRelationManager + ActivitiesRelationManager (read-only) + InspectionsRelationManager + MediaRelationManager. Sprint 1: +4 Sections (Asignación con mechanic/advisor async Select, Recepción, Diagnóstico+Aprobación, Control de Calidad), columna mechanic en tabla. Sprint 3a: ActivitiesRelationManager con badge type, description, user, created_at. Sprint 3b: InspectionsRelationManager con Create/Edit, Select status enum, badge color, notes condicional, defaultSort sort_order. Sprint 4: MediaRelationManager con FileUpload→MinIO, badge mime_type, size human readable. InspectionsRelationManager +media_count badge + ViewAction |
 | `TransactionResource` | List / Create / Edit + ItemsRelationManager — type (sale/purchase), contact, invoice_number, CUFE, resolución DIAN, payment_method, items con IVA, totes automáticos, acciones de Emitir/Anular |
 | `LocationResource` | List / Create / Edit — name, address, is_main (badge Principal), is_active |
 | `ServiceCatalogResource` | List / Create / Edit — name, base_price, estimated_minutes, is_active |
+| `InvoiceResource` 🆕 | List / Create (con auto-generación document_number via InvoiceCodeGenerator) / Edit — Encabezado (document_type, contact, work_order, status, fechas), Ítems (Repeater con cálculos live quantity/unit_price/discount/tax_rate), Totales readonly, notas |
 
 ### Filament Resources (Superadmin Panel — `/superadmin`)
 
@@ -176,15 +205,18 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `WorkOrderStatusChart` | BarChartWidget | WOs agrupadas por status dinámico desde `WorkOrderStatusEnum::cases()` con colores mapeados |
 | `LatestWorkOrdersTable` | TableWidget | Últimas 5 WOs con código, título, asset, status, fecha |
 
-### Tests (98 pasando, 260 assertions)
+### Tests (174 tests, 497 assertions)
 
 | Test Suite | Archivos | Tests | Propósito |
-|---|---|---|---|---|---|---|---|
+|---|---|---|---|---|---|---|---|---|
 | WorkOrderTest | `tests/Feature/WorkOrders/` | 4 | CRUD + status transitions |
 | AssetTallerTest | `tests/Feature/Talleres/` | 7 | Plate/brand/model/year + unique plate + VIN/owner CRUD + VIN unique per tenant + VIN cross-tenant + owner relationship |
 | AssetVinOwnerTest | `tests/Feature/Talleres/` | 4 | VIN/owner CRUD (separado), VIN unique tenant, VIN cross-tenant, owner relationship |
 | ServiceCatalogTest | `tests/Feature/Talleres/` | 5 | ServiceCatalog CRUD + tenant isolation + validación + VehicleTypeEnum values + mechanic template seeds 5 catalogs |
-| WorkOrderTallerTest | `tests/Feature/Talleres/` | 3 | WorkOrder con service_description + modal inline Contact/Asset creation |
+| WorkOrderTallerTest | `tests/Feature/Talleres/` | 5 | WorkOrder con service_description + modal inline Contact/Asset creation + items service/labor/part + FK inválido |
+| WorkOrderCodeGeneratorTest | `tests/Feature/` | 4 | WorkOrderCodeGenerator: primer código, secuencia, post-existente, soft-delete |
+| WorkOrderWizardTest | `tests/Feature/Talleres/` | 4 | Wizard 3 pasos CreateWorkOrder: validación, código, Edit sin wizard, schemas |
+| WorkOrderPhase3Test | `tests/Feature/Talleres/` | 3 | Inspection fields, code unique per tenant, contacto duplicado por teléfono |
 | CreateTenantWithAdminTest | `tests/Feature/Superadmin/` | 3 | Tenant creation with admin user: valid creation, duplicate email rejection, password mismatch |
 | WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 2 | Aislamiento cross-tenant WorkOrders + Assets |
 | TallerOnboardingTest | `tests/Feature/Talleres/` | — | (pendiente — wizard requiere test de integración) |
@@ -197,6 +229,17 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | ApiTokenTest | `tests/Feature/Auth/` | 9 | Crear/revocar/listar tokens Sanctum, abilities, 401 |
 | RegistrationWithDefaultsTest | `tests/Feature/Onboarding/` | 6 | Defaults post-registro: location, categories, items, contacts, módulos, industria default |
 | TenantSuspensionTest | `tests/Feature/Security/` | 3 | VerifyTenantStatus: active → 200, inactive → 403, superadmin bypass → 200 |
+| WorkOrderSprintOneTest | `tests/Feature/Talleres/` | 5 | Sprint 1: mechanic+advisor assignment, cross-tenant isolation, enum +4 values, QC fields, approval fields |
+| WorkOrderItemTypeTest | `tests/Feature/Talleres/` | 4 | Sprint 2: default Part, all types accepted, enum 3 cases, tenant isolation |
+| WorkOrderActivityTest | `tests/Feature/Talleres/` | 4 | Sprint 3a: create activity, tenant isolation, activities() relation, enum 4 cases |
+| WorkOrderInspectionTest | `tests/Feature/Talleres/` | 5 | Sprint 3b: create inspection, tenant isolation, inspections() relation sorted, enum 3 cases, config defaults |
+| WorkOrderMediaTest | `tests/Feature/Talleres/` | 12 | Sprint 4: create, tenant isolation, relations, image/pdf/video types, CASCADE, SET NULL, private visibility, storage_path UUID, disk config |
+| WorkOrderObserverTest | `tests/Feature/Talleres/` | 4 | Observer + Webhook: status_change activity, from/to status, sin cambio sin actividad, webhook sin URL |
+| WorkOrderFixesTest | `tests/Feature/Talleres/` | 2 | Fixes visuales: display_name por tipo, inspecciones precargadas |
+| ContactDocumentTest | `tests/Feature/Talleres/` | 3 | Sprint A: document fields persist, enum 5 cases, index exists |
+| InvoiceModelTest | `tests/Feature/Facturacion/` | 5 | Sprint B: create invoice, tenant isolation, items relation, work_order_id nullable, enum 4 cases |
+| InvoiceCodeGeneratorTest | `tests/Feature/Facturacion/` | 3 | Sprint C: sequential document_number, per-tenant isolation, configurable prefix |
+| **WorkOrderE2ETest** 🆕 | `tests/Browser/` | **3** (Dusk) | **E2E: wizard creación OT, cambio de estado, items RelationManager** |
 
 ### Reglas de gobernanza
 
@@ -368,6 +411,24 @@ php artisan make:command Nombre            # Crear comando Artisan
 | 2026-06-04 | opencode | **BelongsToTenant fallback**: cuando TenantManager no tiene contexto (Livewire Repeater requests), usa `Auth::user()->tenant_id` en vez de lanzar RuntimeException. Necesario para crear WorkOrderItem child records. | SDD Features |
 | 2026-06-04 | opencode | **FEATURE 1 — TenantResource con admin user**: Sección admin (admin_name, admin_email, admin_password, admin_password_confirmation) en TenantResource form. `handleRecordCreation` transaccional: create Tenant → setTenantContext → RolePermissionSeeder::run() → create User con password hasheado → assignRole('owner') → TenantTemplateSeeder seed. 3 tests en CreateTenantWithAdminTest. | SDD Features |
 | 2026-06-04 | opencode | **FEATURE 2 — Modal inline WorkOrderResource**: `contact_id` Select con `->createOptionUsing()` callback que crea Contact con contact_type='client'. Asset_id Select renombrado a "Vehículo" con createOptionForm (name, plate, VehicleTypeEnum) + `->createOptionUsing()` que crea Asset con asset_type='vehicle', status='active'. Tests en WorkOrderTallerTest. | SDD Features |
+| 2026-06-04 | opencode | **Bugfix admin_email unique on Edit**: Section admin fields `->visibleOn('create')` + `->unique('users', 'email', ignoreRecord: true)` en admin_email. Evita SQL error `tenants.id` cross-table join en Edit. | SDD Features |
+| 2026-06-04 | opencode | **HOTFIX Spatie cache poisoning**: `PermissionRegistrar` cacheaba permisos del tenant demo globalmente en el panel superadmin. `findOrCreate('view_work_orders')` retornaba permiso del tenant demo sin crear uno nuevo → `Permission::all()` devolvía 0 → `role_has_permissions` vacío → owner role sin permisos → 403 + sidebar sin resources. Fix: `forgetCachedPermissions()` en 3 lugares (seeder, createTenant, registerTenantAction). Commit 81a3cc2 → merge 7c210d7. 98 tests, 260 assertions, 0 regresiones. | — |
+| 2026-06-04 | opencode | **Sprint 1 — WorkOrder Core Fields**: +4 estados en WorkOrderStatusEnum (WaitingParts, WaitingApproval, Qc, Paused). Migración `add_sprint1_fields_to_work_orders` (+10 columnas nullable: mechanic_id/advisor_id FK→contacts, reception_notes, fuel_level, diagnosis_summary, approval_channel, approval_at, qc_passed, qc_notes, delivery_at + 2 índices parciales). WorkOrder model +fillable/casts/relaciones mechanic()+advisor(). WorkOrderResource +4 Sections (Asignación, Recepción, Diagnóstico, QC) + columna mechanic en tabla. 5 tests nuevos. 103 tests, 283 assertions. | Sprint 2 — WorkOrderItem type (SERVICE/PART/LABOR) |
+| 2026-06-04 | opencode | **Sprint 2 — WorkOrderItem type**: WorkOrderItemTypeEnum (Part/Service/Labor + HasLabel/HasColor). Migración `add_type_to_work_order_items` (ALTER TABLE work_order_items + type VARCHAR(50) DEFAULT 'part'). WorkOrderItem model +type fillable + cast. Factory +asService/+asLabor states. WorkOrderResource Repeater +Select type (col-span-1). ItemsRelationManager +badge type column. 4 tests. 107 tests, 293 assertions. | — |
+| 2026-06-04 | opencode | **Sprint 3a — work_order_activities**: WorkOrderActivityTypeEnum (4 cases: StatusChange/Note/Assignment/Qc). Migración `create_work_order_activities_table` (con RLS + FORCE, JSONB metadata, índices, sin deleted_at). WorkOrderActivity model (sin SoftDeletes, BelongsToTenant + HasUuids, casts type/metadata). WorkOrder +activities() HasMany relation. WorkOrderActivityFactory con states asNote/asAssignment. ActivitiesRelationManager read-only (badge type, description, user, created_at since, defaultSort desc). 4 tests. 111 tests, 304 assertions. | — |
+| 2026-06-04 | opencode | **Sprint 3b — work_order_inspections**: InspectionItemStatusEnum (Ok/Damaged/Missing + HasLabel/HasColor). Migración `create_work_order_inspections_table` (RLS + FORCE, item_name, status, notes, photo_path reservado, sort_order). WorkOrderInspection model (sin SoftDeletes). config/inspection-defaults.php (13 ítems). WorkOrder +inspections() HasMany sorted. InspectionsRelationManager con Create/Edit, Select enum, notes condicional, badge color. 5 tests. 116 tests, 318 assertions. | — |
+| 2026-06-04 | opencode | **Sprint 4 — work_order_media**: MinIO en Docker Compose + disco S3 en filesystems.php. Migración `create_work_order_media_table` (RLS + FORCE, storage_path UUID-based, metadata JSONB, índices). WorkOrderMedia model (sin SoftDeletes). MediaService (upload/delete/temporaryUrl con sanitización). WorkOrder +media()/+generalMedia(). WorkOrderInspection +media(). MediaRelationManager con FileUpload→MinIO. InspectionsRelationManager +media_count badge + ViewAction. Config inspection-defaults.php. `photo_path` deprecated (no eliminado). 12 tests. 128 tests, 337 assertions. 0 regresiones. | — |
+| 2026-06-06 | opencode | **Bugfix item_id nullable**: `work_order_items.item_id` NOT NULL constraint violaba al guardar WorkOrder con items `type=service` (item_id=null). Migración `2026_06_06_000001` hace `item_id` nullable. Validación condicional en Repeater: `item_id` required solo cuando `type=part`, `service_catalog_id` required solo cuando `type=service`. Tests: crea items part+service+labor + FK inválido. 143 tests, 380 assertions. 0 regresiones. | — |
+| 2026-06-06 | opencode | **Fase 1 — WorkOrderCodeGenerator unificado**: Creado `WorkOrderCodeGenerator` (servicio con `lockForUpdate()` + transacción). Inyectado via constructor en `CreateWorkOrder.php` (Filament). Eliminado dead code: `CreateWorkOrderAction`, `WorkOrderService`, `CreateWorkOrderRequest`, `UpdateWorkOrderRequest`. `TalleresServiceProvider` limpio de dead singletons. 4 tests nuevos. 147 tests, 386 assertions. 0 regresiones. | — |
+| 2026-06-06 | opencode | **Fase 2 — Wizard 3 pasos**: Convertido form monolítico de WorkOrderResource a Wizard en CreateWorkOrder. Extraídos `step1Schema/2/3()` estáticos. EditWorkOrder mantiene form plano. 4 tests nuevos (WorkOrderWizardTest). 151 tests, 393 assertions. 0 regresiones. | — |
+| 2026-06-06 | opencode | **Labor usa ServiceCatalog**: Eliminado `labor_description` (TextInput libre) del Repeater. `service_catalog_id` ahora visible para type=service y type=labor. Label → "Servicio / Mano de obra". Sin cambios en modelo ni tests. 151 tests, 393 assertions. 0 regresiones. | — |
+| 2026-06-06 | opencode | **Fase 3 — Metadata → columnas reales + índice code + contacto duplicado**: Migración `add_inspection_fields_and_code_index` (mileage_km, battery_level, aesthetic_notes + UNIQUE INDEX tenant_id+code). WorkOrder fillable + cast. WorkOrderResource step1: inspection fields moved from metadata JSONB. step3: metadata fields removed. contact_id createOptionUsing → firstOrCreate por teléfono. 3 tests nuevos. 154 tests, 399 assertions. 0 regresiones. | — |
+| 2026-06-06 | opencode | **VERTICAL TALLERES — COMPLETO**: Observer + Webhook n8n (WorkOrderObserver + WorkOrderWebhookService + config/talleres.php + 4 tests). Fixes visuales (ItemsRelationManager display_name, inspección en step1, precarga 13 defaults). 160 tests, 451 assertions, 0 regresiones. | Dusk E2E |
+| 2026-06-06 | opencode | **Laravel Dusk E2E**: Instalación (composer + artisan dusk:install). Selenium service en compose.yaml. `.env.dusk.local` + `DUSK_DRIVER_URL` en `.env.example`. `loginAsTenantUser()` helper en DuskTestCase. 3 tests E2E críticos: wizard creación OT, cambio de estado + Save, items RelationManager con nombre service catalog. 160 Feature + 4 Dusk tests. 0 regresiones. |
+| 2026-06-07 | opencode | **Sprint A — Contact document fields**: Migración `add_document_fields_to_contacts` (+3 columnas nullable + índice parcial). `DocumentTypeEnum` (CC/NIT/CE/PAS/TI). Contact fillable/cast actualizados. ContactResource +Section "Identificación" en form + columna toggleable document_number en table. WorkOrderResource createOptionForm de contact_id +3 campos opcionales. 3 tests nuevos. 163 Feature tests, 465 assertions. 0 regresiones. | Módulo Facturación |
+| 2026-06-07 | opencode | **Sprint B — Tablas invoices + invoice_items + RLS**: Migraciones `create_invoices_table` (20 cols + RLS + 4 índices) y `create_invoice_items_table` (14 cols + RLS + 2 índices, sin deleted_at). `InvoiceStatusEnum` (Draft/Issued/Paid/Cancelled), `InvoiceDocumentTypeEnum` (Invoice/CreditNote). Modelos Invoice (TenantModel) + InvoiceItem (Model, sin SoftDeletes). InvoiceFactory (3 estados) + InvoiceItemFactory. `FacturacionServiceProvider` registrado en bootstrap/providers.php. 5 tests nuevos. 168 Feature tests, 481 assertions. 0 regresiones. | Filament Resource Invoice |
+| 2026-06-07 | opencode | **Sprint C — InvoiceCodeGenerator + InvoiceResource**: `InvoiceCodeGenerator` con DB lock (mismo patrón que WorkOrderCodeGenerator). `InvoiceResource` Filament con form (Encabezado + Ítems Repeater con cálculos live + Totales readonly) + table (document_number, contact, status badge, grand_total). Pages ListInvoices, CreateInvoice (handleRecordCreation llama generator), EditInvoice. WorkOrder +invoices() HasMany. 3 tests nuevos. 171 Feature tests, 493 assertions. 0 regresiones. | — | `vendor/bin/sail up -d` (levanta selenium) → `vendor/bin/sail dusk` |
+| 2026-06-07 | opencode | **Bug Hunt 403 en Livewire Selects**: Diagnóstico de 403 persistente en `getSearchResultsUsing` de Filament Selects. 3 root causes identificadas y corregidas: (1) Missing `ContactPolicy` — Laravel 11+ deniega por defecto → `Policy::create()` returns `allow()`. (2) `SetTenantContext` llamaba `clearTenantContext()` en `finally` — el contexto PostgreSQL se limpiaba antes de que Livewire procesara `getSearchResultsUsing` → RLS bloqueaba queries. (3) `PreventRequestForgery` en `->middleware()` del panel — Filament aplica su propio stack, no respeta excepción livewire* de bootstrap/app.php. Fixes: `ContactPolicy` creado, `clearTenantContext` eliminado de `SetTenantContext`, `PreventRequestForgery` removido del middleware del panel. Fixes adicionales: `Auth::user()->fresh()->tenant_id` evita tenant_id stale, `createOptionForm` removido de contact_id/asset_id Selects (users crean desde módulos dedicados), `VehicleFormSchema` enums reemplazados por arrays manuales, ContactResource duplicados limpiados, AssetResource name opcional. OpCache reseteado. **174 tests, 497 assertions — 0 regresiones.** | — | — |
 
 ## 8. Arquitectura Modular (DDD Lite)
 
@@ -380,12 +441,20 @@ app/Modules/
 │   │   ├── Asset.php              ← movido desde app/Models/Asset.php
 │   │   ├── WorkOrder.php          ← movido desde app/Models/WorkOrder.php
 │   │   ├── WorkOrderItem.php      ← movido desde app/Models/WorkOrderItem.php
+│   │   ├── WorkOrderActivity.php  ← nuevo (log de actividad, sin SoftDeletes)
+│   │   ├── WorkOrderInspection.php← nuevo (checklist recepción, sin SoftDeletes)
+│   │   └── WorkOrderMedia.php    ← nuevo (archivos MinIO, sin SoftDeletes)
 │   │   └── ServiceCatalog.php     ← nuevo (catálogo de servicios)
 │   ├── Actions/
 │   │   ├── CreateAssetAction.php
-│   │   └── CreateWorkOrderAction.php
+│   │   └── RegisterTenantAction.php
+│   │   └── (CreateWorkOrderAction → eliminado 2026-06-06, dead code)
 │   ├── Services/
-│   │   └── WorkOrderService.php   ← movido desde app/Services/WorkOrders/
+│   │   ├── MediaService.php
+│   │   ├── WorkOrderCodeGenerator.php ← nuevo (2026-06-06)
+│   │   └── WorkOrderWebhookService.php ← nuevo (2026-06-06, fire-and-forget HTTP POST n8n)
+│   ├── Observers/
+│   │   └── WorkOrderObserver.php ← nuevo (2026-06-06, status_change activity + webhook dispatch)
 │   ├── Http/
 │   │   └── Pages/
 │   │       └── TallerOnboarding.php ← wizard 3 pasos (Fase 2 UX/UI)
@@ -407,6 +476,14 @@ app/Modules/
 │   │       └── layouts/                    ← (futuro)
 │   └── Providers/
 │       └── TalleresServiceProvider.php      ← registra views + blade components
+├── Facturacion/
+│   ├── Models/
+│   │   ├── Invoice.php          ← nuevo (Sprint B, TenantModel con SoftDeletes)
+│   │   └── InvoiceItem.php      ← nuevo (Sprint B, Model sin SoftDeletes)
+│   ├── Services/
+│   │   └── InvoiceCodeGenerator.php ← nuevo (Sprint C, DB lock, singleton)
+│   └── Providers/
+│       └── FacturacionServiceProvider.php ← registrado en bootstrap/providers.php
 ├── Ventas/        ← (futuro)
 ├── Inventario/    ← (futuro)
 └── ...
@@ -419,6 +496,12 @@ app/Modules/
 - Cada bloque se commit por separado para permitir rollback granular
 
 ## 9. Notas Técnicas Críticas
+
+### Campo `admin_email` — unique validation en Edit (2026-06-04)
+
+En `TenantResource`, el campo `admin_email` usa `->unique('users', 'email', ignoreRecord: true)`. Esto es seguro en Create porque no hay record que ignorar. En Edit, `ignoreRecord: true` usa el ID del Tenant (`tenants.id`) como columna de exclusión en la query contra `users` — generando `WHERE "tenants"."id" <> $2` que falla porque `users` no tiene JOIN con `tenants`.
+
+Fix: El Section de admin fields usa `->visibleOn('create')`. Filament **procesa validación incluso en componentes ocultos** a menos que `isHiddenAndNotDehydratedWhenHidden()` retorne true. Usar `visibleOn()` en vez de `hiddenOn()` porque el Section no necesita marcar `isDehydratedWhenHidden`.
 
 ### BelongsToTenant — Superadmin Exception
 
@@ -465,29 +548,51 @@ static::creating(function (Model $model) {
 
 ### Base de datos
 - `testing` database configurada en `phpunit.xml`
-- 21 migraciones, 22 tablas con RLS + FORCE RLS, 4 políticas c/u + 1 tabla global (modules_catalog) + 1 función PG
+- 23 migraciones, 22 tablas con RLS + FORCE RLS, 4 políticas c/u + 1 tabla global (modules_catalog) + 1 función PG
 - `users` tiene política SELECT que permite login sin contexto de tenant
 - `BelongsToTenant` global scope se salta silenciosamente si no hay contexto (no lanza error)
-- `sail` DB user es SUPERUSER → RLS bypasseado en desarrollo. Doble-lock: BelongsToTenant scope compensa.
+- `sail` DB user es SUPERUSER → RLS bypasseado en desarrollo. Doble-lock: BelongsToTenant scope compensa. Fix 403 livewire: SetTenantContext ahora usa `Auth::user()->fresh()->tenant_id` + NO hace clearTenantContext en finally.
 - `tenants.settings` es JSONB. Almacenar como array PHP (no json_encode) para evitar doble encode. El contador de factura vive en `settings.transactions.{type}_counter`, incrementado atómicamente vía `jsonb ||` con RETURNING.
 - Spatie cache configurado como `array` (per-request, no persistente entre requests cruzados)
 - Permission names son genéricos y cross-tenant idénticos (`create_work_orders`). Aislamiento por `tenant_id` FK + RLS + global scope, no por unicidad de nombre.
+
+### Spatie Cache Poisoning — Critical Fix (2026-06-04)
+
+`PermissionRegistrar` con `store => array` cachea permisos en memoria por request. En el panel **superadmin** (sin `SetTenantContext`), el `sail` DB user es SUPERUSER y **bypassea RLS**. Cuando `Gate` se resuelve por primera vez, `initializeCache()` carga `Permission::with('roles')->get()` y obtiene **todos los permisos de todos los tenants**.
+
+**El bug:**
+1. `Permission::findOrCreate('view_work_orders')` busca en cache → encuentra el permiso del **tenant demo**
+2. Retorna ese permiso **sin crear uno nuevo** para el nuevo tenant
+3. `Permission::all()` con BelongsToTenant scope + contexto del nuevo tenant → **0 resultados**
+4. `$owner->givePermissionTo([])` → `role_has_permissions` vacío
+5. Usuario admin tiene rol `owner` pero **0 permisos** → 403 + sidebar sin resources
+
+**El fix (commit 81a3cc2 → merge 7c210d7):**
+```php
+app(PermissionRegistrar::class)->forgetCachedPermissions();
+```
+Llamado antes de `RolePermissionSeeder::run()` en:
+- `CreateTenant::handleRecordCreation()` — creación via superadmin
+- `RegisterTenantAction::execute()` — registro público
+- `RolePermissionSeeder::run()` — defensivo, protege todos los callers
+
+**Regla:** Todo código que cree permisos para un nuevo tenant DEBE limpiar el cache de Spatie primero.
 
 ### Spatie Permission — Opción B (implementada)
 - `config/permission.php` → `teams = false` (no usar Spatie teams), `store = array`
 - Modelos custom: `App\Models\Role`, `App\Models\Permission` (extienden Spatie + BelongsToTenant + HasUuids)
 - `tenant_id` en todas las tablas con `DEFAULT public.current_tenant_id()` (para pivotes que Spatie inserta sin team_id)
 - 22 tablas con RLS + FORCE RLS (previas + 5 Spatie + 2 Transactions + 4 nuevas: categories, locations, tenant_modules, service_catalogs)
-- 15 test suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1), TenantSuspension (1), VIN+Owner (2: AssetTallerTest+AssetVinOwnerTest), ServiceCatalog (1), TallerWorkOrders (1: WorkOrderTallerTest), SuperadminTenant (1: CreateTenantWithAdminTest) — 98 tests total, 260 assertions
+- 15 test suites: Spatie (3), WorkOrders (2), Transactions (1), Auth (3), Onboarding (1), TenantSuspension (1), VIN+Owner (2: AssetTallerTest+AssetVinOwnerTest), ServiceCatalog (1), TallerWorkOrders (1: WorkOrderTallerTest), SuperadminTenant (1: CreateTenantWithAdminTest) — 143 tests total, 380 assertions
 - `current_tenant_id()` PG function regex actualizada: acepta cualquier versión UUID (v4 y v7) — Laravel 13 genera v7 por defecto
 - **20 permisos totales**: work_orders, assets, items, contacts, transactions (× 4 acciones c/u)
-- **21 migraciones**: 18 previas + `add_vin_and_owner_to_assets` + `add_vehicle_type_to_assets` + `create_service_catalogs_table` (sin nuevas migraciones en esta sesión)
+- **28 migraciones**: 27 previas + `add_inspection_fields_and_code_index_to_work_orders`
 
 ### Paneles Filament
 
 | Panel | Path | Tenant | Middleware extra | Recursos |
 |---|---|---|---|---|
-| Admin | `/admin/{tenant:slug}` | ✅ `->tenant(Tenant::class, slugAttribute: 'slug')` | `SetTenantContext` → `VerifyTenantStatus` (bloquea si `is_active=false`) | 7 Resources (Asset, Contact, Item, WorkOrder, Transaction, Location, ServiceCatalog) |
+| Admin | `/admin/{tenant:slug}` | ✅ `->tenant(Tenant::class, slugAttribute: 'slug')` | `SetTenantContext` → `VerifyTenantStatus` (bloquea si `is_active=false`) | 8 Resources (Asset, Contact, Item, WorkOrder, Transaction, Location, ServiceCatalog, Invoice) |
 | Superadmin | `/superadmin` | ❌ Sin tenant context | `EnsureIsSuperAdmin` (403 si no superadmin) | 3 Resources (Tenant, GlobalAsset, GlobalWorkOrder) |
 
 ### Filament Multi-Tenant Architecture
@@ -581,6 +686,11 @@ docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan test -
 docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan test --filter=WorkOrder
 docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan migrate:fresh
 
+# Dusk E2E
+vendor/bin/sail up -d                                    # levantar todos los servicios (incluye selenium)
+vendor/bin/sail dusk tests/Browser/WorkOrderE2ETest.php  # ejecutar solo los 3 tests E2E
+vendor/bin/sail dusk                                     # ejecutar todos los tests Dusk
+
 # Ver RLS
 docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker --execute="DB::select(\"SELECT tablename, rowsecurity FROM pg_tables WHERE schemaname='public'\")"
 ```
@@ -592,6 +702,7 @@ docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker
 ### Violaciones corregidas
 - **`app/Models/Permission.php:19`** — `$guarded` incompleto (faltaban `created_at`, `updated_at`, `deleted_at`)
 - **`app/Models/Role.php:19`** — `$guarded` incompleto (faltaban `created_at`, `updated_at`, `deleted_at`)
+- **Cross-tenant Spatie cache poisoning** — `PermissionRegistrar::initializeCache()` cargaba permisos de TODOS los tenants en el panel superadmin (sin tenant context + RLS bypass). `findOrCreate` retornaba permisos del tenant demo sin crear nuevos. Fix: `forgetCachedPermissions()` antes de cada `RolePermissionSeeder::run()`.
 
 ### Sin violaciones (verificado)
 - **Filament 5**: Todas las `form()` usan `Schema $schema): Schema`. No hay `Filament\Tables\Actions\` ni `$navigationGroup` estático.
@@ -619,13 +730,30 @@ docker exec -w /var/www/html proyect-dashboard-laravel.test-1 php artisan tinker
 | 2026-06-04 | TenantResource crea admin user transaccionalmente + modal inline Contact/Asset en WorkOrderResource | Crear admin manualmente después del tenant | Reducir fricción: admin_user creado en la misma transacción; Contact/Asset creados inline sin salir del formulario WorkOrder |
 | 2026-06-04 | `admin_password` NO se dehydrata en el form | Marcar como dehydrated=false | El valor debe estar disponible en handleRecordCreation para hashear; solo el confirmation field se dehydrata |
 | 2026-06-04 | BelongsToTenant fallback a Auth::user()->tenant_id | RuntimeException cuando no hay contexto | Livewire requests de Repeater no pasan por SetTenantContext; fallback permite crear WorkOrderItem sin explotar |
+| 2026-06-04 | Spatie cache clear antes de RolePermissionSeeder | findOrCreate reusaba permisos del tenant demo | PermissionRegistrar cache global (array) en panel superadmin sin contexto → findOrCreate no creaba permisos nuevos → role_has_permissions vacío → 403 + sidebar vacío |
+| 2026-06-04 | admin Section visibleOn('create') + ignoreRecord:true en admin_email unique | unique('users','email') sin ignoreRecord | Edit page validaba admin_email contra tenants.id (joins cross-table) → SQL error 42P01 |
+| 2026-06-04 | RegisterTenantAction: tenant_id explícito en User::create | auto-fill via BelongsToTenant creating event | Consistencia con CreateTenant::handleRecordCreation; evita depender del orden de contexto |
+| 2026-06-06 | item_id nullable en work_order_items | mantener NOT NULL + item_id forzado para service | type='service' usa service_catalog_id, no item_id. Migración DROP NOT NULL + validación condicional en Repeater |
+| 2026-06-06 | WorkOrderCodeGenerator unificado con DB lock | mantener 3 copias del algoritmo de generación | DRY: 1 fuente única vs 3 duplicadas. lockForUpdate + transacción previene race conditions |
+| 2026-06-06 | Inspection fields migrados de metadata JSONB a columnas reales | mantener en JSONB | kilometraje, nivel_bateria, notas_esteticas necesitan consultas directas e índices. UNIQUE INDEX (tenant_id, code) previene duplicados |
+| 2026-06-06 | Contacto inline usa firstOrCreate por teléfono | Contact::create() sin validación | Evita duplicación de clientes desde el flujo de creación de OT |
+| 2026-06-06 | WorkOrderObserver + WorkOrderWebhookService | Log manual + polling externo | Captura automática status_change en actividades + notificación fire-and-forget a n8n. Sin TALLERES_WEBHOOK_URL no se dispara nada. Fire-and-forget: fallo de n8n no rompe el flujo |
+| 2026-06-07 | DocumentTypeEnum con 5 cases (CC/NIT/CE/PAS/TI) | string sin enum en BD | Filament HasColor+HasLabel permite Select badge y colores. Cast en Contact.model garantiza tipo seguro |
+| 2026-06-07 | Índice parcial `(tenant_id, document_number) WHERE document_number IS NOT NULL AND deleted_at IS NULL` | índice simple en document_number | Consultas de búsqueda por documento son siempre por tenant. Partial evita indexar NULLs masivos + soft-delete |
+| 2026-06-07 | InvoiceItem extiende Model (no TenantModel) | TenantModel con SoftDeletes | La migración no tiene deleted_at. Extender TenantModel generaría queries con `AND deleted_at IS NULL` en columna inexistente |
+| 2026-06-07 | Índice UNIQUE `(tenant_id, document_number)` WHERE deleted_at IS NULL en invoices | Sin índice unique | Evita duplicados de documento contable por tenant, respetando soft-delete |
+| 2026-06-07 | InvoiceCodeGenerator usa `orderBy('sequence', 'desc')->first()` en vez de `max()` | `max()` con `lockForUpdate()` | PostgreSQL rechaza FOR UPDATE con funciones agregadas. `first()` selecciona la fila real y aplica lock correctamente |
+| 2026-06-07 | InvoiceResource form con cálculos live en Repeater items | Cálculos en backend al guardar | UX mejorada: subtotal/tax/total se recalculan al hacer blur en quantity/unit_price/discount/tax_rate |
+| 2026-06-07 | clearTenantContext eliminado del finally en SetTenantContext | Mantener finally block | El contexto PostgreSQL se limpiaba antes de que Livewire procesara getSearchResultsUsing → RLS bloqueaba queries. Cada request entrante setea su propio contexto fresco |
+| 2026-06-07 | ContactPolicy creado con create() → allow() | Sin policy (Laravel 11+ deny por defecto) | Gate::inspect('create', Contact::class) retornaba deny → 403 en cualquier createOptionForm de Contact |
+| 2026-06-07 | PreventRequestForgery eliminado del middleware stack del panel | Excepción livewire* en bootstrap/app.php | Filament aplica su propio middleware stack; la excepción global no lo alcanza. Livewire 4 maneja su propio sistema de tokens CSRF |
 
 ---
 
 ## Fase 1 — Talleres Mecánicos (Core)
 
-Implementada con éxito. Validada con 98 tests (260 assertions).
-Estructura de activos y órdenes de servicio operativa con aislamiento multi-tenant total.
+Implementada con éxito. Validada con 174 tests (497 assertions).
+Estructura de activos y órdenes de servicio operativa con aislamiento multi-tenant total. Bug 403 en Livewire Selects resuelto — 3 root causes eliminadas.
 
 ## Fase 2 — UX/UI Neon Garage (Diseño)
 

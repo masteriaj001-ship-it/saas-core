@@ -27,7 +27,7 @@ final class SetTenantContext
             return $next($request);
         }
 
-        $tenantId = $user->tenant_id;
+        $tenantId = Auth::user()->fresh()->tenant_id;
 
         if (empty($tenantId)) {
             abort(403, 'User has no tenant assignment.');
@@ -35,12 +35,6 @@ final class SetTenantContext
 
         $this->tenantManager->setTenantContext((string) $tenantId);
 
-        try {
-            $response = $next($request);
-        } finally {
-            $this->tenantManager->clearTenantContext();
-        }
-
-        return $response;
+        return $next($request);
     }
 }

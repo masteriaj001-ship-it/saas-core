@@ -1,18 +1,52 @@
 # FEATURE_SPEC — Work Orders (Órdenes de Trabajo)
 
-> Estado: Borrador | Autor: opencode | Fecha: 2026-05-25
+> Estado: En desarrollo activo | Autor: opencode | Fecha: 2026-06-06
 
 ---
 
 ## Descripción
 
-Módulo para gestionar órdenes de trabajo asignadas a activos (assets) del tenant. Cada orden registra responsable (contact), repuestos/insumos consumidos (items) y un ciclo de vida de estado. Agnóstico de industria: aplica a talleres mecánicos, clínicas, mantenimiento industrial, construcción, etc.
+Módulo para gestionar órdenes de trabajo asignadas a activos (assets) del tenant. Cada orden registra responsable (contact), repuestos/insumos consumidos (items), servicios del catálogo, mano de obra, actividades, inspecciones visuales y archivos multimedia. Agnóstico de industria: aplica a talleres mecánicos, clínicas, mantenimiento industrial, construcción, etc.
 
 ---
 
 ## Módulo
 
-**WorkOrders** — Nuevo. No existe tabla o modelo equivalente. Las entidades existentes `Asset`, `Item` y `Contact` se relacionan vía FK.
+**WorkOrders** — Existe. Tablas: `work_orders`, `work_order_items`, `work_order_activities`, `work_order_inspections`, `work_order_media`, `contact_roles`. Las entidades existentes `Asset`, `Item`, `Contact` y `ServiceCatalog` se relacionan vía FK.
+
+---
+
+## Funcionalidades implementadas
+
+### Núcleo
+- [x] Creación de orden con wizard de 3 pasos (Recepción → Diagnóstico → Cierre)
+- [x] WorkOrderItem type = Part / Service / Labor con campos condicionales
+- [x] ItemsRelationManager con display_name calculado según tipo
+- [x] ServiceCatalog como fuente de servicios con autoprecio
+- [x] Stock validation para items tipo product
+- [x] Actividades (WorkOrderActivity) con type StatusChange/Note/Assignment/Qc
+- [x] Inspección visual (WorkOrderInspection) con 13 defaults pre-cargados al crear
+- [x] Archivos multimedia (WorkOrderMedia) vía MinIO S3-compatible
+- [x] VehicleFormSchema reusable para datos maestros de vehículos
+- [x] Contact Roles separados de contact_type
+
+### Fixes visuales
+- [x] ItemsRelationManager muestra nombre de serviceCatalog para servicios y mano de obra
+- [x] Inspección de ingreso movida a Step 1 del wizard
+- [x] 13 inspecciones pre-cargadas automáticamente al crear orden
+
+---
+
+## Datos
+
+### Tablas
+
+- [x] Tabla: `work_orders` — principal
+- [x] Tabla: `work_order_items` — pivote (items consumidos)
+- [x] Tabla: `work_order_activities` — log de actividades (inmutable, sin SoftDeletes)
+- [x] Tabla: `work_order_inspections` — inspección visual (inmutable, sin SoftDeletes)
+- [x] Tabla: `work_order_media` — archivos multimedia vía MinIO (inmutable, sin SoftDeletes)
+- [x] Tabla: `contact_roles` — roles laborales separados de contact_type
 
 ---
 

@@ -38,6 +38,8 @@ class Onboarding extends Page
             $this->detectedIndustry = $industry;
             $this->data['industry'] = $industry;
         }
+
+        $this->form->fill($this->data);
     }
 
     public function form(Schema $schema): Schema

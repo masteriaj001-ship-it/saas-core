@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
+use App\Http\Controllers\InvoicePdfController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -25,3 +26,7 @@ Route::middleware('guest')->group(function () {
     Route::get('/reset-password/{token}', [ResetPasswordController::class, 'showForm'])->name('password.reset');
     Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
+
+Route::middleware('auth')
+    ->get('/invoices/{invoice}/pdf', InvoicePdfController::class)
+    ->name('invoices.pdf');

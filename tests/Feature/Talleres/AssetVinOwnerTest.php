@@ -45,14 +45,14 @@ class AssetVinOwnerTest extends TestCase
             'brand' => 'Ford',
             'model' => 'Mustang',
             'year' => 2024,
-            'asset_type' => 'vehicles',
-            'owner_id' => $owner->id,
+            'asset_type' => 'vehicle',
+            'owner_contact_id' => $owner->id,
         ]);
 
         $this->assertDatabaseHas('assets', [
             'id' => $asset->id,
             'vin' => '1FA6P8CF7L1234567',
-            'owner_id' => $owner->id,
+            'owner_contact_id' => $owner->id,
         ]);
     }
 
@@ -69,8 +69,8 @@ class AssetVinOwnerTest extends TestCase
             'brand' => 'Ford',
             'model' => 'Mustang',
             'year' => 2024,
-            'asset_type' => 'vehicles',
-            'owner_id' => $owner->id,
+            'asset_type' => 'vehicle',
+            'owner_contact_id' => $owner->id,
         ]);
 
         $this->expectException(QueryException::class);
@@ -85,8 +85,8 @@ class AssetVinOwnerTest extends TestCase
             'brand' => 'Honda',
             'model' => 'Civic',
             'year' => 2024,
-            'asset_type' => 'vehicles',
-            'owner_id' => $owner->id,
+            'asset_type' => 'vehicle',
+            'owner_contact_id' => $owner->id,
         ]);
     }
 
@@ -105,8 +105,8 @@ class AssetVinOwnerTest extends TestCase
             'brand' => 'Ford',
             'model' => 'Mustang',
             'year' => 2024,
-            'asset_type' => 'vehicles',
-            'owner_id' => $ownerA->id,
+            'asset_type' => 'vehicle',
+            'owner_contact_id' => $ownerA->id,
         ]);
 
         app(TenantManager::class)->setTenantContext($tenantB->id);
@@ -120,8 +120,8 @@ class AssetVinOwnerTest extends TestCase
             'brand' => 'Fiat',
             'model' => '500',
             'year' => 2024,
-            'asset_type' => 'vehicles',
-            'owner_id' => $ownerB->id,
+            'asset_type' => 'vehicle',
+            'owner_contact_id' => $ownerB->id,
         ]);
 
         $this->assertDatabaseHas('assets', ['id' => $assetB->id, 'vin' => '1FA6P8CF7L1234567']);
@@ -140,8 +140,8 @@ class AssetVinOwnerTest extends TestCase
             'brand' => 'Nissan',
             'model' => 'Tsuru',
             'year' => 2010,
-            'asset_type' => 'vehicles',
-            'owner_id' => $owner->id,
+            'asset_type' => 'vehicle',
+            'owner_contact_id' => $owner->id,
         ]);
 
         $this->assertInstanceOf(Contact::class, $asset->owner);

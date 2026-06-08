@@ -14,7 +14,7 @@ class AssetFactory extends Factory
 
     public function definition(): array
     {
-        $types = ['phones', 'computers', 'vehicles'];
+        $types = ['vehicle', 'equipment', 'phones', 'computers', 'space'];
 
         return [
             'tenant_id' => Tenant::factory(),
@@ -25,6 +25,28 @@ class AssetFactory extends Factory
             'metadata' => '{}',
             'acquired_at' => fake()->dateTimeBetween('-5 years', 'now'),
         ];
+    }
+
+    public function vehicle(): static
+    {
+        return $this->state(fn (array $attrs) => [
+            'asset_type' => 'vehicle',
+            'brand' => fake()->randomElement(['Toyota', 'Honda', 'Nissan', 'Ford', 'Chevrolet', 'Mazda']),
+            'model' => fake()->word(),
+            'year' => fake()->numberBetween(2000, (int) now()->format('Y')),
+            'plate' => strtoupper(fake()->bothify('???-####')),
+            'vin' => strtoupper(fake()->bothify('1HG?????????????')),
+            'fuel_type' => fake()->randomElement(['gasoline', 'diesel', 'hybrid']),
+            'current_mileage' => fake()->numberBetween(0, 200000),
+            'color' => fake()->safeColorName(),
+        ]);
+    }
+
+    public function equipment(): static
+    {
+        return $this->state(fn (array $attrs) => [
+            'asset_type' => 'equipment',
+        ]);
     }
 
     public function phones(): static
@@ -39,13 +61,6 @@ class AssetFactory extends Factory
     {
         return $this->state(fn (array $attrs) => [
             'asset_type' => 'computers',
-        ]);
-    }
-
-    public function vehicles(): static
-    {
-        return $this->state(fn (array $attrs) => [
-            'asset_type' => 'vehicles',
         ]);
     }
 

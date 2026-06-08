@@ -13,7 +13,11 @@ enum WorkOrderStatusEnum: string implements HasColor, HasLabel
     case Received = 'received';
     case Diagnosing = 'diagnosing';
     case Quoted = 'quoted';
+    case WaitingApproval = 'waiting_approval';
+    case WaitingParts = 'waiting_parts';
     case InProgress = 'in_progress';
+    case Paused = 'paused';
+    case Qc = 'qc';
     case Completed = 'completed';
     case Delivered = 'delivered';
     case Cancelled = 'cancelled';
@@ -25,7 +29,11 @@ enum WorkOrderStatusEnum: string implements HasColor, HasLabel
             self::Received => 'Recibido',
             self::Diagnosing => 'En diagnóstico',
             self::Quoted => 'Cotizado',
+            self::WaitingApproval => 'Esperando Aprobación',
+            self::WaitingParts => 'Esperando Repuestos',
             self::InProgress => 'En reparación',
+            self::Paused => 'Pausada',
+            self::Qc => 'Control de Calidad',
             self::Completed => 'Completado',
             self::Delivered => 'Entregado',
             self::Cancelled => 'Cancelado',
@@ -39,7 +47,11 @@ enum WorkOrderStatusEnum: string implements HasColor, HasLabel
             self::Received => 'info',
             self::Diagnosing => 'warning',
             self::Quoted => 'primary',
+            self::WaitingApproval => 'info',
+            self::WaitingParts => 'warning',
             self::InProgress => 'warning',
+            self::Paused => 'gray',
+            self::Qc => 'purple',
             self::Completed => 'success',
             self::Delivered => 'success',
             self::Cancelled => 'danger',

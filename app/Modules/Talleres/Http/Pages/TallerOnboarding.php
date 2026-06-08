@@ -37,6 +37,8 @@ class TallerOnboarding extends Page
         if (Auth::check() && ! empty($this->data)) {
             return;
         }
+
+        $this->form->fill($this->data);
     }
 
     public function form(Schema $schema): Schema

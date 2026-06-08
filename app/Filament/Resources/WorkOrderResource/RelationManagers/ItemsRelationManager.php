@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\WorkOrderResource\RelationManagers;
 
+use App\Enums\WorkOrderItemTypeEnum;
+use App\Modules\Talleres\Models\WorkOrderItem;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -24,6 +26,10 @@ class ItemsRelationManager extends RelationManager
     {
         return $schema
             ->schema([
+                Select::make('type')
+                    ->label('Tipo')
+                    ->options(WorkOrderItemTypeEnum::class)
+                    ->default('part'),
                 Select::make('item_id')
                     ->label('Insumo / Repuesto')
                     ->relationship('item', 'name')
@@ -50,8 +56,20 @@ class ItemsRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('id')
             ->columns([
-                TextColumn::make('item.name')
-                    ->label('Insumo'),
+                TextColumn::make('type')
+                    ->label('Tipo')
+                    ->badge()
+                    ->color(fn (WorkOrderItemTypeEnum $state): string|array|null => $state->getColor())
+                    ->formatStateUsing(fn (WorkOrderItemTypeEnum $state): string => $state->getLabel()),
+                TextColumn::make('display_name')
+                    ->label('Insumo / Servicio')
+                    ->getStateUsing(fn (WorkOrderItem $record): string => match ($record->type->value) {
+                        'part' => $record->item?->name ?? '—',
+                        'service', 'labor' => $record->serviceCatalog?->name ?? '—',
+                        default => '—',
+                    }
+                    )
+                    ->searchable(false),
                 TextColumn::make('quantity')
                     ->label('Cantidad'),
                 TextColumn::make('unit_price')

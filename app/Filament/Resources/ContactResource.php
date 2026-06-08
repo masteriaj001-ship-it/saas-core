@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
+use App\Enums\ContactRoleEnum;
 use App\Filament\Resources\ContactResource\Pages\CreateContact;
 use App\Filament\Resources\ContactResource\Pages\EditContact;
 use App\Filament\Resources\ContactResource\Pages\ListContacts;
@@ -13,11 +14,12 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -56,6 +58,7 @@ class ContactResource extends Resource
                         Select::make('contact_type')
                             ->label(__('Tipo'))
                             ->required()
+                            ->live()
                             ->options([
                                 'client' => __('Cliente'),
                                 'supplier' => __('Proveedor'),
@@ -73,11 +76,45 @@ class ContactResource extends Resource
                             ->label(__('RFC / ID Fiscal'))
                             ->maxLength(50),
                     ]),
-                Section::make(__('Dirección'))
+                Section::make(__('Roles'))
+                    ->visible(fn (Get $get): bool => $get('contact_type') === 'employee')
                     ->schema([
-                        Textarea::make('address')
+                        Repeater::make('roles')
+                            ->relationship()
+                            ->simple(
+                                Select::make('role_code')
+                                    ->label(__('Rol'))
+                                    ->options(ContactRoleEnum::class)
+                                    ->required(),
+                            )
+                            ->addActionLabel(__('Agregar rol')),
+                    ]),
+                Section::make(__('Dirección'))
+                    ->columns(2)
+                    ->schema([
+                        TextInput::make('address')
                             ->label(__('Dirección'))
-                            ->rows(3),
+                            ->maxLength(255)
+                            ->columnSpanFull(),
+                        TextInput::make('city')
+                            ->label(__('Ciudad'))
+                            ->maxLength(100),
+                    ]),
+                Section::make(__('Identificación'))
+                    ->columns(2)
+                    ->schema([
+                        Select::make('document_type')
+                            ->label(__('Tipo de documento'))
+                            ->options([
+                                'CC' => __('Cédula de Ciudadanía'),
+                                'NIT' => __('NIT'),
+                                'CE' => __('Cédula de Extranjería'),
+                                'PAS' => __('Pasaporte'),
+                                'TI' => __('Tarjeta de Identidad'),
+                            ]),
+                        TextInput::make('document_number')
+                            ->label(__('Número de documento'))
+                            ->maxLength(30),
                     ]),
                 Section::make(__('Metadatos'))
                     ->schema([
@@ -112,9 +149,18 @@ class ContactResource extends Resource
                         'employee' => __('Empleado'),
                         'other' => __('Otro'),
                     }),
+                TextColumn::make('roles.role_code')
+                    ->label(__('Roles'))
+                    ->badge()
+                    ->color(fn (string $state): string|array|null => ContactRoleEnum::tryFrom($state)?->getColor() ?? 'gray')
+                    ->formatStateUsing(fn (string $state): string => ContactRoleEnum::tryFrom($state)?->getLabel() ?? $state),
                 TextColumn::make('tax_id')
                     ->label(__('RFC / ID Fiscal'))
                     ->searchable(),
+                TextColumn::make('document_number')
+                    ->label(__('Documento'))
+                    ->searchable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('email')
                     ->label(__('Correo'))
                     ->searchable(),
@@ -135,6 +181,9 @@ class ContactResource extends Resource
                         'employee' => __('Empleado'),
                         'other' => __('Otro'),
                     ]),
+                SelectFilter::make('role_code')
+                    ->label(__('Rol'))
+                    ->relationship('roles', 'role_code'),
             ])
             ->actions([
                 EditAction::make()

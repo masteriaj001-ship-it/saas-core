@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Talleres\Models;
 
+use App\Enums\WorkOrderItemTypeEnum;
 use App\Models\Item;
 use App\Models\TenantModel;
 use Database\Factories\WorkOrderItemFactory;
@@ -22,10 +23,12 @@ class WorkOrderItem extends TenantModel
     protected $fillable = [
         'work_order_id',
         'item_id',
+        'service_catalog_id',
         'quantity',
         'unit_price',
         'description',
         'metadata',
+        'type',
     ];
 
     protected function casts(): array
@@ -34,6 +37,7 @@ class WorkOrderItem extends TenantModel
             'quantity' => 'decimal:4',
             'unit_price' => 'decimal:4',
             'metadata' => 'array',
+            'type' => WorkOrderItemTypeEnum::class,
         ]);
     }
 
@@ -45,5 +49,10 @@ class WorkOrderItem extends TenantModel
     public function item(): BelongsTo
     {
         return $this->belongsTo(Item::class);
+    }
+
+    public function serviceCatalog(): BelongsTo
+    {
+        return $this->belongsTo(ServiceCatalog::class, 'service_catalog_id');
     }
 }

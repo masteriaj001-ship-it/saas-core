@@ -7,6 +7,7 @@ namespace App\Modules\Talleres\Models;
 use App\Enums\WorkOrderStatusEnum;
 use App\Models\Contact;
 use App\Models\TenantModel;
+use App\Modules\Facturacion\Models\Invoice;
 use Database\Factories\WorkOrderFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -33,6 +34,19 @@ class WorkOrder extends TenantModel
         'started_at',
         'completed_at',
         'metadata',
+        'mechanic_id',
+        'advisor_id',
+        'reception_notes',
+        'fuel_level',
+        'diagnosis_summary',
+        'approval_channel',
+        'approval_at',
+        'qc_passed',
+        'qc_notes',
+        'delivery_at',
+        'mileage_km',
+        'battery_level',
+        'aesthetic_notes',
     ];
 
     protected function casts(): array
@@ -41,6 +55,10 @@ class WorkOrder extends TenantModel
             'metadata' => 'array',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
+            'approval_at' => 'datetime',
+            'delivery_at' => 'datetime',
+            'qc_passed' => 'boolean',
+            'mileage_km' => 'integer',
             'status' => WorkOrderStatusEnum::class,
         ]);
     }
@@ -55,8 +73,43 @@ class WorkOrder extends TenantModel
         return $this->belongsTo(Contact::class);
     }
 
+    public function mechanic(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class, 'mechanic_id');
+    }
+
+    public function advisor(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class, 'advisor_id');
+    }
+
     public function items(): HasMany
     {
         return $this->hasMany(WorkOrderItem::class);
+    }
+
+    public function activities(): HasMany
+    {
+        return $this->hasMany(WorkOrderActivity::class)->orderBy('created_at');
+    }
+
+    public function inspections(): HasMany
+    {
+        return $this->hasMany(WorkOrderInspection::class)->orderBy('sort_order');
+    }
+
+    public function media(): HasMany
+    {
+        return $this->hasMany(WorkOrderMedia::class)->orderBy('created_at', 'desc');
+    }
+
+    public function generalMedia(): HasMany
+    {
+        return $this->media()->whereNull('work_order_inspection_id');
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 }

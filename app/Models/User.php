@@ -33,6 +33,7 @@ class User extends Authenticatable implements HasTenants
         'email',
         'password',
         'is_superadmin',
+        'tenant_id',
     ];
 
     protected $hidden = [

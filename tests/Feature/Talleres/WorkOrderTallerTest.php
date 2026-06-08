@@ -5,14 +5,18 @@ declare(strict_types=1);
 namespace Tests\Feature\Talleres;
 
 use App\Enums\VehicleTypeEnum;
+use App\Enums\WorkOrderItemTypeEnum;
 use App\Models\Contact;
+use App\Models\Item;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ServiceCatalog;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -93,6 +97,91 @@ class WorkOrderTallerTest extends TestCase
             'plate' => 'XYZ-987',
             'asset_type' => 'vehicle',
             'status' => 'active',
+        ]);
+    }
+
+    public function test_can_create_work_order_with_service_items(): void
+    {
+        $service = ServiceCatalog::create([
+            'tenant_id' => $this->tenant->id,
+            'name' => 'Cambio de aceite',
+            'base_price' => 35000,
+            'estimated_minutes' => 30,
+            'is_active' => true,
+        ]);
+        $partItem = Item::factory()->for($this->tenant)->create();
+
+        $workOrder = WorkOrder::create([
+            'tenant_id' => $this->tenant->id,
+            'asset_id' => $this->asset->id,
+            'code' => 'WO-0002',
+            'title' => 'Mantenimiento general',
+            'status' => 'draft',
+        ]);
+
+        $workOrder->items()->create([
+            'type' => WorkOrderItemTypeEnum::Part->value,
+            'item_id' => $partItem->id,
+            'quantity' => 2,
+            'unit_price' => 15000,
+        ]);
+
+        $workOrder->items()->create([
+            'type' => WorkOrderItemTypeEnum::Service->value,
+            'service_catalog_id' => $service->id,
+            'item_id' => null,
+            'quantity' => 1,
+            'unit_price' => 35000,
+        ]);
+
+        $workOrder->items()->create([
+            'type' => WorkOrderItemTypeEnum::Labor->value,
+            'item_id' => null,
+            'service_catalog_id' => null,
+            'quantity' => 1,
+            'unit_price' => 5000,
+            'description' => 'Mano de obra: cambio de frenos',
+        ]);
+
+        $this->assertDatabaseHas('work_order_items', [
+            'work_order_id' => $workOrder->id,
+            'type' => 'part',
+            'item_id' => $partItem->id,
+            'service_catalog_id' => null,
+        ]);
+
+        $this->assertDatabaseHas('work_order_items', [
+            'work_order_id' => $workOrder->id,
+            'type' => 'service',
+            'item_id' => null,
+            'service_catalog_id' => $service->id,
+        ]);
+
+        $this->assertDatabaseHas('work_order_items', [
+            'work_order_id' => $workOrder->id,
+            'type' => 'labor',
+            'item_id' => null,
+            'service_catalog_id' => null,
+        ]);
+    }
+
+    public function test_cannot_create_work_order_with_invalid_item_fk(): void
+    {
+        $this->expectException(QueryException::class);
+
+        $workOrder = WorkOrder::create([
+            'tenant_id' => $this->tenant->id,
+            'asset_id' => $this->asset->id,
+            'code' => 'WO-0003',
+            'title' => 'WorkOrder with invalid item',
+            'status' => 'draft',
+        ]);
+
+        $workOrder->items()->create([
+            'type' => WorkOrderItemTypeEnum::Part->value,
+            'item_id' => '00000000-0000-0000-0000-000000000000',
+            'quantity' => 1,
+            'unit_price' => 10000,
         ]);
     }
 }
