@@ -72,6 +72,14 @@ class TenantResource extends Resource
                             ->label(__('Activo'))
                             ->default(true),
                     ]),
+                Section::make(__('Facturación'))
+                    ->columns(1)
+                    ->schema([
+                        Toggle::make('settings.es_responsable_iva')
+                            ->label(__('¿Responsable de IVA?'))
+                            ->helperText(__('Activa si el taller está en régimen común y cobra IVA en sus facturas.'))
+                            ->default(false),
+                    ]),
                 Section::make('Administrador del Taller')
                     ->description('Usuario que administrará este tenant')
                     ->columns(2)

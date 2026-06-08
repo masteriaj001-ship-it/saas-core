@@ -27,4 +27,9 @@ class Tenant extends Model
         'settings' => 'array',
         'onboarding_completed' => 'boolean',
     ];
+
+    public function esResponsableIva(): bool
+    {
+        return (bool) ($this->settings['es_responsable_iva'] ?? false);
+    }
 }

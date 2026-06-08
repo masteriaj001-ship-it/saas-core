@@ -1,0 +1,304 @@
+module: Permisos Taller
+description: Matriz RBAC/ABAC por entidad para vertical de talleres. Alineado a CLAUDE.md naming y arquitectura.
+version: 1.0.0
+last_updated: 2026-06-08
+vertical: taller
+
+roles:
+  - name: Superadmin
+    scope: global
+    tenant_id: null
+    description: Acceso total sin restricciones de tenant. Solo para gestión del sistema.
+
+  - name: Admin Tenant
+    scope: tenant
+    description: Dueño del taller. Control total sobre su tenant, no puede acceder a otros tenants.
+
+  - name: Member
+    scope: tenant
+    description: Mecánico o recepcionista. Acceso operativo limitado por rol interno y ABAC.
+
+  - name: Cliente
+    scope: tenant
+    description: Dueño del Asset (vehículo/equipo). Acceso restringido a sus propios datos.
+
+entities:
+  - entity: WorkOrder
+    model: App\\Models\\WorkOrder
+    permissions:
+      - action: view
+        roles: [Superadmin, Admin Tenant, Member, Cliente]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND (assigned OR created_by == self)
+          Cliente: tenant_id == own AND asset.contact_id == self
+
+      - action: create
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND role == recepcionista OR role == admin
+
+      - action: update
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND assigned == true AND status != cancelled AND status != closed
+
+      - action: delete
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND status == draft
+
+      - action: assign
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND role == recepcionista
+
+  - entity: WorkOrderActivity
+    model: App\\Models\\WorkOrderActivity
+    permissions:
+      - action: view
+        roles: [Superadmin, Admin Tenant, Member, Cliente]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND workorder.assigned == true
+          Cliente: tenant_id == own AND workorder.asset.contact_id == self
+
+      - action: create
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND workorder.assigned == true AND workorder.status == in_progress
+
+      - action: update
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND created_by == self AND workorder.status == in_progress
+
+      - action: delete
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND workorder.status == draft
+
+  - entity: WorkOrderInspection
+    model: App\\Models\\WorkOrderInspection
+    permissions:
+      - action: view
+        roles: [Superadmin, Admin Tenant, Member, Cliente]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND workorder.assigned == true
+          Cliente: tenant_id == own AND workorder.asset.contact_id == self
+
+      - action: create
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND workorder.assigned == true
+
+      - action: update
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND created_by == self AND workorder.status == in_progress
+
+      - action: delete
+        roles: []
+        description: Inspecciones son inmutables. Prohibido eliminar.
+
+  - entity: Asset
+    model: App\\Models\\Asset
+    permissions:
+      - action: view
+        roles: [Superadmin, Admin Tenant, Member, Cliente]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own
+          Cliente: tenant_id == own AND contact_id == self
+
+      - action: create
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND role == recepcionista
+          Member: tenant_id == own AND role == recepcionista
+
+      - action: update
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND role == recepcionista
+
+      - action: delete
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND workorder_count == 0
+
+  - entity: Item
+    model: App\\Models\\Item
+    permissions:
+      - action: view
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND role != cliente
+
+      - action: create
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+
+      - action: update
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+
+      - action: delete
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND transaction_count == 0
+
+  - entity: Transaction
+    model: App\\Models\\Transaction
+    permissions:
+      - action: view
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND role == admin OR role == recepcionista
+
+      - action: create
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND role == recepcionista
+
+      - action: update
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND status == draft
+
+      - action: delete
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND status == draft AND paid == false
+
+  - entity: Contact
+    model: App\\Models\\Contact
+    permissions:
+      - action: view
+        roles: [Superadmin, Admin Tenant, Member, Cliente]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own
+          Cliente: tenant_id == own AND id == self
+
+      - action: create
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND role == recepcionista
+
+      - action: update
+        roles: [Superadmin, Admin Tenant, Member]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+          Member: tenant_id == own AND role == recepcionista AND id != self
+
+      - action: delete
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND workorder_count == 0
+
+  - entity: Member
+    model: App\\Models\\Member
+    permissions:
+      - action: view
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+
+      - action: create
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own
+
+      - action: update
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND id != own_user_id
+
+      - action: delete
+        roles: [Superadmin, Admin Tenant]
+        abac:
+          Superadmin: true
+          Admin Tenant: tenant_id == own AND id != own_user_id
+
+validation_rules:
+  - id: VAL-001
+    name: Doble capa tenant
+    description: Todo modelo multi-tenant debe usar BelongsToTenant trait + RLS en PostgreSQL.
+    severity: critical
+
+  - id: VAL-002
+    name: Naming canónico
+    description: No se permiten términos fuera del naming zero redundancy (Asset, Item, Contact, WorkOrder, Transaction, Member, Inspection, Activity).
+    severity: critical
+
+  - id: VAL-003
+    name: Spatie Permission sin teams
+    description: config/permission.php debe tener teams=false, store=array. Roles/Permisos custom deben extender Spatie + BelongsToTenant + HasUuids.
+    severity: high
+
+  - id: VAL-004
+    name: ABAC evaluado en runtime
+    description: Las reglas ABAC (tenant, estado, asignado) deben evaluarse en Policies o Gates, no solo en Filament.
+    severity: high
+
+  - id: VAL-005
+    name: Cliente no accede a Item/Transaction administrativas
+    description: Rol Cliente no tiene permisos sobre Item ni Transaction. Solo view de WorkOrder/Asset propios.
+    severity: medium
+
+  - id: VAL-006
+    name: Inspecciones inmutables
+    description: WorkOrderInspection no permite delete. Cualquier modificación debe registrarse como nueva inspección.
+    severity: medium
+
+  - id: VAL-007
+    name: Tenant isolation en Filament
+    description: Los Resources Filament deben filtrar por tenant_id automáticamente. No usar withoutGlobalScope fuera de Superadmin.
+    severity: critical

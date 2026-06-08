@@ -1,0 +1,141 @@
+{
+  "project": "ProyectDashboard - SaaS Multitenant Talleres",
+  "version": "1.1.0",
+  "last_updated": "2026-06-08",
+  "vertical": "talleres",
+  "status": "active_development",
+  "stack": {
+    "laravel": "^13.8",
+    "php": "^8.5",
+    "postgresql": "16.14",
+    "filament": "^5.6",
+    "sail": "Docker"
+  },
+  "modules": {
+    "taller_filament": {
+      "status": "implemented",
+      "last_check": "2026-06-08",
+      "checklist": "checklists/taller_filament.yaml",
+      "provider": "App\\Providers\\Filament\\AdminPanelProvider",
+      "resources_tenant": [
+        "App\\Filament\\Resources\\AssetResource (navigationSort: 1)",
+        "App\\Filament\\Resources\\WorkOrderResource (navigationSort: 4)",
+        "App\\Filament\\Resources\\ContactResource",
+        "App\\Filament\\Resources\\TransactionResource",
+        "App\\Filament\\Resources\\ItemResource",
+        "App\\Filament\\Resources\\LocationResource",
+        "App\\Filament\\Resources\\ServiceCatalogResource",
+        "App\\Filament\\Resources\\InvoiceResource"
+      ],
+      "resources_superadmin": [
+        "App\\Filament\\Superadmin\\Resources\\TenantResource",
+        "App\\Filament\\Superadmin\\Resources\\GlobalAssetResource",
+        "App\\Filament\\Superadmin\\Resources\\GlobalWorkOrderResource"
+      ],
+      "bug_fixes": [
+        "PreventRequestForgery eliminado del middleware stack del panel (CSRF livewire)",
+        "SetTenantContext: eliminado clearTenantContext del finally (403 en getSearchResultsUsing)",
+        "ContactPolicy creado (403 por falta de policy en Laravel 11+)",
+        "TransactionResource: Section namespace corregido (Schemas vs Forms)",
+        "InvoiceResource: status column type hint corregido (enum vs string)"
+      ],
+      "notes": "AdminPanelProvider configurado con SetTenantContext (sin clearTenantContext), VerifyTenantStatus, slug {tenant:slug}. Todos los Resources usan Schema API."
+    },
+    "taller_permissions": {
+      "status": "implemented",
+      "last_check": "2026-06-08",
+      "checklist": "checklists/taller_permissions.yaml",
+      "roles_defined": ["Superadmin", "Admin Tenant", "Member", "Cliente"],
+      "spatie_config": "teams=false, store=array, cache=array",
+      "notes": "Custom Role/Permission models con BelongsToTenant + HasUuids. RBAC/ABAC definido por entidad."
+    },
+    "facturacion": {
+      "status": "implemented",
+      "last_check": "2026-06-08",
+      "features": [
+        "InvoiceResource con List/Create/Edit",
+        "InvoiceCodeGenerator con DB lock (FV-000001)",
+        "GenerateInvoiceFromWorkOrderAction (botón en EditWorkOrder)",
+        "IVA configurable por tenant (settings.es_responsable_iva)",
+        "PDF condicional (oculta IVA si tax_total=0)"
+      ],
+      "notes": "Toggle IVA en Superadmin TenantResource → Section Facturación."
+    }
+  },
+  "test_suite": {
+    "total_tests": 181,
+    "passing": 181,
+    "assertions": 519,
+    "status": "green",
+    "last_run": "2026-06-08"
+  },
+  "architecture_rules": {
+    "naming_zero_redundancy": true,
+    "tenant_isolation_double_layer": true,
+    "spatie_teams_disabled": true,
+    "superadmin_tenant_id_null": true,
+    "uuid_pks": true,
+    "soft_deletes_exceptions": ["WorkOrderActivity", "WorkOrderInspection", "WorkOrderMedia"]
+  },
+  "features_existing": [
+    "Multi-tenancy con RLS PostgreSQL",
+    "Spatie Permission custom con BelongsToTenant",
+    "Filament 5 admin panel multi-tenant",
+    "WorkOrder con Activities, Inspections, Items, Media",
+    "Asset management (vehicles, equipment, phones, computers, space)",
+    "Transaction/Invoice/Receipt",
+    "Invoice desde WorkOrder con generación automática",
+    "IVA configurable por tenant (settings JSONB)",
+    "Contact management",
+    "Item catalog con stock",
+    "Location management",
+    "ServiceCatalog",
+    "Superadmin panel global",
+    "Onboarding flow",
+    "Tenant suspension",
+    "Wizard de creación"
+  ],
+  "security_status": {
+    "mfa_superadmin": "pending",
+    "rls_enabled": "pending_verification",
+    "audit_logs": "pending",
+    "rate_limiting": "pending"
+  },
+  "audit_schedule": {
+    "next_audit": "2026-09-01",
+    "frequency": "quarterly",
+    "last_audit": null
+  },
+  "agents": {
+    "cursor": {
+      "enabled": true,
+      "config": ".cursorrules",
+      "role": "primary"
+    },
+    "opencode": {
+      "enabled": true,
+      "config": "AGENTS.md",
+      "role": "secondary"
+    },
+    "kilo_code": {
+      "enabled": true,
+      "config": ".cursorrules",
+      "role": "primary"
+    }
+  },
+  "cycle_sdd": {
+    "gate_0": "Leer checklist + engram.json",
+    "gate_1": "Rama feature/nombre",
+    "gate_2": "Schema SQL → APROBADO → migración → APROBADO → migrate",
+    "development_order": ["Test", "Docs", "Code", "Report", "Update FEATURE_SPEC"],
+    "gate_3": "0 tests rojos → commit"
+  },
+  "next_actions": [
+    "Verificar RLS en PostgreSQL 16 (DB-001)",
+    "Activar MFA Superadmin (USR-001)",
+    "Completar checklist taller_workorders.yaml",
+    "Completar checklist taller_assets.yaml",
+    "Completar checklist taller_transactions.yaml",
+    "Crear /docs/principles/solid.md, patterns.md, data_architecture.md"
+  ]
+}

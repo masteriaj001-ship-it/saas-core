@@ -1,0 +1,240 @@
+module: Filament Admin Panel
+description: Reglas y validaciones para Resources, Pages, Actions y RelationManagers del panel admin multi-tenant. Alineado a estructura existente del proyecto.
+version: 1.0.0
+last_updated: 2026-06-08
+vertical: taller
+
+provider:
+  class: App\\Providers\\Filament\\AdminPanelProvider
+  middleware_pipeline:
+    - EncryptCookies::class
+    - AddQueuedCookiesToResponse::class
+    - StartSession::class
+    - AuthenticateSession::class
+    - ShareErrorsFromSession::class
+    - SubstituteBindings::class
+    - DisableBladeIconComponents::class
+    - DispatchServingFilamentEvent::class
+  tenant_middleware:
+    - SetTenantContext::class
+    - EnsureOnboardingIsCompleted::class
+    - VerifyTenantStatus::class
+  auth_middleware:
+    - Authenticate::class
+  tenant_binding: Tenant::class, slugAttribute: 'slug'
+  path: admin
+  discover_resources: app_path('Filament/Resources')
+  discover_pages: app_path('Filament/Pages')
+  discover_widgets: app_path('Filament/Widgets')
+  navigation:
+    pages: [Dashboard::class, TallerOnboarding::class]
+    widgets: [AccountWidget::class, FilamentInfoWidget::class]
+
+registered_resources:
+  - class: App\\Filament\\Resources\\AssetResource
+    model: App\\Modules\\Talleres\\Models\\Asset
+    navigationLabel: Activos
+    navigationIcon: heroicon-o-cube
+    navigationSort: 1
+    modelLabel: Vehículo
+    pluralModelLabel: Vehículos
+    navigationGroup: Gestión
+    relationManagers: []
+    allowedRoles: [Superadmin, Admin Tenant, Member, Cliente]
+
+  - class: App\\Filament\\Resources\\WorkOrderResource
+    model: App\\Modules\\Talleres\\Models\\WorkOrder
+    navigationLabel: Órdenes de Trabajo
+    navigationIcon: heroicon-o-wrench-screwdriver
+    navigationSort: 4
+    navigationGroup: Gestión
+    relationManagers:
+      - ActivitiesRelationManager
+      - InspectionsRelationManager
+      - ItemsRelationManager
+      - MediaRelationManager
+    allowedRoles: [Superadmin, Admin Tenant, Member]
+
+  - class: App\\Filament\\Resources\\ContactResource
+    model: App\\Models\\Contact
+    navigationLabel: Contactos
+    navigationGroup: Gestión
+    relationManagers: []
+    allowedRoles: [Superadmin, Admin Tenant, Member, Cliente]
+
+  - class: App\\Filament\\Resources\\TransactionResource
+    model: App\\Models\\Transaction
+    navigationLabel: Transacciones
+    navigationGroup: Gestión
+    relationManagers: []
+    allowedRoles: [Superadmin, Admin Tenant, Member]
+
+  - class: App\\Filament\\Resources\\ItemResource
+    model: App\\Models\\Item
+    navigationLabel: Ítems
+    navigationGroup: Gestión
+    relationManagers: []
+    allowedRoles: [Superadmin, Admin Tenant, Member]
+
+  - class: App\\Filament\\Resources\\LocationResource
+    model: App\\Models\\Location
+    navigationLabel: Ubicaciones
+    navigationGroup: Gestión
+    relationManagers: []
+    allowedRoles: [Superadmin, Admin Tenant, Member]
+
+  - class: App\\Filament\\Resources\\ServiceCatalogResource
+    model: App\\Modules\\Talleres\\Models\\ServiceCatalog
+    navigationLabel: Catálogo de Servicios
+    navigationGroup: Gestión
+    relationManagers: []
+    allowedRoles: [Superadmin, Admin Tenant, Member]
+
+superadmin_resources:
+  namespace: App\\Filament\\Superadmin\\Resources
+  path: app/Filament/Superadmin/Resources
+  registered:
+    - class: App\\Filament\\Superadmin\\Resources\\TenantResource
+      model: App\\Models\\Tenant
+      navigationLabel: Talleres
+      navigationIcon: heroicon-o-building-storefront
+      navigationGroup: Plataforma
+      navigationSort: 1
+    - class: App\\Filament\\Superadmin\\Resources\\GlobalAssetResource
+      model: App\\Modules\\Talleres\\Models\\Asset
+      navigationGroup: Plataforma
+    - class: App\\Filament\\Superadmin\\Resources\\GlobalWorkOrderResource
+      model: App\\Modules\\Talleres\\Models\\WorkOrder
+      navigationGroup: Plataforma
+
+pages:
+  tenant:
+    - Dashboard::class
+    - TallerOnboarding::class (App\\Modules\\Talleres\\Http\\Pages\\TallerOnboarding)
+  superadmin: []
+
+global_widgets:
+  - AccountWidget::class
+  - FilamentInfoWidget::class
+
+schema_rules:
+  - id: FIL-001
+    name: Form API correcta
+    description: Usar form(Schema $schema): Schema — NO Form. Imports desde Filament\\Schemas\\Components.
+    severity: critical
+
+  - id: FIL-002
+    name: Navigation group como método
+    description: getNavigationGroup() debe retornar string o null, NO static property.
+    severity: high
+
+  - id: FIL-003
+    name: Navigation icon tipo correcto
+    description: $navigationIcon debe ser protected static string|BackedEnum|null, NO ?string.
+    severity: high
+
+  - id: FIL-004
+    name: Actions namespace correcto
+    description: Usar Filament\\Actions\\ — NUNCA Filament\\Tables\\Actions\\ ni Filament\\Forms\\Actions\\. BulkActionGroup, DeleteAction, EditAction van desde Filament\\Actions.
+    severity: critical
+
+  - id: FIL-005
+    name: Repeater usa schema()
+    description: Repeater::make('items')->relationship()->schema([...]) — NO ->fields().
+    severity: high
+
+  - id: FIL-006
+    name: Hidden vs Visible en primer render
+    description: Cuando $get() retorna null en primer render (Repeaters), usar ->hidden() con lógica invertida, NO ->visible() con comparación estricta.
+    severity: medium
+
+  - id: FIL-007
+    name: Enum casteado en match
+    description: $record->type es objeto Enum, usar $record->type->value dentro de match().
+    severity: medium
+
+  - id: FIL-008
+    name: InspectionItemStatusEnum en fill
+    description: Pasar objeto enum (InspectionItemStatusEnum::Ok), NO string 'ok'.
+    severity: medium
+
+  - id: FIL-009
+    name: Numeric fields required
+    description: Campos numéricos con NOT NULL necesitan ->required() para evitar null por ConvertEmptyStringsToNull.
+    severity: medium
+
+  - id: FIL-010
+    name: View property en Page/Widget
+    description: $view debe ser protected string (NO protected static string) en Page y Widget.
+    severity: high
+
+  - id: FIL-011
+    name: Archivos privados por defecto
+    description: Nunca asumir visibilidad pública. Usar ->visibility('public') cuando se necesite acceso público.
+    severity: medium
+
+  - id: FIL-012
+    name: Layout no full-width por defecto
+    description: Grid, Section, Fieldset y Repeater NO ocupan todo el ancho por defecto. Usar columnSpan() explícito.
+    severity: medium
+
+  - id: FIL-013
+    name: BelongsTo con Select
+    description: Usar Select::make('author_id')->relationship('author', 'name') para BelongsTo. BelongsToSelect NO existe en v4.
+    severity: medium
+
+  - id: FIL-014
+    name: Dehydrated false solo para UI
+    description: No agregar ->dehydrated(false) a campos que necesitan guardarse. Solo para campos helper/UI-only.
+    severity: medium
+
+  - id: FIL-015
+    name: Livewire testing
+    description: Para tests de panel: actingAs(User::factory()->create()), en edit pasar ['record' => $user->id], usar ->call('save') NO ->call('create'), NO assertRedirect en edit.
+    severity: medium
+
+tenant_isolation_rules:
+  - id: ISO-001
+    name: Superadmin bypass global scopes
+    description: Superadmin puede usar withoutGlobalScope('tenant'). Ningún otro rol puede hacerlo.
+    severity: critical
+
+  - id: ISO-002
+    name: Filament Resources con scope tenant
+    description: Todos los Resources deben heredar de TenantResource (no Global) y aplicar BelongsToTenant scope automáticamente.
+    severity: critical
+
+  - id: ISO-003
+    name: Superadmin resources separadas
+    description: Recursos globales (Tenant, GlobalAsset, GlobalWorkOrder) van en namespace Superadmin y NO aplican tenant scope.
+    severity: critical
+
+  - id: ISO-004
+    name: Slug en URL
+    description: Panel admin usa /admin/{tenant:slug}. No hardcodear tenant_id en URLs de Filament. Usar XxxResource::getUrl('index').
+    severity: high
+
+  - id: ISO-005
+    name: VerifyTenantStatus bloquea inactivos
+    description: Middleware VerifyTenantStatus bloquea acceso si tenant->is_active === false. Superadmin bypass.
+    severity: high
+
+relation_managers_approved:
+  - ActivitiesRelationManager (en WorkOrderResource)
+  - InspectionsRelationManager (en WorkOrderResource)
+  - ItemsRelationManager (en WorkOrderResource)
+  - MediaRelationManager (en WorkOrderResource)
+
+prohibited_patterns:
+  - Filament\\Tables\\Actions\\
+  - Filament\\Forms\\Actions\\
+  - BelongsToSelect (no existe en v4)
+  - ->fields() en Repeater
+  - ->visible() con comparación estricta en primer render con $get() null
+  - Model::all() sin scope tenant
+  - SELECT *
+
+validation_commands:
+  - vendor/bin/sail artisan test --compact tests/Feature/Filament/
+  - vendor/bin/sail bin pint --format agent
+  - vendor/bin/sail artisan route:list --path=admin

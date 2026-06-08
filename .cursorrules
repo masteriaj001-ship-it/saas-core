@@ -1,26 +1,70 @@
 # ProyectDashboard - Core Architectural Contract
+# Leer ESTE archivo ANTES de cualquier cambio. No hace falta recordarlo:Kiloumbral: contiene el ciclo SDD completo.
 
-## 1. Stack Tecnológico General
-- **Backend:** Laravel 12, PHP 8.4 (Strict types obligatorios).
-- **Frontend:** Laravel Blade, Livewire 3, Alpine.js. (NO React, NO Vue, NO SPA).
-- **Panel de Control:** Filament 3 (Panels, Resources, Pages).
-- **Base de Datos:** PostgreSQL 16+.
+## 1. Stack Tecnológico General (verificado Jun 2026)
+- **Backend:** Laravel ^13.8, PHP ^8.5 (strict types).
+- **Frontend:** Laravel Blade, Livewire 4, Alpine.js, Tailwind CSS v4.
+- **Panel de Control:** Filament ^5.6 (Schema API, NO Form API).
+- **Base de Datos:** PostgreSQL 16.14 (RLS obligatorio).
+- **Testing:** PHPUnit 12, Pest solo para Livewire.
+- **Tooling:** Sail (Docker), Pint (formato), Boost (MCP server).
 
-## 2. Aislamiento Multi-Tenant (Crítico)
-- **Estrategia:** Base de datos única con esquema compartido.
-- **Aislamiento de Datos:** Gestionado a nivel de infraestructura mediante **PostgreSQL Row Level Security (RLS)**.
-- **Regla de Oro:** La seguridad se maneja en la base de datos, NO en la capa de la aplicación. Las políticas de RLS deben asegurar que ningún Tenant pueda leer o escribir datos de otro.
-- **ORM/Query Builder:** Se priorizan funciones nativas, Supabase RPC (si aplica) y PostgreSQL nativo sobre abstracciones pesadas. Se eliminó Prisma del stack de forma explícita.
+## 2. Ciclo SDD — Antes de CUALQUIER cambio de código
+1. **GATE 0 — Contexto:** Leer checklist relevante en /checklists/taller_*.yaml + consultar /engram.json para estado actual.
+2. **GATE 1 — Rama:** Crear/ usar rama feature/nombre-descriptivo.
+3. **GATE 2 — Schema:** Proponer SQL/Schema → esperar palabra literal "APROBADO" → generar migración → esperar "APROBADO" → ejecutar migrate.
+4. **Desarrollo (orden estricto):** Test (falla primero) → Docs → Code → Report (suite verde) → Update FEATURE_SPEC.
+5. **GATE 3 — Commit:** 0 tests rojos → merge permitido. Formato: pint --format agent → test --compact → reset OpCache.
 
-## 3. Abstracción del Modelo de Datos (Universal & Multi-Industria)
-- **Filosofía:** Diseño centralizado con "Zero Redundancy". El sistema debe servir para múltiples industrias (servicios técnicos, inventarios, etc.).
-- **Nombres de Entidades:** Queda estrictamente PROHIBIDO usar términos específicos de una sola industria (por ejemplo, "Vehicles", "Workshops").
-- **Abstracciones Universales:** Toda entidad debe mapearse a conceptos genéricos del Core:
-  - `Asset` (Para cualquier objeto de cliente, equipos, vehículos, etc.).
-  - `Item` (Para inventario, repuestos, productos).
-  - `Contact` (Para clientes, proveedores, leads).
+## 3. Naming Zero Redundancy (REGLA ABSOLUTA #1)
+Prohibido → Canónico:
+- vehicles, machinery → Asset
+- spare_parts, products → Item
+- clients, suppliers → Contact
+- invoices, receipts → Transaction
+- employees, staff → Member
+- ordenes → WorkOrder
+- reports → Report
+- inspection → Inspection
 
-## 4. Lineamientos de Código para el Agente
-- Actúa siempre como un Arquitecto de Sistemas Senior.
-- Prioriza soluciones nativas de Laravel y Filament antes de sugerir dependencias externas de terceros.
-- Antes de escribir migraciones o lógica compleja, propón la estructura de datos para su validación.
+## 4. Aislamiento Multi-Tenant (REGLA ABSOLUTA #2)
+- Doble capa SIEMPRE: PostgreSQL RLS + trait BelongsToTenant.
+- tenant_id se inyecta vía trait automáticamente, NUNCA vía input del usuario.
+- $guarded incluye SIEMPRE: id, tenant_id, created_at, updated_at, deleted_at.
+- Prohibido: Asset::all(), ->get() sin ->select(), withoutGlobalScope() fuera de superadmin.
+
+## 5. Dependencias (REGLA ABSOLUTA #3)
+- Prohibido: Prisma, stancl/tenancy, spatie/laravel-multitenancy.
+- Cualquier paquete nuevo requiere aprobación explícita de John.
+
+## 6. Spatie Permission
+- Sin teams: config/permission.php teams=false, store=array.
+- Custom Role/Permission models: extienden Spatie + BelongsToTenant + HasUuids.
+- Cache: array driver (per-request, no persistente).
+
+## 7. Filament 5 — Reglas Críticas
+- Firma correcta: form(Schema $schema): Schema — NO Form.
+- Navigation group: método getNavigationGroup(): string — NO static property.
+- Namespace actions: Filament\Actions\ — NUNCA Filament\Tables\Actions\.
+- $navigationIcon: protected static string|BackedEnum|null.
+- $view: protected string en Page/Widget (no static).
+- Repeater usa ->schema(), NO ->fields().
+- Hidden vs Visible: usar ->hidden() con lógica invertida cuando $get() retorna null en primer render.
+
+## 8. Protocolo de Operación
+- Plan + OK: Antes de CUALQUIER cambio de código, presentar Plan de Ejución → esperar "OK" literal → ejecutar.
+- Sin "OK" NO ejecutar código.
+- Debug complejo: mostrar código relevante con números de línea → hipótesis + plan → esperar OK.
+- No apilar parches sin diagnóstico.
+
+## 9. Gobernanza Post-Ejecución
+- vendor/bin/sail bin pint --format agent
+- vendor/bin/sail artisan test --compact
+- vendor/bin/sail php -r 'function_exists("opcache_reset") && opcache_reset();'
+- Solo crear docs si John lo pide explícitamente.
+
+## 10. Dónde Buscar Información Adicional
+- Checklists por módulo: /checklists/taller_*.yaml
+- Estado de progreso: /engram.json
+- Documentación oficial: consultar /docs/official_summary/ si existe, si no, usar search-docs del stack.
+- Arquitectura específica: /docs/principles/solid.md, patterns.md, data_architecture.md si existen.

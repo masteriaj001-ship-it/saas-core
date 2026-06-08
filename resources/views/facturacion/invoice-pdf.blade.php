@@ -172,7 +172,9 @@
                 <th style="width: 40%;">Descripción</th>
                 <th class="qty">Cant</th>
                 <th class="price">P. Unit</th>
+                @if($invoice->tax_total > 0)
                 <th class="price">IVA</th>
+                @endif
                 <th class="total-col">Total</th>
             </tr>
         </thead>
@@ -183,12 +185,14 @@
                 <td>{{ $item->description }}</td>
                 <td class="qty">{{ number_format($item->quantity, 2) }}</td>
                 <td class="price">${{ number_format($item->unit_price, 0, ',', '.') }}</td>
+                @if($invoice->tax_total > 0)
                 <td class="price">{{ number_format($item->tax_rate, 0) }}%</td>
+                @endif
                 <td class="total-col">${{ number_format($item->total, 0, ',', '.') }}</td>
             </tr>
             @empty
             <tr>
-                <td colspan="6" style="text-align: center; color: #999;">Sin ítems</td>
+                <td colspan="{{ $invoice->tax_total > 0 ? 6 : 5 }}" style="text-align: center; color: #999;">Sin ítems</td>
             </tr>
             @endforelse
         </tbody>
@@ -205,10 +209,12 @@
             <td class="total-value">-${{ number_format($invoice->discount_total, 0, ',', '.') }}</td>
         </tr>
         @endif
+        @if($invoice->tax_total > 0)
         <tr>
             <td class="total-label">IVA:</td>
             <td class="total-value">${{ number_format($invoice->tax_total, 0, ',', '.') }}</td>
         </tr>
+        @endif
         <tr class="grand-total">
             <td class="total-label">TOTAL:</td>
             <td class="total-value">${{ number_format($invoice->grand_total, 0, ',', '.') }}</td>

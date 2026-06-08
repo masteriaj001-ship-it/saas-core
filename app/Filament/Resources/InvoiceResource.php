@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
+use App\Enums\InvoiceStatusEnum;
 use App\Filament\Resources\InvoiceResource\Pages\CreateInvoice;
 use App\Filament\Resources\InvoiceResource\Pages\EditInvoice;
 use App\Filament\Resources\InvoiceResource\Pages\ListInvoices;
@@ -198,20 +199,8 @@ class InvoiceResource extends Resource
                 TextColumn::make('status')
                     ->label(__('Estado'))
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'draft' => 'gray',
-                        'issued' => 'info',
-                        'paid' => 'success',
-                        'cancelled' => 'danger',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'draft' => __('Borrador'),
-                        'issued' => __('Emitida'),
-                        'paid' => __('Pagada'),
-                        'cancelled' => __('Anulada'),
-                        default => $state,
-                    }),
+                    ->color(fn (InvoiceStatusEnum $state): string|array|null => $state->getColor())
+                    ->formatStateUsing(fn (InvoiceStatusEnum $state): string => $state->getLabel()),
                 TextColumn::make('grand_total')
                     ->label(__('Total'))
                     ->money('COP')
