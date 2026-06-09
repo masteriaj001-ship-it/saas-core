@@ -2,9 +2,6 @@
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
   "version": "1.1.0",
   "last_updated": "2026-06-08",
-  "completed_features": [
-    "LocationResource con factory, tests (CRUD + tenant isolation), FEATURE_SPEC, WorkOrdersRelationManager"
-  ],
   "vertical": "talleres",
   "status": "active_development",
   "stack": {
@@ -63,6 +60,20 @@
         "PDF condicional (oculta IVA si tax_total=0)"
       ],
       "notes": "Toggle IVA en Superadmin TenantResource → Section Facturación."
+    },
+    "taller_locations": {
+      "status": "implemented",
+      "last_check": "2026-06-08",
+      "features": [
+        "LocationResource con CRUD (List/Create/Edit)",
+        "WorkOrdersRelationManager en EditLocation",
+        "location_id FK en WorkOrder con ON DELETE SET NULL",
+        "LocationFactory con estados main/inactive",
+        "8 tests PHPUnit (CRUD, validación, tenant isolation)",
+        "WorkOrderFactory con estado withLocation",
+        "WorkOrderResource: campo location_id en formulario"
+      ],
+      "notes": "Pest → PHPUnit conversion de LocationWorkOrderRelationTest. Missing Location import en WorkOrder corregido."
     }
   },
   "test_suite": {
