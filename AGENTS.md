@@ -514,3 +514,9 @@ Código legacy en `app/Models/` y `app/Services/` se migrará progresivamente.
 ### Manejo de errores
 - Si un plan falla, el agente: 1) diagnóstica mostrando código, 2) presenta nuevo plan, 3) espera OK.
 - No apilar parches sobre parches sin diagnóstico.
+
+### Project State
+- `engram.json` — canonical source of truth for agents
+- `PROJECT_STATE.md` — generated from `engram.json`, human-readable
+- Regenerate: `vendor/bin/sail artisan jaosoft:project-state`
+- Update `engram.json` after each feature completion
