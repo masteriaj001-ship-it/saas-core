@@ -14,6 +14,7 @@ use App\Filament\Resources\WorkOrderResource\RelationManagers\ItemsRelationManag
 use App\Filament\Resources\WorkOrderResource\RelationManagers\MediaRelationManager;
 use App\Models\Contact;
 use App\Models\Item;
+use App\Models\Location;
 use App\Modules\Talleres\Models\Asset;
 use App\Modules\Talleres\Models\ServiceCatalog;
 use App\Modules\Talleres\Models\WorkOrder;
@@ -115,6 +116,16 @@ class WorkOrderResource extends Resource
                             }
 
                             return static::formatAssetLabel($asset);
+                        }),
+                    Select::make('location_id')
+                        ->label('Ubicación')
+                        ->searchable()
+                        ->relationship('location', 'name')
+                        ->getOptionLabelUsing(function ($value): string {
+                            return Location::query()
+                                ->tenant()
+                                ->where('id', $value)
+                                ->value('name') ?? __('(sin nombre)');
                         }),
                 ]),
             Section::make(__('Asignación'))

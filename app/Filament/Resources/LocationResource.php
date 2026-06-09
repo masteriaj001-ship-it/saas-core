@@ -7,6 +7,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\LocationResource\Pages\CreateLocation;
 use App\Filament\Resources\LocationResource\Pages\EditLocation;
 use App\Filament\Resources\LocationResource\Pages\ListLocations;
+use App\Filament\Resources\LocationResource\RelationManagers\WorkOrdersRelationManager;
 use App\Models\Location;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -108,6 +109,13 @@ class LocationResource extends Resource
             'index' => ListLocations::route('/'),
             'create' => CreateLocation::route('/create'),
             'edit' => EditLocation::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            WorkOrdersRelationManager::class,
         ];
     }
 

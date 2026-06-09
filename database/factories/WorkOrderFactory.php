@@ -7,6 +7,7 @@ namespace Database\Factories;
 use App\Enums\WorkOrderStatusEnum;
 use App\Models\Contact;
 use App\Models\ContactRole;
+use App\Models\Location;
 use App\Models\Tenant;
 use App\Modules\Talleres\Models\Asset;
 use App\Modules\Talleres\Models\WorkOrder;
@@ -71,6 +72,17 @@ class WorkOrderFactory extends Factory
             ]);
             $workOrder->advisor_id = $advisor->id;
             $workOrder->save();
+        });
+    }
+
+    public function withLocation(): static
+    {
+        return $this->state(function (array $attrs): array {
+            return [
+                'location_id' => Location::factory()->create([
+                    'tenant_id' => $attrs['tenant_id'] ?? null,
+                ])->id,
+            ];
         });
     }
 

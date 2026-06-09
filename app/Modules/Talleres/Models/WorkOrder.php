@@ -6,6 +6,7 @@ namespace App\Modules\Talleres\Models;
 
 use App\Enums\WorkOrderStatusEnum;
 use App\Models\Contact;
+use App\Models\Location;
 use App\Models\TenantModel;
 use App\Modules\Facturacion\Models\Invoice;
 use Database\Factories\WorkOrderFactory;
@@ -25,6 +26,7 @@ class WorkOrder extends TenantModel
     protected $fillable = [
         'asset_id',
         'contact_id',
+        'location_id',
         'code',
         'title',
         'description',
@@ -71,6 +73,11 @@ class WorkOrder extends TenantModel
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    public function location(): BelongsTo
+    {
+        return $this->belongsTo(Location::class);
     }
 
     public function mechanic(): BelongsTo

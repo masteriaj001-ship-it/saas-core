@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Modules\Talleres\Models\WorkOrder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Location extends TenantModel
 {
@@ -23,5 +25,10 @@ class Location extends TenantModel
             'is_main' => 'boolean',
             'is_active' => 'boolean',
         ]);
+    }
+
+    public function workOrders(): HasMany
+    {
+        return $this->hasMany(WorkOrder::class);
     }
 }
