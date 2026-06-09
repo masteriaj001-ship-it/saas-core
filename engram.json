@@ -2,6 +2,9 @@
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
   "version": "1.1.0",
   "last_updated": "2026-06-08",
+  "completed_features": [
+    "LocationResource con factory, tests (CRUD + tenant isolation), FEATURE_SPEC, WorkOrdersRelationManager"
+  ],
   "vertical": "talleres",
   "status": "active_development",
   "stack": {
@@ -63,9 +66,9 @@
     }
   },
   "test_suite": {
-    "total_tests": 181,
-    "passing": 181,
-    "assertions": 519,
+    "total_tests": 194,
+    "passing": 194,
+    "assertions": 536,
     "status": "green",
     "last_run": "2026-06-08"
   },
