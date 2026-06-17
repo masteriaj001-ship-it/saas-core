@@ -520,3 +520,43 @@ Código legacy en `app/Models/` y `app/Services/` se migrará progresivamente.
 - `PROJECT_STATE.md` — generated from `engram.json`, human-readable
 - Regenerate: `vendor/bin/sail artisan jaosoft:project-state`
 - Update `engram.json` after each feature completion
+
+## RLS Awareness & Security Gaps
+
+> Última auditoría: 2026-06-17
+> Estado: GAPS DOCUMENTADOS, fixes pendientes de aprobación de John
+
+### Contexto crítico
+
+El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_tenant_id()` que lee `app.current_tenant_id` del contexto de sesión.
+
+**PROBLEMA CONFIRMADO:** El usuario de base de datos `sail` (desarrollo) tiene `BYPASSRLS = true`. Esto significa que RLS está habilitada en tablas pero **ignorada completamente** por la conexión actual.
+
+**CONSECUENCIA:** Los tests que pasan no están probando RLS real. Solo prueban el global scope de Eloquent (`BelongsToTenant`).
+
+### Reglas para código nuevo
+
+1. **NUNCA asumas que RLS protege en desarrollo.** El usuario `sail` la ignora. Si necesitas seguridad real, valida en aplicación.
+2. **SIEMPRE usa el global scope `BelongsToTenant`** en modelos multi-tenant. No confíes solo en RLS.
+3. **NUNCA uses `withoutGlobalScope('tenant')`** sin autorización explícita de John. Eso expone datos de todos los tenants.
+4. **SIEMPRE establece `app.current_tenant_id`** antes de queries directas (`DB::table`, `DB::select`, raw SQL). La función `current_tenant_id()` explota sin contexto.
+5. **Jobs y comandos:** Si el código corre fuera de request HTTP (jobs, queues, artisan), debe establecer explícitamente:
+   ```php
+   TenantManager::setTenantContext($tenantId);
+   // ... queries ...
+   TenantManager::clearTenantContext();
+   ```
+
+### Gaps documentados (no fixeados)
+
+| ID | Hallazgo | Fix requiere |
+|---|---|---|
+| GAP-001 | Usuario sail tiene BYPASSRLS = true | Crear app_user con NOBYPASSRLS |
+| GAP-002 | Superadmin no establece app.current_tenant_id | Arquitectura de conexión dual o contexto especial |
+| GAP-003 | Jobs no establecen contexto de tenant | Refactor de job dispatch |
+| GAP-004 | Tests no ejercitan RLS real | Agregar setTenantContext en setUp() |
+| GAP-005 | current_tenant_id() sin fallback | Crear current_tenant_id_or_null() para operaciones globales |
+
+### Referencia
+
+Archivo completo de auditoría: `docs/security/SECURITY_GAPS.md` (crear cuando John autorice).

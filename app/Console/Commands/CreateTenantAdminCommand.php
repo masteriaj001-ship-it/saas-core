@@ -57,6 +57,12 @@ class CreateTenantAdminCommand extends Command
                 'password' => Hash::make($password),
             ]);
 
+            if (empty($user->tenant_id)) {
+                throw new \RuntimeException(
+                    'BelongsToTenant failed to inject tenant_id for user: '.$adminEmail
+                );
+            }
+
             $this->callSilent(RolePermissionSeeder::class);
 
             $user->assignRole('owner');

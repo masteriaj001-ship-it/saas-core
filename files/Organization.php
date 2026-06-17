@@ -8,37 +8,32 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class Tenant extends Model
+class Organization extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'organization_id',
         'name',
-        'slug',
-        'plan',
-        'is_active',
+        'owner_user_id',
         'settings',
-        'onboarding_completed',
     ];
 
     protected $casts = [
         'id' => 'string',
-        'organization_id' => 'string',
-        'is_active' => 'boolean',
-        'onboarding_completed' => 'boolean',
+        'owner_user_id' => 'string',
         'settings' => 'array',
     ];
 
-    public function organization(): BelongsTo
+    public function owner(): BelongsTo
     {
-        return $this->belongsTo(Organization::class);
+        return $this->belongsTo(User::class, 'owner_user_id');
     }
 
-    public function esResponsableIva(): bool
+    public function tenants(): HasMany
     {
-        return (bool) ($this->settings['es_responsable_iva'] ?? false);
+        return $this->hasMany(Tenant::class);
     }
 }

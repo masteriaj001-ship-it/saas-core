@@ -118,7 +118,11 @@ class GenerateProjectState extends Command
 
         $md .= "## Security Status\n\n";
         foreach ($data['security_status'] as $item => $status) {
-            $md .= "- **{$item}:** {$status}\n";
+            if (is_array($status)) {
+                $md .= "- **{$item}:** ".implode(', ', $status)."\n";
+            } else {
+                $md .= "- **{$item}:** {$status}\n";
+            }
         }
         $md .= "\n";
 

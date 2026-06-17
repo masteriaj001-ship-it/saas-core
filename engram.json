@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
   "version": "1.1.0",
-  "last_updated": "2026-06-08",
+  "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
   "stack": {
@@ -77,11 +77,12 @@
     }
   },
   "test_suite": {
-    "total_tests": 194,
-    "passing": 194,
-    "assertions": 536,
-    "status": "green",
-    "last_run": "2026-06-08"
+    "total_tests": 199,
+    "passing": 197,
+    "skipped": 2,
+    "assertions": 542,
+    "status": "green_with_gaps",
+    "last_run": "2026-06-17"
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -111,14 +112,18 @@
   ],
   "security_status": {
     "mfa_superadmin": "pending",
-    "rls_enabled": "pending_verification",
+    "rls_enabled": "audited_gaps_documented",
+    "rls_audit_date": "2026-06-17",
+    "rls_gaps": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005"],
+    "fix_priority": "before_deploy",
     "audit_logs": "pending",
     "rate_limiting": "pending"
   },
   "audit_schedule": {
     "next_audit": "2026-09-01",
     "frequency": "quarterly",
-    "last_audit": null
+    "last_audit": "2026-06-17",
+    "last_audit_type": "rls_security"
   },
   "agents": {
     "cursor": {
@@ -145,11 +150,11 @@
     "gate_3": "0 tests rojos → commit"
   },
   "next_actions": [
-    "Verificar RLS en PostgreSQL 16 (DB-001)",
+    "Fix GAP-001: Crear app_user con NOBYPASSRLS (antes de deploy)",
     "Activar MFA Superadmin (USR-001)",
     "Completar checklist taller_workorders.yaml",
     "Completar checklist taller_assets.yaml",
     "Completar checklist taller_transactions.yaml",
-    "Crear /docs/principles/solid.md, patterns.md, data_architecture.md"
+    "Decidir merge de feature/location-resource a main"
   ]
 }

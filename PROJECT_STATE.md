@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.1.0 | **Status:** active_development | **Updated:** 2026-06-08
+> **Version:** 1.1.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -76,11 +76,11 @@
 
 ## Test Suite
 
-- **Total tests:** 194
-- **Passing:** 194
-- **Assertions:** 536
-- **Status:** green
-- **Last run:** 2026-06-08
+- **Total tests:** 199
+- **Passing:** 197
+- **Assertions:** 542
+- **Status:** green_with_gaps
+- **Last run:** 2026-06-17
 
 ## Architecture Rules
 
@@ -113,18 +113,21 @@
 ## Security Status
 
 - **mfa_superadmin:** pending
-- **rls_enabled:** pending_verification
+- **rls_enabled:** audited_gaps_documented
+- **rls_audit_date:** 2026-06-17
+- **rls_gaps:** GAP-001, GAP-002, GAP-003, GAP-004, GAP-005
+- **fix_priority:** before_deploy
 - **audit_logs:** pending
 - **rate_limiting:** pending
 
 ## Next Actions
 
-- [ ] Verificar RLS en PostgreSQL 16 (DB-001)
+- [ ] Fix GAP-001: Crear app_user con NOBYPASSRLS (antes de deploy)
 - [ ] Activar MFA Superadmin (USR-001)
 - [ ] Completar checklist taller_workorders.yaml
 - [ ] Completar checklist taller_assets.yaml
 - [ ] Completar checklist taller_transactions.yaml
-- [ ] Crear /docs/principles/solid.md, patterns.md, data_architecture.md
+- [ ] Decidir merge de feature/location-resource a main
 
 ---
 

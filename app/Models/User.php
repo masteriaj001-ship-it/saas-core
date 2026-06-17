@@ -32,8 +32,15 @@ class User extends Authenticatable implements HasTenants
         'name',
         'email',
         'password',
-        'is_superadmin',
+    ];
+
+    protected $guarded = [
+        'id',
         'tenant_id',
+        'is_superadmin',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
 
     protected $hidden = [
