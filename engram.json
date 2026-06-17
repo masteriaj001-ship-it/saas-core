@@ -61,6 +61,17 @@
       ],
       "notes": "Toggle IVA en Superadmin TenantResource → Section Facturación."
     },
+    "work_order_reception": {
+      "status": "implemented",
+      "last_check": "2026-06-17",
+      "features": [
+        "CreateWorkOrderReceptionAction con normalización Contact/Asset/WorkOrder",
+        "createOptionForm en Select de Cliente y Vehículo (modal de creación rápida)",
+        "Campos de inspección: kilometraje, batería, notas estéticas",
+        "5 tests PHPUnit (creación, reuso, aislamiento, ID existente)"
+      ],
+      "notes": "Hybrid (C) — operador ve campos planos, Action normaliza en background. asset_id NOT NULL en schema (siempre requiere vehículo)."
+    },
     "taller_locations": {
       "status": "implemented",
       "last_check": "2026-06-08",
@@ -77,11 +88,11 @@
     }
   },
   "test_suite": {
-    "total_tests": 199,
-    "passing": 197,
-    "skipped": 2,
-    "assertions": 542,
-    "status": "green_with_gaps",
+    "total_tests": 204,
+    "passing": 204,
+    "skipped": 0,
+    "assertions": 562,
+    "status": "green",
     "last_run": "2026-06-17"
   },
   "architecture_rules": {
@@ -112,9 +123,10 @@
   ],
   "security_status": {
     "mfa_superadmin": "pending",
-    "rls_enabled": "audited_gaps_documented",
+    "rls_enabled": "gaps_documented_and_partially_fixed",
     "rls_audit_date": "2026-06-17",
-    "rls_gaps": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005"],
+    "rls_gaps": ["GAP-002", "GAP-003", "GAP-004", "GAP-005"],
+    "rls_fixed": ["GAP-001"],
     "fix_priority": "before_deploy",
     "audit_logs": "pending",
     "rate_limiting": "pending"
@@ -150,11 +162,13 @@
     "gate_3": "0 tests rojos → commit"
   },
   "next_actions": [
-    "Fix GAP-001: Crear app_user con NOBYPASSRLS (antes de deploy)",
+    "Fix GAP-002: Superadmin tenant context (antes de deploy)",
+    "Fix GAP-003: Jobs tenant context (antes de jobs multi-tenant)",
     "Activar MFA Superadmin (USR-001)",
     "Completar checklist taller_workorders.yaml",
     "Completar checklist taller_assets.yaml",
     "Completar checklist taller_transactions.yaml",
-    "Decidir merge de feature/location-resource a main"
+    "Completar Work Orders (UC-01 a UC-04)",
+    "Completar Facturación (Http/Controllers, vistas, docs)"
   ]
 }

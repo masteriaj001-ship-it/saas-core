@@ -60,6 +60,17 @@
   - PDF condicional (oculta IVA si tax_total=0)
 - **Notes:** Toggle IVA en Superadmin TenantResource → Section Facturación.
 
+### work_order_reception
+
+- **Status:** implemented
+- **Last check:** 2026-06-17
+- **Features:**
+  - CreateWorkOrderReceptionAction con normalización Contact/Asset/WorkOrder
+  - createOptionForm en Select de Cliente y Vehículo (modal de creación rápida)
+  - Campos de inspección: kilometraje, batería, notas estéticas
+  - 5 tests PHPUnit (creación, reuso, aislamiento, ID existente)
+- **Notes:** Hybrid (C) — operador ve campos planos, Action normaliza en background. asset_id NOT NULL en schema (siempre requiere vehículo).
+
 ### taller_locations
 
 - **Status:** implemented
@@ -76,10 +87,10 @@
 
 ## Test Suite
 
-- **Total tests:** 199
-- **Passing:** 197
-- **Assertions:** 542
-- **Status:** green_with_gaps
+- **Total tests:** 204
+- **Passing:** 204
+- **Assertions:** 562
+- **Status:** green
 - **Last run:** 2026-06-17
 
 ## Architecture Rules
@@ -113,21 +124,24 @@
 ## Security Status
 
 - **mfa_superadmin:** pending
-- **rls_enabled:** audited_gaps_documented
+- **rls_enabled:** gaps_documented_and_partially_fixed
 - **rls_audit_date:** 2026-06-17
-- **rls_gaps:** GAP-001, GAP-002, GAP-003, GAP-004, GAP-005
+- **rls_gaps:** GAP-002, GAP-003, GAP-004, GAP-005
+- **rls_fixed:** GAP-001
 - **fix_priority:** before_deploy
 - **audit_logs:** pending
 - **rate_limiting:** pending
 
 ## Next Actions
 
-- [ ] Fix GAP-001: Crear app_user con NOBYPASSRLS (antes de deploy)
+- [ ] Fix GAP-002: Superadmin tenant context (antes de deploy)
+- [ ] Fix GAP-003: Jobs tenant context (antes de jobs multi-tenant)
 - [ ] Activar MFA Superadmin (USR-001)
 - [ ] Completar checklist taller_workorders.yaml
 - [ ] Completar checklist taller_assets.yaml
 - [ ] Completar checklist taller_transactions.yaml
-- [ ] Decidir merge de feature/location-resource a main
+- [ ] Completar Work Orders (UC-01 a UC-04)
+- [ ] Completar Facturación (Http/Controllers, vistas, docs)
 
 ---
 
