@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -121,16 +121,28 @@
         "5/5 gaps RLS fixeados — arquitectura sellada"
       ],
       "notes": "GAP-004 fixeado. Production impact: zero (pgsql-rls solo existe en test). 235 tests."
+    },
+    "mfa_superadmin": {
+      "status": "implemented",
+      "last_check": "2026-06-17",
+      "features": [
+        "User model implementa HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication",
+        "two_factor_secret encryptado via Crypt, two_factor_recovery_codes JSON",
+        "SuperadminPanelProvider: multiFactorAuthentication(isRequired: true)",
+        "AdminPanelProvider: multiFactorAuthentication(isRequired: false)",
+        "5 tests (secret storage, recovery codes, TOTP verification, holder name, confirmation)"
+      ],
+      "notes": "USR-001 completado. Filament v5 built-in MFA (pragmarx/google2fa). TOTP codes generados programaticamente en tests."
     }
   },
   "test_suite": {
-    "total_tests": 235,
-    "passing": 235,
+    "total_tests": 240,
+    "passing": 240,
     "skipped": 0,
-    "assertions": 612,
+    "assertions": 620,
     "status": "green",
     "last_run": "2026-06-17",
-    "note": "235 tests total (GAP-004: +1 sync test. 5/5 gaps RLS fixeados.)"
+    "note": "240 tests total (MFA: +5 tests SuperadminMfa. MFA requerido para superadmin.)"
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -164,10 +176,11 @@
     "TenantManager::withoutTenantContext() helper",
     "BelongsToTenantJob trait + SetTenantContextForJob middleware (queue tenant context)",
     "TenantManager dual-connection sync (pgsql + pgsql-rls) for RLS test enforcement",
+    "MFA Superadmin (TOTP + Email code via Filament v5 built-in)",
     "ADR 001: Multi-tenant architecture documented"
   ],
   "security_status": {
-    "mfa_superadmin": "pending",
+    "mfa_superadmin": "implemented",
     "rls_enabled": "verified_5of5_fixed",
     "rls_audit_date": "2026-06-17",
     "rls_gaps": [],
@@ -211,7 +224,6 @@
     "gate_3": "0 tests rojos → commit"
   },
     "next_actions": [
-    "Activar MFA Superadmin (USR-001)",
     "Completar checklist taller_workorders.yaml",
     "Completar checklist taller_assets.yaml",
     "Completar checklist taller_transactions.yaml",

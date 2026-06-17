@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.7.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.8.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -121,11 +121,23 @@
   - 5/5 gaps RLS fixeados — arquitectura sellada
 - **Notes:** GAP-004 fixeado. Production impact: zero (pgsql-rls solo existe en test). 235 tests.
 
+### mfa_superadmin
+
+- **Status:** implemented
+- **Last check:** 2026-06-17
+- **Features:**
+  - User model implementa HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication
+  - two_factor_secret encryptado via Crypt, two_factor_recovery_codes JSON
+  - SuperadminPanelProvider: multiFactorAuthentication(isRequired: true)
+  - AdminPanelProvider: multiFactorAuthentication(isRequired: false)
+  - 5 tests (secret storage, recovery codes, TOTP verification, holder name, confirmation)
+- **Notes:** USR-001 completado. Filament v5 built-in MFA (pragmarx/google2fa). TOTP codes generados programaticamente en tests.
+
 ## Test Suite
 
-- **Total tests:** 235
-- **Passing:** 235
-- **Assertions:** 612
+- **Total tests:** 240
+- **Passing:** 240
+- **Assertions:** 620
 - **Status:** green
 - **Last run:** 2026-06-17
 
@@ -163,11 +175,12 @@
 - TenantManager::withoutTenantContext() helper
 - BelongsToTenantJob trait + SetTenantContextForJob middleware (queue tenant context)
 - TenantManager dual-connection sync (pgsql + pgsql-rls) for RLS test enforcement
+- MFA Superadmin (TOTP + Email code via Filament v5 built-in)
 - ADR 001: Multi-tenant architecture documented
 
 ## Security Status
 
-- **mfa_superadmin:** pending
+- **mfa_superadmin:** implemented
 - **rls_enabled:** verified_5of5_fixed
 - **rls_audit_date:** 2026-06-17
 - **rls_gaps:** 
@@ -179,7 +192,6 @@
 
 ## Next Actions
 
-- [ ] Activar MFA Superadmin (USR-001)
 - [ ] Completar checklist taller_workorders.yaml
 - [ ] Completar checklist taller_assets.yaml
 - [ ] Completar checklist taller_transactions.yaml

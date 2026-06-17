@@ -7,6 +7,9 @@ namespace App\Models;
 use App\Models\Concerns\BelongsToTenant;
 use App\Notifications\ResetPasswordNotification;
 use Database\Factories\UserFactory;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
+use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -16,10 +19,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Crypt;
 use Laravel\Sanctum\HasApiTokens;
+use SensitiveParameter;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements HasTenants
+class User extends Authenticatable implements HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasTenants
 {
     /** @use HasFactory<UserFactory> */
     use BelongsToTenant, HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable, SoftDeletes;
@@ -38,6 +43,9 @@ class User extends Authenticatable implements HasTenants
         'id',
         'tenant_id',
         'is_superadmin',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
+        'two_factor_confirmed_at',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -46,6 +54,8 @@ class User extends Authenticatable implements HasTenants
     protected $hidden = [
         'password',
         'remember_token',
+        'two_factor_secret',
+        'two_factor_recovery_codes',
     ];
 
     protected $casts = [
@@ -54,6 +64,8 @@ class User extends Authenticatable implements HasTenants
         'is_superadmin' => 'boolean',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'two_factor_recovery_codes' => 'array',
+        'two_factor_confirmed_at' => 'datetime',
     ];
 
     public function sendPasswordResetNotification($token): void
@@ -77,5 +89,50 @@ class User extends Authenticatable implements HasTenants
         }
 
         return $this->tenant_id === $tenant->id;
+    }
+
+    public function getAppAuthenticationSecret(): ?string
+    {
+        if (blank($this->two_factor_secret)) {
+            return null;
+        }
+
+        return Crypt::decryptString($this->two_factor_secret);
+    }
+
+    public function saveAppAuthenticationSecret(#[SensitiveParameter] ?string $secret): void
+    {
+        $this->two_factor_secret = $secret !== null
+            ? Crypt::encryptString($secret)
+            : null;
+
+        $this->save();
+    }
+
+    public function getAppAuthenticationHolderName(): string
+    {
+        return $this->name;
+    }
+
+    public function getAppAuthenticationRecoveryCodes(): ?array
+    {
+        return $this->two_factor_recovery_codes;
+    }
+
+    public function saveAppAuthenticationRecoveryCodes(#[SensitiveParameter] ?array $codes): void
+    {
+        $this->two_factor_recovery_codes = $codes;
+        $this->save();
+    }
+
+    public function hasEmailAuthentication(): bool
+    {
+        return $this->two_factor_confirmed_at !== null;
+    }
+
+    public function toggleEmailAuthentication(bool $condition): void
+    {
+        $this->two_factor_confirmed_at = $condition ? now() : null;
+        $this->save();
     }
 }
