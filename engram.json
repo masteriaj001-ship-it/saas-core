@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.6.0",
+  "version": "1.7.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -110,16 +110,27 @@
         "4 tests (dispatch con/sin contexto, middleware con/sin tenantId)"
       ],
       "notes": "GAP-003 fixeado. Proximo job multi-tenant SOLO necesita usar BelongsToTenantJob trait."
+    },
+    "rls_test_enforcement": {
+      "status": "implemented",
+      "last_check": "2026-06-17",
+      "features": [
+        "TenantManager.setTenantContext/clearTenantContext sincronizan pgsql-rls",
+        "Helpers duplicados setRlsContext/clearRlsContext eliminados de 2 test files",
+        "Sync test verifica ambas conexiones tienen mismo contexto",
+        "5/5 gaps RLS fixeados — arquitectura sellada"
+      ],
+      "notes": "GAP-004 fixeado. Production impact: zero (pgsql-rls solo existe en test). 235 tests."
     }
   },
   "test_suite": {
-    "total_tests": 234,
-    "passing": 234,
+    "total_tests": 235,
+    "passing": 235,
     "skipped": 0,
-    "assertions": 610,
+    "assertions": 612,
     "status": "green",
     "last_run": "2026-06-17",
-    "note": "234 tests total (GAP-003: +4 tests TenantJobContext. GAP-003 fixeado.)"
+    "note": "235 tests total (GAP-004: +1 sync test. 5/5 gaps RLS fixeados.)"
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -152,15 +163,16 @@
     "current_tenant_id_or_null() PG function con fallback NULL",
     "TenantManager::withoutTenantContext() helper",
     "BelongsToTenantJob trait + SetTenantContextForJob middleware (queue tenant context)",
+    "TenantManager dual-connection sync (pgsql + pgsql-rls) for RLS test enforcement",
     "ADR 001: Multi-tenant architecture documented"
   ],
   "security_status": {
     "mfa_superadmin": "pending",
-    "rls_enabled": "gaps_documented_and_partially_fixed",
+    "rls_enabled": "verified_5of5_fixed",
     "rls_audit_date": "2026-06-17",
-    "rls_gaps": ["GAP-004"],
-    "rls_fixed": ["GAP-001", "GAP-002", "GAP-003", "GAP-005"],
-    "fix_priority": "before_deploy",
+    "rls_gaps": [],
+    "rls_fixed": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005"],
+    "fix_priority": "none",
     "audit_logs": "pending",
     "rate_limiting": "pending",
     "connections": {
@@ -199,7 +211,6 @@
     "gate_3": "0 tests rojos → commit"
   },
     "next_actions": [
-    "Fix GAP-004: RLS tests en isolation tests existentes",
     "Activar MFA Superadmin (USR-001)",
     "Completar checklist taller_workorders.yaml",
     "Completar checklist taller_assets.yaml",

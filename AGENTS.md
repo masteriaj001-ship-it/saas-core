@@ -588,9 +588,9 @@ El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_ten
 | GAP-001 | Usuario sail tiene BYPASSRLS = true | ✅ app_user creado con NOBYPASSRLS (2026-06-17) |
 | GAP-002 | Superadmin no establece app.current_tenant_id | ✅ SetTenantContext resuelve tenant para superadmin (2026-06-17) |
 | GAP-003 | Jobs no establecen contexto de tenant | ✅ BelongsToTenantJob trait + middleware (2026-06-17) |
-| GAP-004 | Tests no ejercitan RLS real | Agregar setTenantContext en setUp() |
+| GAP-004 | Tests no ejercitan RLS real | ✅ TenantManager sincroniza pgsql-rls (2026-06-17) |
 | GAP-005 | current_tenant_id() sin fallback | ✅ current_tenant_id_or_null() creada (2026-06-17) |
 
 ### Referencia
 
-Archivo completo de auditoría: `docs/security/SECURITY_GAPS.md` (GAP-001, GAP-002, GAP-003, GAP-005 fixeados 2026-06-17).
+Archivo completo de auditoría: `docs/security/SECURITY_GAPS.md` (5/5 gaps fixeados 2026-06-17).
