@@ -49,20 +49,31 @@ class WorkOrder extends TenantModel
         'mileage_km',
         'battery_level',
         'aesthetic_notes',
+        'settings',
+        'signature_hash',
+        'signed_at',
+        'closure_notes',
     ];
 
     protected function casts(): array
     {
         return array_merge(parent::casts(), [
             'metadata' => 'array',
+            'settings' => 'array',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
             'approval_at' => 'datetime',
             'delivery_at' => 'datetime',
+            'signed_at' => 'datetime',
             'qc_passed' => 'boolean',
             'mileage_km' => 'integer',
             'status' => WorkOrderStatusEnum::class,
         ]);
+    }
+
+    public function isLegacyClosure(): bool
+    {
+        return (bool) ($this->settings['is_legacy_closure'] ?? false);
     }
 
     public function asset(): BelongsTo

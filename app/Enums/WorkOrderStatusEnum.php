@@ -18,7 +18,12 @@ enum WorkOrderStatusEnum: string implements HasColor, HasLabel
     case InProgress = 'in_progress';
     case Paused = 'paused';
     case Qc = 'qc';
+    case WorkDone = 'work_done';
+    case EvidencePending = 'evidence_pending';
+    case WaitingClient = 'waiting_client';
     case Completed = 'completed';
+    case NoPickup = 'no_pickup';
+    case Breach = 'breach';
     case Delivered = 'delivered';
     case Cancelled = 'cancelled';
 
@@ -34,7 +39,12 @@ enum WorkOrderStatusEnum: string implements HasColor, HasLabel
             self::InProgress => 'En reparación',
             self::Paused => 'Pausada',
             self::Qc => 'Control de Calidad',
+            self::WorkDone => 'Trabajo terminado',
+            self::EvidencePending => 'Evidencia pendiente',
+            self::WaitingClient => 'Esperando cliente',
             self::Completed => 'Completado',
+            self::NoPickup => 'No recoge',
+            self::Breach => 'Incumplimiento',
             self::Delivered => 'Entregado',
             self::Cancelled => 'Cancelado',
         };
@@ -52,7 +62,12 @@ enum WorkOrderStatusEnum: string implements HasColor, HasLabel
             self::InProgress => 'warning',
             self::Paused => 'gray',
             self::Qc => 'purple',
+            self::WorkDone => 'success',
+            self::EvidencePending => 'warning',
+            self::WaitingClient => 'info',
             self::Completed => 'success',
+            self::NoPickup => 'danger',
+            self::Breach => 'danger',
             self::Delivered => 'success',
             self::Cancelled => 'danger',
         };

@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.1.0",
+  "version": "1.3.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -85,15 +85,31 @@
         "WorkOrderResource: campo location_id en formulario"
       ],
       "notes": "Pest → PHPUnit conversion de LocationWorkOrderRelationTest. Missing Location import en WorkOrder corregido."
+    },
+    "work_order_closure": {
+      "status": "implemented",
+      "last_check": "2026-06-17",
+      "features": [
+        "WorkOrderStatusEnum extendido: WorkDone, EvidencePending, WaitingClient, NoPickup, Breach",
+        "settings JSONB en work_orders con is_legacy_closure para migración legacy completed → work_done",
+        "signature_hash, signed_at, closure_notes en work_orders",
+        "SmsCode model con BelongsToTenant, validación (expiración, 3 reenvíos, 5 intentos)",
+        "blocked_until en contacts para restricción de clientes",
+        "sms_codes table con RLS",
+        "Migración de datos legacy: completed → work_done + flag is_legacy_closure",
+        "10 tests PHPUnit (transiciones, SMS, legacy, RLS)"
+      ],
+      "notes": "FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. RLS en sms_codes. 222 tests total."
     }
   },
   "test_suite": {
-    "total_tests": 204,
-    "passing": 204,
+    "total_tests": 222,
+    "passing": 222,
     "skipped": 0,
-    "assertions": 562,
+    "assertions": 587,
     "status": "green",
-    "last_run": "2026-06-17"
+    "last_run": "2026-06-17",
+    "note": "212 + 10 WorkOrderClosureTest = 222. WorkOrderStatusEnum extendido con 5 nuevos estados."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -101,7 +117,8 @@
     "spatie_teams_disabled": true,
     "superadmin_tenant_id_null": true,
     "uuid_pks": true,
-    "soft_deletes_exceptions": ["WorkOrderActivity", "WorkOrderInspection", "WorkOrderMedia"]
+    "soft_deletes_exceptions": ["WorkOrderActivity", "WorkOrderInspection", "WorkOrderMedia"],
+    "module_activation_system": true
   },
   "features_existing": [
     "Multi-tenancy con RLS PostgreSQL",
@@ -119,7 +136,9 @@
     "Superadmin panel global",
     "Onboarding flow",
     "Tenant suspension",
-    "Wizard de creación"
+    "Wizard de creación",
+    "Module activation system (tenant_modules + middleware module:{key})",
+    "ADR 001: Multi-tenant architecture documented"
   ],
   "security_status": {
     "mfa_superadmin": "pending",
@@ -129,7 +148,11 @@
     "rls_fixed": ["GAP-001"],
     "fix_priority": "before_deploy",
     "audit_logs": "pending",
-    "rate_limiting": "pending"
+    "rate_limiting": "pending",
+    "connections": {
+      "pgsql_sail": "app logic tests (BYPASSRLS=true, default connection)",
+      "pgsql_rls": "security integration tests (NOBYPASSRLS, app_user)"
+    }
   },
   "audit_schedule": {
     "next_audit": "2026-09-01",

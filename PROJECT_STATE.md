@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.1.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.3.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -85,11 +85,26 @@
   - WorkOrderResource: campo location_id en formulario
 - **Notes:** Pest → PHPUnit conversion de LocationWorkOrderRelationTest. Missing Location import en WorkOrder corregido.
 
+### work_order_closure
+
+- **Status:** implemented
+- **Last check:** 2026-06-17
+- **Features:**
+  - WorkOrderStatusEnum extendido: WorkDone, EvidencePending, WaitingClient, NoPickup, Breach
+  - settings JSONB en work_orders con is_legacy_closure para migración legacy completed → work_done
+  - signature_hash, signed_at, closure_notes en work_orders
+  - SmsCode model con BelongsToTenant, validación (expiración, 3 reenvíos, 5 intentos)
+  - blocked_until en contacts para restricción de clientes
+  - sms_codes table con RLS
+  - Migración de datos legacy: completed → work_done + flag is_legacy_closure
+  - 10 tests PHPUnit (transiciones, SMS, legacy, RLS)
+- **Notes:** FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. RLS en sms_codes. 222 tests total.
+
 ## Test Suite
 
-- **Total tests:** 204
-- **Passing:** 204
-- **Assertions:** 562
+- **Total tests:** 222
+- **Passing:** 222
+- **Assertions:** 587
 - **Status:** green
 - **Last run:** 2026-06-17
 
@@ -101,6 +116,7 @@
 - **superadmin_tenant_id_null:** ✅
 - **uuid_pks:** ✅
 - **soft_deletes_exceptions:** ✅
+- **module_activation_system:** ✅
 
 ## Features Implemented
 
@@ -120,6 +136,8 @@
 - Onboarding flow
 - Tenant suspension
 - Wizard de creación
+- Module activation system (tenant_modules + middleware module:{key})
+- ADR 001: Multi-tenant architecture documented
 
 ## Security Status
 
@@ -131,6 +149,7 @@
 - **fix_priority:** before_deploy
 - **audit_logs:** pending
 - **rate_limiting:** pending
+- **connections:** app logic tests (BYPASSRLS=true, default connection), security integration tests (NOBYPASSRLS, app_user)
 
 ## Next Actions
 
