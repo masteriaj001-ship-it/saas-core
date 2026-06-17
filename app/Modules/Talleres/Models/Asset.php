@@ -6,6 +6,7 @@ namespace App\Modules\Talleres\Models;
 
 use App\Enums\FuelTypeEnum;
 use App\Enums\VehicleTypeEnum;
+use App\Models\Concerns\Auditable;
 use App\Models\Contact;
 use App\Models\TenantModel;
 use Database\Factories\AssetFactory;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Asset extends TenantModel
 {
-    use HasFactory;
+    use Auditable, HasFactory;
 
     protected static function newFactory(): AssetFactory
     {

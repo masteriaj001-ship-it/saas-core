@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.9.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.10.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -145,11 +145,25 @@
   - 10 tests (5 app-scope + 5 RLS)
 - **Notes:** Cierra vertical Talleres. Done=ejecutado (mecanico), Ok/Nok=revision calidad (supervisor). SoftDeletes evita cascade en soft delete (forceDelete si requiere cascade fisico).
 
+### audit_logs
+
+- **Status:** implemented
+- **Last check:** 2026-06-17
+- **Features:**
+  - spatie/laravel-activitylog v5 installado y tenant-aware
+  - App\Models\Activity extiende SpatieActivity con BelongsToTenant
+  - Migration: tenant_id UUID FK + RLS + nullableUuidMorphs
+  - App\Models\Concerns\Auditable wrapper sobre LogsActivity
+  - Aplicado a: WorkOrder, Contact, Asset, Item
+  - BelongsToTenant: $ignoresMissingTenantContext para Activity model (no lanza en tests legacy)
+  - 8 tests (5 app-scope + 3 RLS)
+- **Notes:** Cross-cutting audit trail. nullableUuidMorphs necesario por UUIDs del proyecto. 258 tests total.
+
 ## Test Suite
 
-- **Total tests:** 250
-- **Passing:** 250
-- **Assertions:** 636
+- **Total tests:** 258
+- **Passing:** 258
+- **Assertions:** 649
 - **Status:** green
 - **Last run:** 2026-06-17
 
@@ -189,6 +203,7 @@
 - TenantManager dual-connection sync (pgsql + pgsql-rls) for RLS test enforcement
 - MFA Superadmin (TOTP + Email code via Filament v5 built-in)
 - Work Order Checklist (WorkOrderChecklistItem con status pending/done/ok/nok/na)
+- Audit Logs (spatie/laravel-activitylog tenant-aware)
 - ADR 001: Multi-tenant architecture documented
 
 ## Security Status
@@ -199,7 +214,7 @@
 - **rls_gaps:** 
 - **rls_fixed:** GAP-001, GAP-002, GAP-003, GAP-004, GAP-005
 - **fix_priority:** none
-- **audit_logs:** pending
+- **audit_logs:** implemented
 - **rate_limiting:** pending
 - **connections:** app logic tests (BYPASSRLS=true, default connection), security integration tests (NOBYPASSRLS, app_user)
 
@@ -207,7 +222,6 @@
 
 - [ ] Facturación: API REST con rate limiting, versionado, API keys
 - [ ] Dashboard financiero con KPIs por tenant
-- [ ] Audit logs (Spatie Activitylog o similar)
 
 ---
 

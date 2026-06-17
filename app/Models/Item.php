@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Item extends TenantModel
 {
-    use HasFactory;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'sku',

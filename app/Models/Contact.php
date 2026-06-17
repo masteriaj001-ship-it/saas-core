@@ -6,13 +6,14 @@ namespace App\Models;
 
 use App\Enums\ContactRoleEnum;
 use App\Enums\DocumentTypeEnum;
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Contact extends TenantModel
 {
-    use HasFactory;
+    use Auditable, HasFactory;
 
     protected $fillable = [
         'contact_type',

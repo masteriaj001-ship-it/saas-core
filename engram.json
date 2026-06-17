@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.9.0",
+  "version": "1.10.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -145,16 +145,30 @@
         "10 tests (5 app-scope + 5 RLS)"
       ],
       "notes": "Cierra vertical Talleres. Done=ejecutado (mecanico), Ok/Nok=revision calidad (supervisor). SoftDeletes evita cascade en soft delete (forceDelete si requiere cascade fisico)."
+    },
+    "audit_logs": {
+      "status": "implemented",
+      "last_check": "2026-06-17",
+      "features": [
+        "spatie/laravel-activitylog v5 installado y tenant-aware",
+        "App\\Models\\Activity extiende SpatieActivity con BelongsToTenant",
+        "Migration: tenant_id UUID FK + RLS + nullableUuidMorphs",
+        "App\\Models\\Concerns\\Auditable wrapper sobre LogsActivity",
+        "Aplicado a: WorkOrder, Contact, Asset, Item",
+        "BelongsToTenant: $ignoresMissingTenantContext para Activity model (no lanza en tests legacy)",
+        "8 tests (5 app-scope + 3 RLS)"
+      ],
+      "notes": "Cross-cutting audit trail. nullableUuidMorphs necesario por UUIDs del proyecto. 258 tests total."
     }
   },
   "test_suite": {
-    "total_tests": 250,
-    "passing": 250,
+    "total_tests": 258,
+    "passing": 258,
     "skipped": 0,
-    "assertions": 636,
+    "assertions": 649,
     "status": "green",
     "last_run": "2026-06-17",
-    "note": "250 tests total (WorkOrderChecklist: +10 tests. Checklist reactiva por estado para Work Orders.)"
+    "note": "258 tests total (AuditLogs: +8 tests. spatie/laravel-activitylog tenant-aware.)"
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -190,6 +204,7 @@
     "TenantManager dual-connection sync (pgsql + pgsql-rls) for RLS test enforcement",
     "MFA Superadmin (TOTP + Email code via Filament v5 built-in)",
     "Work Order Checklist (WorkOrderChecklistItem con status pending/done/ok/nok/na)",
+    "Audit Logs (spatie/laravel-activitylog tenant-aware)",
     "ADR 001: Multi-tenant architecture documented"
   ],
   "security_status": {
@@ -199,7 +214,7 @@
     "rls_gaps": [],
     "rls_fixed": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005"],
     "fix_priority": "none",
-    "audit_logs": "pending",
+    "audit_logs": "implemented",
     "rate_limiting": "pending",
     "connections": {
       "pgsql_sail": "app logic tests (BYPASSRLS=true, default connection)",
@@ -238,7 +253,6 @@
   },
     "next_actions": [
     "Facturación: API REST con rate limiting, versionado, API keys",
-    "Dashboard financiero con KPIs por tenant",
-    "Audit logs (Spatie Activitylog o similar)"
+    "Dashboard financiero con KPIs por tenant"
   ]
 }
