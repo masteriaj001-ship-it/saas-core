@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.4.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.5.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -102,9 +102,9 @@
 
 ## Test Suite
 
-- **Total tests:** 222
-- **Passing:** 222
-- **Assertions:** 587
+- **Total tests:** 230
+- **Passing:** 230
+- **Assertions:** 604
 - **Status:** green
 - **Last run:** 2026-06-17
 
@@ -137,6 +137,9 @@
 - Tenant suspension
 - Wizard de creación
 - Module activation system (tenant_modules + middleware module:{key})
+- Superadmin tenant context (SetTenantContext resuelve tenant para superadmin)
+- current_tenant_id_or_null() PG function con fallback NULL
+- TenantManager::withoutTenantContext() helper
 - ADR 001: Multi-tenant architecture documented
 
 ## Security Status
@@ -144,8 +147,8 @@
 - **mfa_superadmin:** pending
 - **rls_enabled:** gaps_documented_and_partially_fixed
 - **rls_audit_date:** 2026-06-17
-- **rls_gaps:** GAP-002, GAP-003, GAP-004, GAP-005
-- **rls_fixed:** GAP-001
+- **rls_gaps:** GAP-003, GAP-004
+- **rls_fixed:** GAP-001, GAP-002, GAP-005
 - **fix_priority:** before_deploy
 - **audit_logs:** pending
 - **rate_limiting:** pending
@@ -153,8 +156,8 @@
 
 ## Next Actions
 
-- [ ] Fix GAP-002: Superadmin tenant context (antes de deploy)
 - [ ] Fix GAP-003: Jobs tenant context (antes de jobs multi-tenant)
+- [ ] Fix GAP-004: RLS tests en isolation tests existentes
 - [ ] Activar MFA Superadmin (USR-001)
 - [ ] Completar checklist taller_workorders.yaml
 - [ ] Completar checklist taller_assets.yaml
