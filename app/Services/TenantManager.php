@@ -43,4 +43,19 @@ final class TenantManager
     {
         return $this->currentTenantId !== null;
     }
+
+    public function withoutTenantContext(callable $callback): mixed
+    {
+        $previousContext = $this->currentTenantId;
+
+        $this->clearTenantContext();
+
+        try {
+            return $callback();
+        } finally {
+            if ($previousContext !== null) {
+                $this->setTenantContext($previousContext);
+            }
+        }
+    }
 }

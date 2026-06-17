@@ -50,4 +50,9 @@ class CreateTenant extends CreateRecord
             return $tenant;
         });
     }
+
+    protected function afterCreate(): void
+    {
+        app(TenantManager::class)->clearTenantContext();
+    }
 }
