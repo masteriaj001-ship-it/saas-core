@@ -560,6 +560,27 @@ El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_ten
    TenantManager::clearTenantContext();
    ```
 
+### Reglas de disciplina para agentes (post-fix RLS 2026-06-17)
+
+6. **Antes de sobrescribir modelo existente**, ejecutar `git log --oneline app/Models/<Nombre>.php`. Si hay commits previos, hacer diff contra el original para no perder traits ni relaciones.
+
+7. **RLS testing requiere conexión dual.** `pgsql` (sail/BYPASSRLS=true) para lógica de aplicación. `pgsql-rls` (app_user/NOBYPASSRLS) para seguridad RLS. Nunca confiar en tests RLS sobre la conexión default.
+
+   ```php
+   // MAL — esto NO prueba RLS (usa sail/BYPASSRLS, pasa aunque RLS esté roto)
+   $this->assertDatabaseMissing('tenant_modules', [...]);
+
+   // BIEN — esto SÍ prueba RLS (usa app_user/NOBYPASSRLS)
+   $rows = DB::connection('pgsql-rls')->select(...);
+   $this->assertCount(0, $rows);
+   ```
+
+8. **Nombrado de test files.** `*AppScopeTest.php` = lógica de aplicación (conexión `pgsql`). `*RlsTest.php` = seguridad RLS (conexión `pgsql-rls`). La separación debe ser obvia desde el nombre del archivo.
+
+9. **RLS tests no son opcionales en CI.** `*RlsTest.php` y `RlsCrossTenantTest` corren en el pipeline. Excluirlos del pipeline rompe el contrato de seguridad silenciosamente.
+
+10. **¿Por qué no usar un solo usuario?** `sail` necesita `BYPASSRLS` para migraciones, seeders y limpieza de tests. Si `app_user` fuera default, los Feature tests normales fallarían sin contexto RLS configurado.
+
 ### Gaps documentados (no fixeados)
 
 | ID | Hallazgo | Fix requiere |

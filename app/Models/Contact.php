@@ -25,6 +25,8 @@ class Contact extends TenantModel
         'document_type',
         'document_number',
         'city',
+        'is_active',
+        'blocked_until',
     ];
 
     protected function casts(): array
@@ -32,6 +34,8 @@ class Contact extends TenantModel
         return array_merge(parent::casts(), [
             'metadata' => 'array',
             'document_type' => DocumentTypeEnum::class,
+            'is_active' => 'boolean',
+            'blocked_until' => 'datetime',
         ]);
     }
 
