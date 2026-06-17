@@ -7,6 +7,8 @@ use App\Http\Middleware\SetTenantContext;
 use App\Http\Middleware\VerifyTenantStatus;
 use App\Models\Tenant;
 use App\Modules\Talleres\Http\Pages\TallerOnboarding;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\Auth\MultiFactor\Email\EmailAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -67,6 +69,13 @@ class AdminPanelProvider extends PanelProvider
                 EnsureOnboardingIsCompleted::class,
                 VerifyTenantStatus::class,
             ], isPersistent: true)
+            ->multiFactorAuthentication(
+                providers: [
+                    AppAuthentication::make(),
+                    EmailAuthentication::make(),
+                ],
+                isRequired: false,
+            )
             ->authMiddleware([
                 Authenticate::class,
             ]);

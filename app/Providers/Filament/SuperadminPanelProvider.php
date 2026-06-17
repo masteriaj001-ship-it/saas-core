@@ -3,6 +3,8 @@
 namespace App\Providers\Filament;
 
 use App\Http\Middleware\EnsureIsSuperAdmin;
+use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\Auth\MultiFactor\Email\EmailAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -53,6 +55,13 @@ class SuperadminPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
+            ->multiFactorAuthentication(
+                providers: [
+                    AppAuthentication::make(),
+                    EmailAuthentication::make(),
+                ],
+                isRequired: true,
+            )
             ->authMiddleware([
                 Authenticate::class,
                 EnsureIsSuperAdmin::class,

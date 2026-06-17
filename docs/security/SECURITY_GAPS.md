@@ -171,3 +171,22 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 | ✅ Fix aplicado | GAP-004 | TenantManager sincroniza pgsql-rls (2026-06-17) |
 
 > **Nota:** Ningún fix se ejecutará sin autorización explícita de John ("APROBADO" literal). Fecha de próxima auditoría: 2026-09-01.
+
+---
+
+## USR-001: Multi-Factor Authentication para Superadmin (✅ IMPLEMENTADO 2026-06-17)
+
+**Contexto:** Superadmins tienen acceso irrestricto a todos los tenants. Una credencial comprometida sin 2FA puede bypassear todo el trabajo de RLS.
+
+**Implementación:** Usa el MFA incorporado de Filament v5 (TOTP via Google Authenticator + código por email).
+
+| Componente | Detalle |
+|---|---|
+| Interfaz `HasAppAuthentication` | `getAppAuthenticationSecret()`, `saveAppAuthenticationSecret()`, `getAppAuthenticationHolderName()` |
+| Interfaz `HasAppAuthenticationRecovery` | `getAppAuthenticationRecoveryCodes()`, `saveAppAuthenticationRecoveryCodes()` |
+| Interfaz `HasEmailAuthentication` | `hasEmailAuthentication()`, `toggleEmailAuthentication()` |
+| Almacenamiento | `two_factor_secret` encryptado via `Crypt`, `two_factor_recovery_codes` en JSON |
+| Superadmin panel | `multiFactorAuthentication(isRequired: true)` — forzoso |
+| Admin panel | `multiFactorAuthentication(isRequired: false)` — opcional |
+
+**Próximos pasos:** Configurar recovery email y políticas de reset de MFA para superadmin.
