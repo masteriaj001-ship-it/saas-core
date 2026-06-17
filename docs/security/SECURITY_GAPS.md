@@ -10,7 +10,7 @@
 |---|---|---|---|
 | GAP-001 | Usuario sail tiene BYPASSRLS = true | ✅ Fix aplicado | app_user con NOBYPASSRLS + conexión pgsql-rls |
 | GAP-002 | Superadmin no establece app.current_tenant_id | ✅ Fix aplicado | SetTenantContext resuelve tenant via Filament y setea contexto para superadmin |
-| GAP-003 | Jobs no establecen contexto de tenant | 🟡 Medio | Refactor de job dispatch |
+| GAP-003 | Jobs no establecen contexto de tenant | ✅ Fix aplicado | BelongsToTenantJob trait + SetTenantContextForJob middleware |
 | GAP-004 | Tests no ejercitan RLS real | 🟡 Medio | Agregar setTenantContext en setUp() |
 | GAP-005 | current_tenant_id() sin fallback | ✅ Fix aplicado | Migración 0000_00_00_000002: current_tenant_id_or_null() creada |
 
@@ -65,13 +65,37 @@ if ($user->is_superadmin) {
 
 ---
 
-## GAP-003: Jobs sin tenant context
+## GAP-003: Jobs sin tenant context (✅ FIX APLICADO 2026-06-17)
 
-**Hallazgo:** Jobs en cola no establecen `app.current_tenant_id`. El global scope de `BelongsToTenant` retorna sin filtrar si no hay contexto.
+**Hallazgo:** Jobs en cola no establecen `app.current_tenant_id`. El global scope de `BelongsToTenant` retorna sin filtrar si no hay contexto. Un job que procese datos de un tenant específico no tendría RLS ni scope activo.
 
-**Consecuencia:** Job con query directa sin `setTenantContext()` → RLS explota. Job con `withoutGlobalScope('tenant')` → expone datos de todos los tenants (si RLS está bypassed).
+**Fix aplicado:** Se crearon dos componentes que trabajan juntos:
 
-**Fix:** Establecer `TenantManager::setTenantContext()` al inicio de cada job, o usar conexión sin RLS para jobs multi-tenant.
+1. **`BelongsToTenantJob` trait** (`app/Models/Concerns/BelongsToTenantJob.php`): cualquier job que use este trait captura automáticamente el `tenantId` del contexto actual al momento del `dispatch`. Si no hay contexto, `tenantId` queda `null`.
+
+2. **`SetTenantContextForJob` middleware** (`app/Jobs/Middleware/SetTenantContextForJob.php`): middleware de cola que, antes del `handle()`, setea `app.current_tenant_id` si el job tiene `tenantId`. Después del `handle()`, siempre limpia el contexto para evitar contaminación entre jobs.
+
+**Uso desde código nuevo:**
+```php
+use App\Models\Concerns\BelongsToTenantJob;
+
+class ProcessSomethingJob implements ShouldQueue
+{
+    use BelongsToTenantJob, Dispatchable, InteractsWithQueue, SerializesModels;
+
+    public function handle(): void
+    {
+        // context ya seteado automáticamente
+        $this->someModel->update([...]);
+    }
+}
+```
+
+**Archivos creados:**
+- `app/Models/Concerns/BelongsToTenantJob.php` — Trait para jobs
+- `app/Jobs/Middleware/SetTenantContextForJob.php` — Middleware de cola
+- `tests/Doubles/Jobs/WithTenantContextJob.php` — Test double
+- `tests/Feature/Security/TenantJobContextAppScopeTest.php` — 4 tests
 
 ---
 
@@ -114,12 +138,17 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 - `tests/Feature/Security/RlsCrossTenantTest.php` — 3 passed, 2 skipped (GAP-001)
 - `tests/Feature/Security/SuperadminContextAppScopeTest.php` — 5 tests app-scope (GAP-002)
 - `tests/Feature/Security/SuperadminContextRlsTest.php` — 3 tests RLS (GAP-005)
+- `tests/Feature/Security/TenantJobContextAppScopeTest.php` — 4 tests (GAP-003)
+- `tests/Doubles/Jobs/WithTenantContextJob.php` — Test double para GAP-003
 - `database/migrations/0000_00_00_000001_create_current_tenant_id_function.php` — Función PostgreSQL original
 - `database/migrations/0000_00_00_000002_create_current_tenant_id_or_null_function.php` — Función con fallback NULL (GAP-005)
+- `app/Models/Concerns/BelongsToTenantJob.php` — Trait para jobs multi-tenant (GAP-003)
+- `app/Jobs/Middleware/SetTenantContextForJob.php` — Middleware de cola (GAP-003)
 - `app/Http/Middleware/SetTenantContext.php` — Middleware que establece contexto (GAP-002)
 - `app/Services/TenantManager.php` — Manager de contexto + withoutTenantContext()
 - `app/Models/Concerns/BelongsToTenant.php` — Trait con global scope
 - `app/Filament/Superadmin/Resources/TenantResource/Pages/CreateTenant.php` — afterCreate limpia contexto
+- `features/gap-003-tenant-job-context/FEATURE_SPEC.md` — Spec completo con deviations documentadas
 
 ---
 
@@ -130,7 +159,7 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 | ✅ Fix aplicado | GAP-001 | app_user con NOBYPASSRLS + pgsql-rls (2026-06-17) |
 | ✅ Fix aplicado | GAP-002 | SetTenantContext resuelve tenant para superadmin (2026-06-17) |
 | ✅ Fix aplicado | GAP-005 | current_tenant_id_or_null creada (2026-06-17) |
-| 🟡 Antes de jobs multi-tenant | GAP-003 | Refactor job dispatch |
+| ✅ Fix aplicado | GAP-003 | BelongsToTenantJob trait + SetTenantContextForJob middleware (2026-06-17) |
 | 🟡 Antes de migrar a RLS real | GAP-004 | Actualizar tests existentes |
 
 > **Nota:** Ningún fix se ejecutará sin autorización explícita de John ("APROBADO" literal). Fecha de próxima auditoría: 2026-09-01.
