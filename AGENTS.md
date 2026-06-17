@@ -486,6 +486,19 @@ Código legacy en `app/Models/` y `app/Services/` se migrará progresivamente.
 
 ## Protocolo de operación Agente ↔ John
 
+### Conventional Commits
+
+Los mensajes de commit deben seguir el formato:
+
+```
+tipo(alcance): descripción en inglés imperativo
+```
+
+Tipos permitidos: `feat`, `fix`, `chore`, `refactor`, `docs`, `test`, `style`, `perf`, `ci`.
+Alcance opcional pero recomendado (ej: `feat(location)`, `fix(workorder)`).
+
+Regla: si no podés describir el commit en una línea clara, es demasiado grande. Partilo en commits atómicos.
+
 ### Regla de plan + OK
 1. Antes de CUALQUIER cambio de código, el agente presenta un **Plan de Ejecución** con:
    - Archivos a modificar
