@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -100,16 +100,26 @@
         "10 tests PHPUnit (transiciones, SMS, legacy, RLS)"
       ],
       "notes": "FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. RLS en sms_codes. 222 tests total."
+    },
+    "tenant_job_context": {
+      "status": "implemented",
+      "last_check": "2026-06-17",
+      "features": [
+        "BelongsToTenantJob trait captura tenant_id al dispatch",
+        "SetTenantContextForJob middleware restaura contexto en queue worker",
+        "4 tests (dispatch con/sin contexto, middleware con/sin tenantId)"
+      ],
+      "notes": "GAP-003 fixeado. Proximo job multi-tenant SOLO necesita usar BelongsToTenantJob trait."
     }
   },
   "test_suite": {
-    "total_tests": 230,
-    "passing": 230,
+    "total_tests": 234,
+    "passing": 234,
     "skipped": 0,
-    "assertions": 604,
+    "assertions": 610,
     "status": "green",
     "last_run": "2026-06-17",
-    "note": "230 tests total (GAP-002: +8 tests SuperadminContext. GAP-002 y GAP-005 fixeados.)"
+    "note": "234 tests total (GAP-003: +4 tests TenantJobContext. GAP-003 fixeado.)"
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -141,14 +151,15 @@
     "Superadmin tenant context (SetTenantContext resuelve tenant para superadmin)",
     "current_tenant_id_or_null() PG function con fallback NULL",
     "TenantManager::withoutTenantContext() helper",
+    "BelongsToTenantJob trait + SetTenantContextForJob middleware (queue tenant context)",
     "ADR 001: Multi-tenant architecture documented"
   ],
   "security_status": {
     "mfa_superadmin": "pending",
     "rls_enabled": "gaps_documented_and_partially_fixed",
     "rls_audit_date": "2026-06-17",
-    "rls_gaps": ["GAP-003", "GAP-004"],
-    "rls_fixed": ["GAP-001", "GAP-002", "GAP-005"],
+    "rls_gaps": ["GAP-004"],
+    "rls_fixed": ["GAP-001", "GAP-002", "GAP-003", "GAP-005"],
     "fix_priority": "before_deploy",
     "audit_logs": "pending",
     "rate_limiting": "pending",
@@ -188,7 +199,6 @@
     "gate_3": "0 tests rojos → commit"
   },
     "next_actions": [
-    "Fix GAP-003: Jobs tenant context (antes de jobs multi-tenant)",
     "Fix GAP-004: RLS tests en isolation tests existentes",
     "Activar MFA Superadmin (USR-001)",
     "Completar checklist taller_workorders.yaml",

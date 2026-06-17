@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.5.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.6.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -100,11 +100,21 @@
   - 10 tests PHPUnit (transiciones, SMS, legacy, RLS)
 - **Notes:** FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. RLS en sms_codes. 222 tests total.
 
+### tenant_job_context
+
+- **Status:** implemented
+- **Last check:** 2026-06-17
+- **Features:**
+  - BelongsToTenantJob trait captura tenant_id al dispatch
+  - SetTenantContextForJob middleware restaura contexto en queue worker
+  - 4 tests (dispatch con/sin contexto, middleware con/sin tenantId)
+- **Notes:** GAP-003 fixeado. Proximo job multi-tenant SOLO necesita usar BelongsToTenantJob trait.
+
 ## Test Suite
 
-- **Total tests:** 230
-- **Passing:** 230
-- **Assertions:** 604
+- **Total tests:** 234
+- **Passing:** 234
+- **Assertions:** 610
 - **Status:** green
 - **Last run:** 2026-06-17
 
@@ -140,6 +150,7 @@
 - Superadmin tenant context (SetTenantContext resuelve tenant para superadmin)
 - current_tenant_id_or_null() PG function con fallback NULL
 - TenantManager::withoutTenantContext() helper
+- BelongsToTenantJob trait + SetTenantContextForJob middleware (queue tenant context)
 - ADR 001: Multi-tenant architecture documented
 
 ## Security Status
@@ -147,8 +158,8 @@
 - **mfa_superadmin:** pending
 - **rls_enabled:** gaps_documented_and_partially_fixed
 - **rls_audit_date:** 2026-06-17
-- **rls_gaps:** GAP-003, GAP-004
-- **rls_fixed:** GAP-001, GAP-002, GAP-005
+- **rls_gaps:** GAP-004
+- **rls_fixed:** GAP-001, GAP-002, GAP-003, GAP-005
 - **fix_priority:** before_deploy
 - **audit_logs:** pending
 - **rate_limiting:** pending
@@ -156,7 +167,6 @@
 
 ## Next Actions
 
-- [ ] Fix GAP-003: Jobs tenant context (antes de jobs multi-tenant)
 - [ ] Fix GAP-004: RLS tests en isolation tests existentes
 - [ ] Activar MFA Superadmin (USR-001)
 - [ ] Completar checklist taller_workorders.yaml
