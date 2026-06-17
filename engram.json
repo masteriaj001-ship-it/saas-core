@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -109,7 +109,7 @@
     "assertions": 587,
     "status": "green",
     "last_run": "2026-06-17",
-    "note": "212 + 10 WorkOrderClosureTest = 222. WorkOrderStatusEnum extendido con 5 nuevos estados."
+    "note": "222 tests total (incl. WorkOrderClosureTest, TenantModuleAppScopeTest, TenantModuleRlsTest). WorkOrderStatusEnum 5 nuevos estados."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,

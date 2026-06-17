@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.3.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.4.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
