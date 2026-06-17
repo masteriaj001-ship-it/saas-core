@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.8.0",
+  "version": "1.9.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -133,16 +133,28 @@
         "5 tests (secret storage, recovery codes, TOTP verification, holder name, confirmation)"
       ],
       "notes": "USR-001 completado. Filament v5 built-in MFA (pragmarx/google2fa). TOTP codes generados programaticamente en tests."
+    },
+    "workorder_checklist": {
+      "status": "implemented",
+      "last_check": "2026-06-17",
+      "features": [
+        "WorkOrderChecklistItem model con BelongsToTenant, SoftDeletes, HasUuids",
+        "WorkOrderChecklistStatusEnum: pending/done/ok/nok/na con labels y colores",
+        "WorkOrder::checklistItems() HasMany ordered by position",
+        "ChecklistRelationManager (CRUD inline en WorkOrder Edit)",
+        "10 tests (5 app-scope + 5 RLS)"
+      ],
+      "notes": "Cierra vertical Talleres. Done=ejecutado (mecanico), Ok/Nok=revision calidad (supervisor). SoftDeletes evita cascade en soft delete (forceDelete si requiere cascade fisico)."
     }
   },
   "test_suite": {
-    "total_tests": 240,
-    "passing": 240,
+    "total_tests": 250,
+    "passing": 250,
     "skipped": 0,
-    "assertions": 620,
+    "assertions": 636,
     "status": "green",
     "last_run": "2026-06-17",
-    "note": "240 tests total (MFA: +5 tests SuperadminMfa. MFA requerido para superadmin.)"
+    "note": "250 tests total (WorkOrderChecklist: +10 tests. Checklist reactiva por estado para Work Orders.)"
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -177,6 +189,7 @@
     "BelongsToTenantJob trait + SetTenantContextForJob middleware (queue tenant context)",
     "TenantManager dual-connection sync (pgsql + pgsql-rls) for RLS test enforcement",
     "MFA Superadmin (TOTP + Email code via Filament v5 built-in)",
+    "Work Order Checklist (WorkOrderChecklistItem con status pending/done/ok/nok/na)",
     "ADR 001: Multi-tenant architecture documented"
   ],
   "security_status": {
@@ -224,10 +237,8 @@
     "gate_3": "0 tests rojos → commit"
   },
     "next_actions": [
-    "Completar checklist taller_workorders.yaml",
-    "Completar checklist taller_assets.yaml",
-    "Completar checklist taller_transactions.yaml",
-    "Completar Work Orders (UC-01 a UC-04)",
-    "Completar Facturación (Http/Controllers, vistas, docs)"
+    "Facturación: API REST con rate limiting, versionado, API keys",
+    "Dashboard financiero con KPIs por tenant",
+    "Audit logs (Spatie Activitylog o similar)"
   ]
 }

@@ -116,6 +116,11 @@ class WorkOrder extends TenantModel
         return $this->hasMany(WorkOrderInspection::class)->orderBy('sort_order');
     }
 
+    public function checklistItems(): HasMany
+    {
+        return $this->hasMany(WorkOrderChecklistItem::class)->orderBy('position');
+    }
+
     public function media(): HasMany
     {
         return $this->hasMany(WorkOrderMedia::class)->orderBy('created_at', 'desc');

@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.8.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.9.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -133,11 +133,23 @@
   - 5 tests (secret storage, recovery codes, TOTP verification, holder name, confirmation)
 - **Notes:** USR-001 completado. Filament v5 built-in MFA (pragmarx/google2fa). TOTP codes generados programaticamente en tests.
 
+### workorder_checklist
+
+- **Status:** implemented
+- **Last check:** 2026-06-17
+- **Features:**
+  - WorkOrderChecklistItem model con BelongsToTenant, SoftDeletes, HasUuids
+  - WorkOrderChecklistStatusEnum: pending/done/ok/nok/na con labels y colores
+  - WorkOrder::checklistItems() HasMany ordered by position
+  - ChecklistRelationManager (CRUD inline en WorkOrder Edit)
+  - 10 tests (5 app-scope + 5 RLS)
+- **Notes:** Cierra vertical Talleres. Done=ejecutado (mecanico), Ok/Nok=revision calidad (supervisor). SoftDeletes evita cascade en soft delete (forceDelete si requiere cascade fisico).
+
 ## Test Suite
 
-- **Total tests:** 240
-- **Passing:** 240
-- **Assertions:** 620
+- **Total tests:** 250
+- **Passing:** 250
+- **Assertions:** 636
 - **Status:** green
 - **Last run:** 2026-06-17
 
@@ -176,6 +188,7 @@
 - BelongsToTenantJob trait + SetTenantContextForJob middleware (queue tenant context)
 - TenantManager dual-connection sync (pgsql + pgsql-rls) for RLS test enforcement
 - MFA Superadmin (TOTP + Email code via Filament v5 built-in)
+- Work Order Checklist (WorkOrderChecklistItem con status pending/done/ok/nok/na)
 - ADR 001: Multi-tenant architecture documented
 
 ## Security Status
@@ -192,11 +205,9 @@
 
 ## Next Actions
 
-- [ ] Completar checklist taller_workorders.yaml
-- [ ] Completar checklist taller_assets.yaml
-- [ ] Completar checklist taller_transactions.yaml
-- [ ] Completar Work Orders (UC-01 a UC-04)
-- [ ] Completar Facturación (Http/Controllers, vistas, docs)
+- [ ] Facturación: API REST con rate limiting, versionado, API keys
+- [ ] Dashboard financiero con KPIs por tenant
+- [ ] Audit logs (Spatie Activitylog o similar)
 
 ---
 
