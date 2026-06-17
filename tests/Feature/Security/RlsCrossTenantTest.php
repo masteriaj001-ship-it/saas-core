@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Modules\Talleres\Models\Asset;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class RlsCrossTenantTest extends TestCase
@@ -44,12 +45,19 @@ class RlsCrossTenantTest extends TestCase
 
     public function test_sin_tenant_context_rls_bloquea_todo(): void
     {
-        $this->markTestSkipped('GAP-001: requires NOBYPASSRLS user');
+        $this->expectExceptionMessageMatches('/tenant_context_missing|P0001/');
+
+        DB::connection('pgsql-rls')->select('SELECT current_tenant_id()');
     }
 
     public function test_superadmin_sin_contexto_no_puede_query_directa(): void
     {
-        $this->markTestSkipped('GAP-001: requires NOBYPASSRLS user');
+        $this->expectExceptionMessageMatches('/tenant_context_missing|P0001/');
+
+        DB::connection('pgsql-rls')
+            ->table(Asset::make()->getTable())
+            ->select('*')
+            ->get();
     }
 
     public function test_eloquent_scope_protege_sin_rls(): void

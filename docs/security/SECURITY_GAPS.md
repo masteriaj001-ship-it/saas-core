@@ -8,7 +8,7 @@
 
 | ID | Hallazgo | Severidad | Fix requiere |
 |---|---|---|---|
-| GAP-001 | Usuario sail tiene BYPASSRLS = true | 🔴 Alto | Crear app_user con NOBYPASSRLS |
+| GAP-001 | Usuario sail tiene BYPASSRLS = true | ✅ Fix aplicado | app_user con NOBYPASSRLS + conexión pgsql-rls |
 | GAP-002 | Superadmin no establece app.current_tenant_id | 🟡 Medio | Arquitectura de conexión dual o contexto especial |
 | GAP-003 | Jobs no establecen contexto de tenant | 🟡 Medio | Refactor de job dispatch |
 | GAP-004 | Tests no ejercitan RLS real | 🟡 Medio | Agregar setTenantContext en setUp() |
@@ -25,9 +25,9 @@ SELECT rolname, rolbypassrls FROM pg_roles WHERE rolname = 'sail';
 ```
 El usuario `sail` (desarrollo) tiene `BYPASSRLS = true`. RLS está habilitado en tablas pero ignorado completamente por la conexión actual.
 
-**Consecuencia:** Tests que verifican "tenant A no ve datos de B" solo prueban el global scope de Eloquent (`BelongsToTenant`), no la capa RLS de PostgreSQL. Los tests `RlsCrossTenantTest` tests 2 y 3 están SKIPPED con `markTestSkipped('GAP-001: requires NOBYPASSRLS user')`.
+**Consecuencia:** Tests que verifican "tenant A no ve datos de B" solo prueban el global scope de Eloquent (`BelongsToTenant`), no la capa RLS de PostgreSQL. Los tests `RlsCrossTenantTest` tests 2 y 3 estaban SKIPPED.
 
-**Fix:** Crear usuario `app_user` con `NOBYPASSRLS` y migrar conexión Laravel a ese usuario.
+**Fix aplicado (2026-06-17):** Migración `2026_06_17_151704_create_app_user_role` creó usuario `app_user` con `NOBYPASSRLS`. Conexión `pgsql-rls` en `config/database.php`. Tests 2 y 3 de `RlsCrossTenantTest` ahora ejercitan RLS real. Tests 1, 4, 5 existentes usan usuario `sail` (BYPASSRLS) para probar Eloquent scope.
 
 ---
 
@@ -99,7 +99,7 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 
 | Prioridad | GAP | Requisito |
 |---|---|---|
-| 🔴 Antes de deploy | GAP-001 | Crear app_user con NOBYPASSRLS |
+| ✅ Fix aplicado | GAP-001 | app_user con NOBYPASSRLS + pgsql-rls (2026-06-17) |
 | 🟡 Antes de jobs multi-tenant | GAP-003 | Refactor job dispatch |
 | 🟡 Antes de superadmin con queries directas | GAP-002 | Arquitectura de conexión dual |
 | 🟡 Antes de migrar a RLS real | GAP-004 | Actualizar tests existentes |

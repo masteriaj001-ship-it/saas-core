@@ -99,6 +99,21 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        'pgsql-rls' => [
+            'driver' => 'pgsql',
+            'url' => env('DB_RLS_URL'),
+            'host' => env('DB_RLS_HOST', env('DB_HOST', '127.0.0.1')),
+            'port' => env('DB_RLS_PORT', env('DB_PORT', '5432')),
+            'database' => env('DB_RLS_DATABASE', env('DB_DATABASE', 'laravel')),
+            'username' => env('DB_RLS_USERNAME', 'app_user'),
+            'password' => env('DB_RLS_PASSWORD', env('APP_USER_PASSWORD', 'secret')),
+            'charset' => env('DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => 'public',
+            'sslmode' => env('DB_SSLMODE', 'prefer'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL'),

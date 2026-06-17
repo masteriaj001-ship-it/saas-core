@@ -68,6 +68,17 @@ class WorkOrderResource extends Resource
                     Select::make('contact_id')
                         ->label('Cliente')
                         ->searchable()
+                        ->createOptionForm([
+                            TextInput::make('name')
+                                ->label(__('Nombre'))
+                                ->required()
+                                ->maxLength(255),
+                            TextInput::make('phone')
+                                ->label(__('Teléfono')),
+                        ])
+                        ->createOptionUsing(function (array $data): ?string {
+                            return Contact::query()->tenant()->create($data)?->id;
+                        })
                         ->getSearchResultsUsing(function (string $search): array {
                             return Contact::query()
                                 ->tenant()
@@ -89,6 +100,21 @@ class WorkOrderResource extends Resource
                     Select::make('asset_id')
                         ->label('Vehículo')
                         ->searchable()
+                        ->createOptionForm([
+                            TextInput::make('name')
+                                ->label(__('Nombre'))
+                                ->required()
+                                ->maxLength(255),
+                            TextInput::make('plate')
+                                ->label(__('Placa')),
+                            TextInput::make('brand')
+                                ->label(__('Marca')),
+                            TextInput::make('model')
+                                ->label(__('Modelo')),
+                        ])
+                        ->createOptionUsing(function (array $data): ?string {
+                            return Asset::query()->tenant()->create($data)?->id;
+                        })
                         ->getSearchResultsUsing(function (string $search): array {
                             return Asset::query()
                                 ->tenant()
