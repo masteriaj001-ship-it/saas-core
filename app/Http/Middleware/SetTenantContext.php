@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace App\Http\Middleware;
 
 use App\Services\TenantManager;
+use Filament\Facades\Filament;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
-final class SetTenantContext
+class SetTenantContext
 {
     public function __construct(
         private readonly TenantManager $tenantManager
@@ -24,10 +26,16 @@ final class SetTenantContext
         $user = Auth::user();
 
         if ($user->is_superadmin) {
+            $tenant = $this->resolveTenant();
+
+            if ($tenant !== null) {
+                $this->tenantManager->setTenantContext((string) $tenant->id);
+            }
+
             return $next($request);
         }
 
-        $tenantId = Auth::user()->fresh()->tenant_id;
+        $tenantId = $user->fresh()->tenant_id;
 
         if (empty($tenantId)) {
             abort(403, 'User has no tenant assignment.');
@@ -36,5 +44,10 @@ final class SetTenantContext
         $this->tenantManager->setTenantContext((string) $tenantId);
 
         return $next($request);
+    }
+
+    protected function resolveTenant(): ?Model
+    {
+        return Filament::getTenant();
     }
 }

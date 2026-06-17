@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -103,13 +103,13 @@
     }
   },
   "test_suite": {
-    "total_tests": 222,
-    "passing": 222,
+    "total_tests": 230,
+    "passing": 230,
     "skipped": 0,
-    "assertions": 587,
+    "assertions": 604,
     "status": "green",
     "last_run": "2026-06-17",
-    "note": "222 tests total (incl. WorkOrderClosureTest, TenantModuleAppScopeTest, TenantModuleRlsTest). WorkOrderStatusEnum 5 nuevos estados."
+    "note": "230 tests total (GAP-002: +8 tests SuperadminContext. GAP-002 y GAP-005 fixeados.)"
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -138,14 +138,17 @@
     "Tenant suspension",
     "Wizard de creación",
     "Module activation system (tenant_modules + middleware module:{key})",
+    "Superadmin tenant context (SetTenantContext resuelve tenant para superadmin)",
+    "current_tenant_id_or_null() PG function con fallback NULL",
+    "TenantManager::withoutTenantContext() helper",
     "ADR 001: Multi-tenant architecture documented"
   ],
   "security_status": {
     "mfa_superadmin": "pending",
     "rls_enabled": "gaps_documented_and_partially_fixed",
     "rls_audit_date": "2026-06-17",
-    "rls_gaps": ["GAP-002", "GAP-003", "GAP-004", "GAP-005"],
-    "rls_fixed": ["GAP-001"],
+    "rls_gaps": ["GAP-003", "GAP-004"],
+    "rls_fixed": ["GAP-001", "GAP-002", "GAP-005"],
     "fix_priority": "before_deploy",
     "audit_logs": "pending",
     "rate_limiting": "pending",
@@ -184,9 +187,9 @@
     "development_order": ["Test", "Docs", "Code", "Report", "Update FEATURE_SPEC"],
     "gate_3": "0 tests rojos → commit"
   },
-  "next_actions": [
-    "Fix GAP-002: Superadmin tenant context (antes de deploy)",
+    "next_actions": [
     "Fix GAP-003: Jobs tenant context (antes de jobs multi-tenant)",
+    "Fix GAP-004: RLS tests en isolation tests existentes",
     "Activar MFA Superadmin (USR-001)",
     "Completar checklist taller_workorders.yaml",
     "Completar checklist taller_assets.yaml",

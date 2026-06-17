@@ -9,10 +9,10 @@
 | ID | Hallazgo | Severidad | Fix requiere |
 |---|---|---|---|
 | GAP-001 | Usuario sail tiene BYPASSRLS = true | ✅ Fix aplicado | app_user con NOBYPASSRLS + conexión pgsql-rls |
-| GAP-002 | Superadmin no establece app.current_tenant_id | 🟡 Medio | Arquitectura de conexión dual o contexto especial |
+| GAP-002 | Superadmin no establece app.current_tenant_id | ✅ Fix aplicado | SetTenantContext resuelve tenant via Filament y setea contexto para superadmin |
 | GAP-003 | Jobs no establecen contexto de tenant | 🟡 Medio | Refactor de job dispatch |
 | GAP-004 | Tests no ejercitan RLS real | 🟡 Medio | Agregar setTenantContext en setUp() |
-| GAP-005 | current_tenant_id() sin fallback | 🟡 Medio | Crear current_tenant_id_or_null() para operaciones globales |
+| GAP-005 | current_tenant_id() sin fallback | ✅ Fix aplicado | Migración 0000_00_00_000002: current_tenant_id_or_null() creada |
 
 ---
 
@@ -31,19 +31,37 @@ El usuario `sail` (desarrollo) tiene `BYPASSRLS = true`. RLS está habilitado en
 
 ---
 
-## GAP-002: Superadmin sin tenant context
+## GAP-002: Superadmin sin tenant context (✅ FIX APLICADO 2026-06-17)
 
-**Hallazgo:** El middleware `SetTenantContext` omite superadmin:
+**Hallazgo:** El middleware `SetTenantContext` omitía superadmin completamente:
 ```php
+// Antes
 if ($user->is_superadmin) {
     return $next($request);
 }
 ```
-Superadmin nunca establece `app.current_tenant_id`.
 
-**Consecuencia:** Superadmin que use query directa (`DB::select`, `DB::table`) sin Eloquent scope → RLS lanza excepción `tenant_context_missing`.
+**Fix aplicado:** Cuando el usuario es superadmin y Filament tiene un tenant resuelto (panel `/admin/{tenant:slug}`), el middleware establece `app.current_tenant_id` a ese tenant. Si no hay tenant resuelto (panel `/superadmin`, API, comandos), mantiene el comportamiento de omitir contexto — correcto para operaciones globales.
 
-**Fix:** Opción A: establecer `app.current_tenant_id` para superadmin con valor especial. Opción B: conexión separada sin RLS para superadmin.
+```php
+// Después
+if ($user->is_superadmin) {
+    $tenant = $this->resolveTenant(); // Filament::getTenant()
+    if ($tenant !== null) {
+        $this->tenantManager->setTenantContext((string) $tenant->id);
+    }
+    return $next($request);
+}
+```
+
+**Complemento:** Se agregó `TenantManager::withoutTenantContext(callable)` para operaciones que necesitan limpiar contexto temporalmente sin el patrón frágil manual clear/set.
+
+**Archivos modificados:**
+- `app/Http/Middleware/SetTenantContext.php` — Lógica de superadmin con tenant resoluble
+- `app/Services/TenantManager.php` — Método `withoutTenantContext()`
+- `app/Filament/Superadmin/Resources/TenantResource/Pages/CreateTenant.php` — `afterCreate()` limpia contexto
+
+**Tests:** 8 tests (5 app-scope + 3 RLS) en `tests/Feature/Security/SuperadminContext*Test.php`.
 
 ---
 
@@ -67,7 +85,7 @@ Superadmin nunca establece `app.current_tenant_id`.
 
 ---
 
-## GAP-005: Función current_tenant_id() sin fallback
+## GAP-005: Función current_tenant_id() sin fallback (✅ FIX APLICADO 2026-06-17)
 
 **Hallazgo:**
 ```sql
@@ -80,7 +98,13 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 
 **Consecuencia:** Migraciones, seeders, y operaciones de superadmin sin contexto fallan con excepción.
 
-**Fix:** Crear función `current_tenant_id_or_null()` para operaciones que permiten NULL, y modificar policies para manejar NULL explícitamente donde tenga sentido.
+**Fix aplicado:** Migración `0000_00_00_000002_create_current_tenant_id_or_null_function` creó `current_tenant_id_or_null()` que retorna `NULL` en vez de lanzar excepción cuando no hay contexto. Usa `EXCEPTION WHEN OTHERS THEN RETURN NULL` para falla silenciosa.
+
+⚠️ **ADVERTENCIA:** Esta función NO debe reemplazar `current_tenant_id()` en políticas RLS existentes. Es paralela, para uso exclusivo en contextos donde NULL es válido (superadmin, jobs globales, seeders). Usarla en una policy RLS de datos multi-tenant desactiva el aislamiento silenciosamente.
+
+**Archivos:**
+- `database/migrations/0000_00_00_000002_create_current_tenant_id_or_null_function.php`
+- Tests en `SuperadminContextRlsTest` (3 tests: null sin contexto, UUID con contexto, current_tenant_id sigue lanzando)
 
 ---
 
@@ -88,10 +112,14 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 
 - `AGENTS.md` — Sección "RLS Awareness & Security Gaps" con reglas para código nuevo
 - `tests/Feature/Security/RlsCrossTenantTest.php` — 3 passed, 2 skipped (GAP-001)
-- `database/migrations/0000_00_00_000001_create_current_tenant_id_function.php` — Función PostgreSQL
-- `app/Http/Middleware/SetTenantContext.php` — Middleware que establece contexto
-- `app/Services/TenantManager.php` — Manager de contexto
+- `tests/Feature/Security/SuperadminContextAppScopeTest.php` — 5 tests app-scope (GAP-002)
+- `tests/Feature/Security/SuperadminContextRlsTest.php` — 3 tests RLS (GAP-005)
+- `database/migrations/0000_00_00_000001_create_current_tenant_id_function.php` — Función PostgreSQL original
+- `database/migrations/0000_00_00_000002_create_current_tenant_id_or_null_function.php` — Función con fallback NULL (GAP-005)
+- `app/Http/Middleware/SetTenantContext.php` — Middleware que establece contexto (GAP-002)
+- `app/Services/TenantManager.php` — Manager de contexto + withoutTenantContext()
 - `app/Models/Concerns/BelongsToTenant.php` — Trait con global scope
+- `app/Filament/Superadmin/Resources/TenantResource/Pages/CreateTenant.php` — afterCreate limpia contexto
 
 ---
 
@@ -100,9 +128,9 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 | Prioridad | GAP | Requisito |
 |---|---|---|
 | ✅ Fix aplicado | GAP-001 | app_user con NOBYPASSRLS + pgsql-rls (2026-06-17) |
+| ✅ Fix aplicado | GAP-002 | SetTenantContext resuelve tenant para superadmin (2026-06-17) |
+| ✅ Fix aplicado | GAP-005 | current_tenant_id_or_null creada (2026-06-17) |
 | 🟡 Antes de jobs multi-tenant | GAP-003 | Refactor job dispatch |
-| 🟡 Antes de superadmin con queries directas | GAP-002 | Arquitectura de conexión dual |
 | 🟡 Antes de migrar a RLS real | GAP-004 | Actualizar tests existentes |
-| 🟡 Mejora continua | GAP-005 | Función con fallback |
 
 > **Nota:** Ningún fix se ejecutará sin autorización explícita de John ("APROBADO" literal). Fecha de próxima auditoría: 2026-09-01.
