@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.6.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.7.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -110,11 +110,22 @@
   - 4 tests (dispatch con/sin contexto, middleware con/sin tenantId)
 - **Notes:** GAP-003 fixeado. Proximo job multi-tenant SOLO necesita usar BelongsToTenantJob trait.
 
+### rls_test_enforcement
+
+- **Status:** implemented
+- **Last check:** 2026-06-17
+- **Features:**
+  - TenantManager.setTenantContext/clearTenantContext sincronizan pgsql-rls
+  - Helpers duplicados setRlsContext/clearRlsContext eliminados de 2 test files
+  - Sync test verifica ambas conexiones tienen mismo contexto
+  - 5/5 gaps RLS fixeados — arquitectura sellada
+- **Notes:** GAP-004 fixeado. Production impact: zero (pgsql-rls solo existe en test). 235 tests.
+
 ## Test Suite
 
-- **Total tests:** 234
-- **Passing:** 234
-- **Assertions:** 610
+- **Total tests:** 235
+- **Passing:** 235
+- **Assertions:** 612
 - **Status:** green
 - **Last run:** 2026-06-17
 
@@ -151,23 +162,23 @@
 - current_tenant_id_or_null() PG function con fallback NULL
 - TenantManager::withoutTenantContext() helper
 - BelongsToTenantJob trait + SetTenantContextForJob middleware (queue tenant context)
+- TenantManager dual-connection sync (pgsql + pgsql-rls) for RLS test enforcement
 - ADR 001: Multi-tenant architecture documented
 
 ## Security Status
 
 - **mfa_superadmin:** pending
-- **rls_enabled:** gaps_documented_and_partially_fixed
+- **rls_enabled:** verified_5of5_fixed
 - **rls_audit_date:** 2026-06-17
-- **rls_gaps:** GAP-004
-- **rls_fixed:** GAP-001, GAP-002, GAP-003, GAP-005
-- **fix_priority:** before_deploy
+- **rls_gaps:** 
+- **rls_fixed:** GAP-001, GAP-002, GAP-003, GAP-004, GAP-005
+- **fix_priority:** none
 - **audit_logs:** pending
 - **rate_limiting:** pending
 - **connections:** app logic tests (BYPASSRLS=true, default connection), security integration tests (NOBYPASSRLS, app_user)
 
 ## Next Actions
 
-- [ ] Fix GAP-004: RLS tests en isolation tests existentes
 - [ ] Activar MFA Superadmin (USR-001)
 - [ ] Completar checklist taller_workorders.yaml
 - [ ] Completar checklist taller_assets.yaml

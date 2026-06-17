@@ -23,6 +23,13 @@ final class TenantManager
             [$tenantId]
         );
 
+        if (config('database.connections.pgsql-rls')) {
+            DB::connection('pgsql-rls')->statement(
+                "SELECT set_config('app.current_tenant_id', ?, false)",
+                [$tenantId]
+            );
+        }
+
         $this->currentTenantId = $tenantId;
     }
 
@@ -31,6 +38,13 @@ final class TenantManager
         DB::statement(
             "SELECT set_config('app.current_tenant_id', '', false)"
         );
+
+        if (config('database.connections.pgsql-rls')) {
+            DB::connection('pgsql-rls')->statement(
+                "SELECT set_config('app.current_tenant_id', '', false)"
+            );
+        }
+
         $this->currentTenantId = null;
     }
 

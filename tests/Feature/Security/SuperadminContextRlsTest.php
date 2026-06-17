@@ -46,24 +46,15 @@ final class SuperadminContextRlsTest extends TestCase
         $this->tenantB = Tenant::factory()->create(['name' => 'RLS Tenant B']);
     }
 
-    private function setRlsContext(string $tenantId): void
+    protected function tearDown(): void
     {
-        DB::connection('pgsql-rls')->statement(
-            "SELECT set_config('app.current_tenant_id', ?, false)",
-            [$tenantId]
-        );
-    }
-
-    private function clearRlsContext(): void
-    {
-        DB::connection('pgsql-rls')->statement(
-            "SELECT set_config('app.current_tenant_id', '', false)"
-        );
+        $this->tenantManager->clearTenantContext();
+        parent::tearDown();
     }
 
     public function test_current_tenant_id_or_null_returns_null_without_context(): void
     {
-        $this->clearRlsContext();
+        $this->tenantManager->clearTenantContext();
 
         $result = DB::connection('pgsql-rls')->selectOne(
             'SELECT public.current_tenant_id_or_null() AS tenant_id'
@@ -74,7 +65,7 @@ final class SuperadminContextRlsTest extends TestCase
 
     public function test_current_tenant_id_or_null_returns_id_with_context(): void
     {
-        $this->setRlsContext($this->tenantA->id);
+        $this->tenantManager->setTenantContext($this->tenantA->id);
 
         $result = DB::connection('pgsql-rls')->selectOne(
             'SELECT public.current_tenant_id_or_null() AS tenant_id'
@@ -86,13 +77,11 @@ final class SuperadminContextRlsTest extends TestCase
             $result->tenant_id,
             'Should return the correct tenant UUID.'
         );
-
-        $this->clearRlsContext();
     }
 
     public function test_current_tenant_id_still_throws_without_context(): void
     {
-        $this->clearRlsContext();
+        $this->tenantManager->clearTenantContext();
 
         $this->expectExceptionMessageMatches(
             '/tenant_context_missing|P0001/'
@@ -100,6 +89,22 @@ final class SuperadminContextRlsTest extends TestCase
 
         DB::connection('pgsql-rls')->selectOne(
             'SELECT public.current_tenant_id()'
+        );
+    }
+
+    public function test_set_context_syncs_both_connections(): void
+    {
+        $this->tenantManager->setTenantContext($this->tenantA->id);
+
+        $rlsResult = DB::connection('pgsql-rls')->selectOne(
+            'SELECT public.current_tenant_id() AS tenant_id'
+        );
+
+        $this->assertNotNull($rlsResult->tenant_id);
+        $this->assertEquals(
+            $this->tenantA->id,
+            $rlsResult->tenant_id,
+            'pgsql-rls connection should have the same tenant context as the default connection.'
         );
     }
 }

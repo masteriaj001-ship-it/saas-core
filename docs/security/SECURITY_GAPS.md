@@ -11,7 +11,7 @@
 | GAP-001 | Usuario sail tiene BYPASSRLS = true | ✅ Fix aplicado | app_user con NOBYPASSRLS + conexión pgsql-rls |
 | GAP-002 | Superadmin no establece app.current_tenant_id | ✅ Fix aplicado | SetTenantContext resuelve tenant via Filament y setea contexto para superadmin |
 | GAP-003 | Jobs no establecen contexto de tenant | ✅ Fix aplicado | BelongsToTenantJob trait + SetTenantContextForJob middleware |
-| GAP-004 | Tests no ejercitan RLS real | 🟡 Medio | Agregar setTenantContext en setUp() |
+| GAP-004 | Tests no ejercitan RLS real | ✅ Fix aplicado | TenantManager sincroniza pgsql-rls automáticamente |
 | GAP-005 | current_tenant_id() sin fallback | ✅ Fix aplicado | Migración 0000_00_00_000002: current_tenant_id_or_null() creada |
 
 ---
@@ -99,13 +99,21 @@ class ProcessSomethingJob implements ShouldQueue
 
 ---
 
-## GAP-004: Tests no ejercitan RLS real
+## GAP-004: Tests no ejercitan RLS real (✅ FIX APLICADO 2026-06-17)
 
-**Hallazgo:** Los tests de tenant isolation (`TallerTenantIsolationTest`, `WorkOrderTenantIsolationTest`) nunca llaman `TenantManager::setTenantContext()`. Solo verifican el Eloquent scope.
+**Hallazgo:** `TenantManager::setTenantContext()` solo seteaba `app.current_tenant_id` en la conexión `pgsql` (usuario `sail`, `BYPASSRLS=true`). La conexión `pgsql-rls` (`app_user`, `NOBYPASSRLS`) nunca recibía el contexto. Los tests RLS duplicaban la lógica con helpers privados `setRlsContext()` / `clearRlsContext()`.
 
-**Consecuencia:** Si se migra a usuario con `NOBYPASSRLS`, tests pueden fallar masivamente.
+**Consecuencia:** Los cientos de tests existentes que llaman `setTenantContext()` solo probaban el Eloquent scope, no PostgreSQL RLS real.
 
-**Fix:** Agregar `TenantManager::setTenantContext($tenant->id)` en `setUp()` de tests de tenant isolation. Los tests `RlsCrossTenantTest` tests 1, 4, 5 ya usan este patrón como referencia.
+**Fix aplicado:**
+
+1. **TenantManager sincroniza ambas conexiones**: `setTenantContext()` y `clearTenantContext()` ahora también setean/limpian `app.current_tenant_id` en la conexión `pgsql-rls` cuando está configurada. En producción no hay impacto (la conexión `pgsql-rls` solo existe en test).
+
+2. **Helpers duplicados eliminados**: `TenantModuleRlsTest` y `SuperadminContextRlsTest` ya no tienen `setRlsContext()`/`clearRlsContext()`. Usan `TenantManager` directamente.
+
+3. **Test de sincronización**: `test_set_context_syncs_both_connections` en `SuperadminContextRlsTest` verifica que ambas conexiones tienen el mismo contexto.
+
+**Impacto:** Todos los tests que llaman `setTenantContext()` ahora ejercitan RLS real automáticamente. Si alguna policy RLS estuviera mal configurada, los tests existentes lo detectarían.
 
 ---
 
@@ -160,6 +168,6 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 | ✅ Fix aplicado | GAP-002 | SetTenantContext resuelve tenant para superadmin (2026-06-17) |
 | ✅ Fix aplicado | GAP-005 | current_tenant_id_or_null creada (2026-06-17) |
 | ✅ Fix aplicado | GAP-003 | BelongsToTenantJob trait + SetTenantContextForJob middleware (2026-06-17) |
-| 🟡 Antes de migrar a RLS real | GAP-004 | Actualizar tests existentes |
+| ✅ Fix aplicado | GAP-004 | TenantManager sincroniza pgsql-rls (2026-06-17) |
 
 > **Nota:** Ningún fix se ejecutará sin autorización explícita de John ("APROBADO" literal). Fecha de próxima auditoría: 2026-09-01.

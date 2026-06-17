@@ -46,19 +46,10 @@ final class TenantModuleRlsTest extends TestCase
         $this->tenantB = Tenant::factory()->create(['name' => 'RLS Tenant B']);
     }
 
-    private function setRlsContext(string $tenantId): void
+    protected function tearDown(): void
     {
-        DB::connection('pgsql-rls')->statement(
-            "SELECT set_config('app.current_tenant_id', ?, false)",
-            [$tenantId]
-        );
-    }
-
-    private function clearRlsContext(): void
-    {
-        DB::connection('pgsql-rls')->statement(
-            "SELECT set_config('app.current_tenant_id', '', false)"
-        );
+        $this->tenantManager->clearTenantContext();
+        parent::tearDown();
     }
 
     private function insertViaSail(array $data): void
@@ -79,7 +70,7 @@ final class TenantModuleRlsTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $this->setRlsContext($this->tenantB->id);
+        $this->tenantManager->setTenantContext($this->tenantB->id);
 
         $modules = DB::connection('pgsql-rls')
             ->table('tenant_modules')
@@ -87,8 +78,6 @@ final class TenantModuleRlsTest extends TestCase
             ->get();
 
         $this->assertCount(0, $modules, 'Tenant B should NOT see Tenant A\'s module via RLS.');
-
-        $this->clearRlsContext();
     }
 
     public function test_cannot_update_other_tenant_module(): void
@@ -99,7 +88,7 @@ final class TenantModuleRlsTest extends TestCase
             'updated_at' => now(),
         ]);
 
-        $this->setRlsContext($this->tenantB->id);
+        $this->tenantManager->setTenantContext($this->tenantB->id);
 
         $affected = DB::connection('pgsql-rls')
             ->table('tenant_modules')
@@ -107,8 +96,6 @@ final class TenantModuleRlsTest extends TestCase
             ->update(['is_active' => false]);
 
         $this->assertEquals(0, $affected, 'Tenant B should NOT be able to UPDATE Tenant A\'s module via RLS.');
-
-        $this->clearRlsContext();
     }
 
     public function test_insert_without_tenant_context_fails(): void
