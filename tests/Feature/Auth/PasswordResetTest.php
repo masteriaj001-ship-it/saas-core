@@ -26,6 +26,8 @@ class PasswordResetTest extends TestCase
     {
         parent::setUp();
 
+        $this->withoutVite();
+
         $this->tenantManager = app(TenantManager::class);
         $this->tenant = Tenant::factory()->create();
         $this->tenantManager->setTenantContext($this->tenant->id);
