@@ -53,6 +53,12 @@ trait BelongsToTenant
                     return;
                 }
 
+                $ignoresMissing = isset($model->ignoresMissingTenantContext) && $model->ignoresMissingTenantContext;
+
+                if ($ignoresMissing) {
+                    return;
+                }
+
                 throw new RuntimeException(
                     'Cannot create '.static::class.' without tenant context or authenticated user.'
                 );

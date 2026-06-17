@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Talleres\Models;
 
 use App\Enums\WorkOrderStatusEnum;
+use App\Models\Concerns\Auditable;
 use App\Models\Contact;
 use App\Models\Location;
 use App\Models\TenantModel;
@@ -16,7 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class WorkOrder extends TenantModel
 {
-    use HasFactory;
+    use Auditable, HasFactory;
 
     protected static function newFactory(): WorkOrderFactory
     {
