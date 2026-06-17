@@ -19,6 +19,8 @@ class RegistrationTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->withoutVite();
     }
 
     public function test_registration_form_is_accessible(): void
