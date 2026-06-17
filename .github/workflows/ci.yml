@@ -31,7 +31,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.3
+          php-version: 8.4
           extensions: mbstring, pdo, pdo_pgsql, bcmath, dom, intl
           coverage: none
 
@@ -53,6 +53,22 @@ jobs:
         run: |
           cp .env.example .env
           php artisan key:generate
+
+      - name: Create app_user for RLS tests
+        run: |
+          PGPASSWORD=password psql -h localhost -U sail -d testing -c "
+            DO \$\$
+            BEGIN
+              IF NOT EXISTS (SELECT FROM pg_catalog.pg_roles WHERE rolname = 'app_user') THEN
+                CREATE ROLE app_user WITH LOGIN PASSWORD 'secret';
+              END IF;
+            END
+            \$\$;
+            GRANT CONNECT ON DATABASE testing TO app_user;
+            GRANT USAGE ON SCHEMA public TO app_user;
+            GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO app_user;
+            ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
+          "
 
       - name: Run Pint
         run: vendor/bin/pint --test
