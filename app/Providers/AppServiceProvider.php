@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\LoginResponse;
 use App\Services\TenantManager;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -19,6 +20,11 @@ class AppServiceProvider extends ServiceProvider
         $this->app->singleton(TenantManager::class, function ($app) {
             return new TenantManager;
         });
+
+        $this->app->bind(
+            \Filament\Auth\Http\Responses\Contracts\LoginResponse::class,
+            LoginResponse::class,
+        );
     }
 
     /**

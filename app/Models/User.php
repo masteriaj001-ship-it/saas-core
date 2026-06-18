@@ -37,6 +37,7 @@ class User extends Authenticatable implements HasAppAuthentication, HasAppAuthen
         'name',
         'email',
         'password',
+        'user_type',
     ];
 
     protected $guarded = [
@@ -61,6 +62,7 @@ class User extends Authenticatable implements HasAppAuthentication, HasAppAuthen
     protected $casts = [
         'id' => 'string',
         'tenant_id' => 'string',
+        'user_type' => 'string',
         'is_superadmin' => 'boolean',
         'email_verified_at' => 'datetime',
         'password' => 'hashed',

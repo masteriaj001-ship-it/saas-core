@@ -29,6 +29,7 @@ class Invoice extends TenantModel
         'document_type',
         'prefix',
         'sequence',
+        'pos_sequence',
         'document_number',
         'status',
         'issued_at',
@@ -38,6 +39,8 @@ class Invoice extends TenantModel
         'tax_total',
         'grand_total',
         'notes',
+        'cufe',
+        'qr_code_url',
     ];
 
     protected function casts(): array

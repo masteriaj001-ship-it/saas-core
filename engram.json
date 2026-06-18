@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.10.0",
+  "version": "1.12.0",
   "last_updated": "2026-06-17",
   "vertical": "talleres",
   "status": "active_development",
@@ -154,21 +154,54 @@
         "App\\Models\\Activity extiende SpatieActivity con BelongsToTenant",
         "Migration: tenant_id UUID FK + RLS + nullableUuidMorphs",
         "App\\Models\\Concerns\\Auditable wrapper sobre LogsActivity",
-        "Aplicado a: WorkOrder, Contact, Asset, Item",
+        "Aplicado a: WorkOrder, Contact, Asset, Item, Tenant",
         "BelongsToTenant: $ignoresMissingTenantContext para Activity model (no lanza en tests legacy)",
         "8 tests (5 app-scope + 3 RLS)"
       ],
-      "notes": "Cross-cutting audit trail. nullableUuidMorphs necesario por UUIDs del proyecto. 258 tests total."
+      "notes": "Cross-cutting audit trail. nullableUuidMorphs necesario por UUIDs del proyecto. 273 tests total."
+    },
+    "facturacion_api": {
+      "status": "implemented",
+      "last_check": "2026-06-17",
+      "features": [
+        "API REST /api/v1/invoices con CRUD + cancelación",
+        "InvoiceDocumentTypeEnum: Invoice, CreditNote, Pos",
+        "Tenant.regimen() devuelve declarante/no_declarante según settings",
+        "Tenant.documentTypeForRegimen(): declarante → FE, no_declarante → Pos",
+        "DocumentSequenceService con lockForUpdate (SELECT ... FOR UPDATE) por tenant y tipo",
+        "Formato FE-{000000}, NC-{000000}, POS-{000000} con prefix fijo",
+        "InvoiceCreationService con lógica de creación: items, impuestos, secuencia",
+        "InvoiceResource con ContactResource e InvoiceItemResource anidados",
+        "StoreInvoiceRequest con validación, creación de contacto nominal",
+        "UpdateInvoiceRequest con validación de draft-only",
+        "CancelInvoiceRequest con restricción issued-only",
+        "Route model binding para Invoice en modulo",
+        "16 tests (6 API CRUD, 3 secuencia, 3 regimen, 3 RLS)"
+      ],
+      "notes": "FEATURE_SPEC.md en features/facturacion-api/. Rate limiting: throttle:60,1 en routes. POS sequence nullable. Tenant Auditable para regimen changes."
+    },
+    "login_redirect": {
+      "status": "implemented",
+      "last_check": "2026-06-18",
+      "features": [
+        "Migration user_type a users (staff/client)",
+        "Custom LoginResponse sobreescribe Filament default",
+        "Client user_type → force redirect a Dashboard (sin intended)",
+        "Staff user_type → redirect()->intended() normal",
+        "UserFactory con state client()",
+        "3 tests unitarios del LoginResponse"
+      ],
+      "notes": "Decisión: user_type field en vez de usar Spatie 'viewer' como proxy. Evita mezclar permisos con tipo de usuario."
     }
   },
   "test_suite": {
-    "total_tests": 258,
-    "passing": 258,
+    "total_tests": 276,
+    "passing": 276,
     "skipped": 0,
-    "assertions": 649,
+    "assertions": 704,
     "status": "green",
-    "last_run": "2026-06-17",
-    "note": "258 tests total (AuditLogs: +8 tests. spatie/laravel-activitylog tenant-aware.)"
+    "last_run": "2026-06-18",
+    "note": "276 tests total (LoginRedirect: +3 tests. user_type migration + custom LoginResponse.)"
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -215,7 +248,7 @@
     "rls_fixed": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005"],
     "fix_priority": "none",
     "audit_logs": "implemented",
-    "rate_limiting": "pending",
+    "rate_limiting": "implemented",
     "connections": {
       "pgsql_sail": "app logic tests (BYPASSRLS=true, default connection)",
       "pgsql_rls": "security integration tests (NOBYPASSRLS, app_user)"
@@ -252,7 +285,6 @@
     "gate_3": "0 tests rojos → commit"
   },
     "next_actions": [
-    "Facturación: API REST con rate limiting, versionado, API keys",
     "Dashboard financiero con KPIs por tenant"
   ]
 }

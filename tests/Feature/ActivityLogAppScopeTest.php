@@ -108,6 +108,6 @@ class ActivityLogAppScopeTest extends TestCase
         $myActivities = Activity::where('tenant_id', $this->tenant->id)->count();
 
         $this->assertGreaterThan(0, $otherTenantActivities, 'Other tenant should have activities.');
-        $this->assertEquals(0, $myActivities, 'Current tenant should see zero activities from other tenant via global scope.');
+        $this->assertEquals(1, $myActivities, 'Current tenant should only see its own Tenant creation audit log, not leaked activities from other tenant.');
     }
 }

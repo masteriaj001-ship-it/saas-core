@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\InvoiceDocumentTypeEnum;
+use App\Models\Concerns\Auditable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,7 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tenant extends Model
 {
-    use HasFactory, HasUuids, SoftDeletes;
+    use Auditable, HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
         'organization_id',
@@ -69,5 +71,18 @@ class Tenant extends Model
     public function esResponsableIva(): bool
     {
         return (bool) ($this->settings['es_responsable_iva'] ?? false);
+    }
+
+    public function regimen(): string
+    {
+        return $this->settings['regimen'] ?? 'declarante';
+    }
+
+    public function documentTypeForRegimen(): InvoiceDocumentTypeEnum
+    {
+        return match ($this->regimen()) {
+            'no_declarante' => InvoiceDocumentTypeEnum::Pos,
+            default => InvoiceDocumentTypeEnum::Invoice,
+        };
     }
 }
