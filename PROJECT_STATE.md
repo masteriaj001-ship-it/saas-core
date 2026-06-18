@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.10.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.12.0 | **Status:** active_development | **Updated:** 2026-06-17
 
 ## Stack
 
@@ -154,18 +154,51 @@
   - App\Models\Activity extiende SpatieActivity con BelongsToTenant
   - Migration: tenant_id UUID FK + RLS + nullableUuidMorphs
   - App\Models\Concerns\Auditable wrapper sobre LogsActivity
-  - Aplicado a: WorkOrder, Contact, Asset, Item
+  - Aplicado a: WorkOrder, Contact, Asset, Item, Tenant
   - BelongsToTenant: $ignoresMissingTenantContext para Activity model (no lanza en tests legacy)
   - 8 tests (5 app-scope + 3 RLS)
-- **Notes:** Cross-cutting audit trail. nullableUuidMorphs necesario por UUIDs del proyecto. 258 tests total.
+- **Notes:** Cross-cutting audit trail. nullableUuidMorphs necesario por UUIDs del proyecto. 273 tests total.
+
+### facturacion_api
+
+- **Status:** implemented
+- **Last check:** 2026-06-17
+- **Features:**
+  - API REST /api/v1/invoices con CRUD + cancelación
+  - InvoiceDocumentTypeEnum: Invoice, CreditNote, Pos
+  - Tenant.regimen() devuelve declarante/no_declarante según settings
+  - Tenant.documentTypeForRegimen(): declarante → FE, no_declarante → Pos
+  - DocumentSequenceService con lockForUpdate (SELECT ... FOR UPDATE) por tenant y tipo
+  - Formato FE-{000000}, NC-{000000}, POS-{000000} con prefix fijo
+  - InvoiceCreationService con lógica de creación: items, impuestos, secuencia
+  - InvoiceResource con ContactResource e InvoiceItemResource anidados
+  - StoreInvoiceRequest con validación, creación de contacto nominal
+  - UpdateInvoiceRequest con validación de draft-only
+  - CancelInvoiceRequest con restricción issued-only
+  - Route model binding para Invoice en modulo
+  - 16 tests (6 API CRUD, 3 secuencia, 3 regimen, 3 RLS)
+- **Notes:** FEATURE_SPEC.md en features/facturacion-api/. Rate limiting: throttle:60,1 en routes. POS sequence nullable. Tenant Auditable para regimen changes.
+
+### login_redirect
+
+- **Status:** implemented
+- **Last check:** 2026-06-18
+- **Features:**
+  - Migration user_type a users (staff/client)
+  - Custom LoginResponse sobreescribe Filament default
+  - Client user_type → force redirect a Dashboard (sin intended)
+  - Staff user_type → redirect()->intended() normal
+  - UserFactory con state client()
+  - 3 tests unitarios del LoginResponse
+- **Notes:** Decisión: user_type field en vez de usar Spatie 'viewer' como proxy. Evita mezclar permisos con tipo de usuario.
 
 ## Test Suite
 
-- **Total tests:** 258
-- **Passing:** 258
-- **Assertions:** 649
+- **Total tests:** 276
+- **Passing:** 276
+- **Assertions:** 704
 - **Status:** green
-- **Last run:** 2026-06-17
+- **Last run:** 2026-06-18
 
 ## Architecture Rules
 
@@ -215,12 +248,11 @@
 - **rls_fixed:** GAP-001, GAP-002, GAP-003, GAP-004, GAP-005
 - **fix_priority:** none
 - **audit_logs:** implemented
-- **rate_limiting:** pending
+- **rate_limiting:** implemented
 - **connections:** app logic tests (BYPASSRLS=true, default connection), security integration tests (NOBYPASSRLS, app_user)
 
 ## Next Actions
 
-- [ ] Facturación: API REST con rate limiting, versionado, API keys
 - [ ] Dashboard financiero con KPIs por tenant
 
 ---
