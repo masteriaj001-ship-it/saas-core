@@ -499,6 +499,13 @@ Alcance opcional pero recomendado (ej: `feat(location)`, `fix(workorder)`).
 
 Regla: si no podés describir el commit en una línea clara, es demasiado grande. Partilo en commits atómicos.
 
+### Regla de configuración crítica (config safety)
+
+Archivos de configuración (`bootstrap/providers.php`, `config/*.php`, `bootstrap/app.php`):
+- NUNCA pisar el archivo completo. Usar `str_replace`, `edit` quirúrgico, o `sed` selectivo.
+- Antes y después de editar, ejecutar `git diff <archivo>` para verificar que solo cambió lo necesario.
+- Si el diff muestra líneas eliminadas que no esperabas, es red flag — detenerse y diagnosticar.
+
 ### Regla de plan + OK
 1. Antes de CUALQUIER cambio de código, el agente presenta un **Plan de Ejecución** con:
    - Archivos a modificar
