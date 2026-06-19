@@ -15,6 +15,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->preventRequestForgery(except: [
             'livewire*',
+            'presupuesto/*/approve',
+            'presupuesto/*/reject',
         ]);
 
         $middleware->alias([
