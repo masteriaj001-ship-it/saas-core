@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\InvoicePdfController;
+use App\Http\Controllers\QuoteApprovalController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -30,3 +31,20 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')
     ->get('/invoices/{invoice}/pdf', InvoicePdfController::class)
     ->name('invoices.pdf');
+
+Route::name('quote.approval.')
+    ->group(function () {
+        Route::get('/presupuesto/{workOrder}', [QuoteApprovalController::class, 'show'])
+            ->name('show')
+            ->middleware('signed');
+        Route::post('/presupuesto/{workOrder}/approve', [QuoteApprovalController::class, 'approve'])
+            ->name('approve')
+            ->middleware('signed');
+        Route::post('/presupuesto/{workOrder}/reject', [QuoteApprovalController::class, 'reject'])
+            ->name('reject')
+            ->middleware('signed');
+        Route::get('/presupuesto/{workOrder}/aprobado', [QuoteApprovalController::class, 'approved'])
+            ->name('approved');
+        Route::get('/presupuesto/{workOrder}/rechazado', [QuoteApprovalController::class, 'rejected'])
+            ->name('rejected');
+    });
