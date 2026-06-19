@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.13.0 | **Status:** active_development | **Updated:** 2026-06-18
+> **Version:** 1.14.0 | **Status:** active_development | **Updated:** 2026-06-19
 
 ## Stack
 
@@ -194,6 +194,34 @@
   - 8 tests (5 AppScope + 3 RLS)
 - **Notes:** El fix de TenantManager singleton es retroactivo — afecta a TODOS los modelos con BelongsToTenant desde el inicio del proyecto.
 
+### quote_approval
+
+- **Status:** implemented
+- **Last check:** 2026-06-19
+- **Features:**
+  - WorkOrderStatusEnum extendido: Approved/Rejected con labels y colores
+  - RequestQuoteApprovalAction: status→WaitingApproval, retorna signed URL (7 días)
+  - QuoteApprovalController: show/approve/reject/approved/rejected
+  - 3 vistas Blade mobile-first (show, approved, rejected) sin Filament
+  - WorkOrderItemObserver: revertir a quoted si items cambian en WaitingApproval
+  - Filament Action 'Solicitar Aprobación' en EditWorkOrder (modal con URL copiable)
+  - CSRF exceptions para rutas públicas signed
+  - 8 tests TDD (envío, aprobación, rechazo, doble-click, firma inválida, expirada, reversion de items)
+- **Notes:** MVP sin migración nueva. approval_at y approval_channel ya existían en work_orders. rejection_reason en metadata JSONB.
+
+### notifications
+
+- **Status:** implemented
+- **Last check:** 2026-06-19
+- **Features:**
+  - notifications table migration (uuidMorphs para User con UUID)
+  - Filament database notifications bell con polling 30s en AdminPanel
+  - WorkOrderApprovedNotification: canal database, check-circle icon, link a WO edit
+  - WorkOrderRejectedNotification: incluye rejection_reason en body
+  - WorkOrderObserver: detecta waiting_approval→approved/rejected, notifica a owner/editor del tenant
+  - 7 tests (envío, razón, cross-tenant isolation, formato, sin elegibles, persistencia)
+- **Notes:** Cierra el loop operativo: cliente aprueba online → asesor ve campanita en Filament. 433 tests total.
+
 ### login_redirect
 
 - **Status:** implemented
@@ -209,11 +237,11 @@
 
 ## Test Suite
 
-- **Total tests:** 284
-- **Passing:** 284
-- **Assertions:** 720
+- **Total tests:** 433
+- **Passing:** 433
+- **Assertions:** 887
 - **Status:** green
-- **Last run:** 2026-06-18
+- **Last run:** 2026-06-19
 
 ## Architecture Rules
 
@@ -255,6 +283,8 @@
 - ADR 001: Multi-tenant architecture documented
 - Budget/Presupuestos module (Budget + BudgetItem + Conversion a WorkOrder)
 - Fix: AppServiceProvider en bootstrap/providers.php (TenantManager singleton)
+- Quote Approval con signed URLs (WorkOrderStatusEnum: Approved/Rejected, public approval page)
+- Notifications automáticas (Filament database bell, approved/rejected notifications a owner/editor)
 
 ## Security Status
 
@@ -271,6 +301,8 @@
 ## Next Actions
 
 - [ ] Dashboard financiero con KPIs por tenant
+- [ ] Notificaciones push / SMS con SmsCode (post-MVP notifications)
+- [ ] Work Order Closure Phase 2 (checklist final, fotos antes/después)
 
 ---
 
