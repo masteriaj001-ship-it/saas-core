@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.12.0 | **Status:** active_development | **Updated:** 2026-06-17
+> **Version:** 1.13.0 | **Status:** active_development | **Updated:** 2026-06-18
 
 ## Stack
 
@@ -28,6 +28,7 @@
   - App\Filament\Resources\LocationResource
   - App\Filament\Resources\ServiceCatalogResource
   - App\Filament\Resources\InvoiceResource
+  - App\Filament\Resources\BudgetResource
 - **Superadmin Resources:**
   - App\Filament\Superadmin\Resources\TenantResource
   - App\Filament\Superadmin\Resources\GlobalAssetResource
@@ -179,6 +180,20 @@
   - 16 tests (6 API CRUD, 3 secuencia, 3 regimen, 3 RLS)
 - **Notes:** FEATURE_SPEC.md en features/facturacion-api/. Rate limiting: throttle:60,1 en routes. POS sequence nullable. Tenant Auditable para regimen changes.
 
+### presupuestos
+
+- **Status:** implemented
+- **Last check:** 2026-06-18
+- **Features:**
+  - Budget + BudgetItem models con BelongsToTenant, HasUuids, SoftDeletes
+  - BudgetStatusEnum: Draft/Sent/Approved/Rejected con transiciones estrictas
+  - BudgetConversionService: Budget aprobado -> Contact + Asset + WorkOrder
+  - BudgetResource Filament CRUD con Send/Approve/Reject actions
+  - BudgetFactory con state 'sent'
+  - BudgetCodeGenerator (via WorkOrderCodeGenerator post-conversion)
+  - 8 tests (5 AppScope + 3 RLS)
+- **Notes:** El fix de TenantManager singleton es retroactivo — afecta a TODOS los modelos con BelongsToTenant desde el inicio del proyecto.
+
 ### login_redirect
 
 - **Status:** implemented
@@ -194,9 +209,9 @@
 
 ## Test Suite
 
-- **Total tests:** 276
-- **Passing:** 276
-- **Assertions:** 704
+- **Total tests:** 284
+- **Passing:** 284
+- **Assertions:** 720
 - **Status:** green
 - **Last run:** 2026-06-18
 
@@ -238,6 +253,8 @@
 - Work Order Checklist (WorkOrderChecklistItem con status pending/done/ok/nok/na)
 - Audit Logs (spatie/laravel-activitylog tenant-aware)
 - ADR 001: Multi-tenant architecture documented
+- Budget/Presupuestos module (Budget + BudgetItem + Conversion a WorkOrder)
+- Fix: AppServiceProvider en bootstrap/providers.php (TenantManager singleton)
 
 ## Security Status
 
