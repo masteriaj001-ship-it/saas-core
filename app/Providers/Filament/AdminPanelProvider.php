@@ -39,6 +39,8 @@ class AdminPanelProvider extends PanelProvider
             ->login()
             ->profile()
             ->passwordReset()
+            ->databaseNotifications()
+            ->databaseNotificationsPolling('30s')
             ->tenant(Tenant::class, slugAttribute: 'slug')
             ->colors([
                 'primary' => Color::Amber,
