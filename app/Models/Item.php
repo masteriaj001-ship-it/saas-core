@@ -5,7 +5,11 @@ declare(strict_types=1);
 namespace App\Models;
 
 use App\Models\Concerns\Auditable;
+use App\Modules\Inventario\Models\StockMovement;
+use App\Modules\Inventario\Models\Warehouse;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Item extends TenantModel
 {
@@ -21,6 +25,7 @@ class Item extends TenantModel
         'cost',
         'stock',
         'min_stock',
+        'default_warehouse_id',
         'metadata',
     ];
 
@@ -33,5 +38,25 @@ class Item extends TenantModel
             'min_stock' => 'integer',
             'metadata' => 'array',
         ]);
+    }
+
+    public function defaultWarehouse(): BelongsTo
+    {
+        return $this->belongsTo(Warehouse::class, 'default_warehouse_id');
+    }
+
+    public function stockMovements(): HasMany
+    {
+        return $this->hasMany(StockMovement::class, 'item_id');
+    }
+
+    public function isLowStock(): bool
+    {
+        return $this->stock < $this->min_stock;
+    }
+
+    public function hasStock(int $quantity): bool
+    {
+        return $this->stock >= $quantity;
     }
 }

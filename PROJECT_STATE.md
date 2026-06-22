@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.14.0 | **Status:** active_development | **Updated:** 2026-06-19
+> **Version:** 1.15.0 | **Status:** active_development | **Updated:** 2026-06-20
 
 ## Stack
 
@@ -235,13 +235,46 @@
   - 3 tests unitarios del LoginResponse
 - **Notes:** Decisión: user_type field en vez de usar Spatie 'viewer' como proxy. Evita mezclar permisos con tipo de usuario.
 
+### rate_limiting
+
+- **Status:** implemented
+- **Last check:** 2026-06-20
+- **Features:**
+  - 3 named RateLimiters: forgot-password (3/hora/IP), reset-password (5/hora/IP), login (5/min/email+IP)
+  - throttle middleware en POST /forgot-password y POST /reset-password
+  - throttle:5,1 en POST /api/sanctum/token
+  - Login rate limiting nativo Filament (5/60s por IP, Livewire trait)
+  - 3 tests (forgot throttle, reset throttle, IP isolation)
+- **Notes:** Cierra vector email bombing + token brute force. Login ya estaba protegido por Filament nativo.
+
+### inventario
+
+- **Status:** implemented
+- **Last check:** 2026-06-22
+- **Features:**
+  - Warehouse model + RLS + partial unique index (1 default per tenant)
+  - StockMovement model con RLS, HasUuids, MovementTypeEnum (entry/exit/transfer/adjustment/initial)
+  - AdjustItemStockAction (único punto de creación de movimientos, wrapped en DB::transaction)
+  - StockSyncService (recalcular cache item.stock desde movimientos)
+  - Item: defaultWarehouse(), isLowStock(), hasStock(), stockMovements() HasMany
+  - TransactionService::issue() descuenta stock vía AdjustItemStockAction
+  - TransactionService::cancel() repone stock
+  - RolePermissionSeeder actualizado con warehouses, stock_movements (8 permisos)
+  - WarehouseFactory con estados default(), inactive()
+  - WarehouseResource Filament CRUD (List/Create/Edit)
+  - StockMovementsRelationManager read-only en ItemResource
+  - Ajuste Rápido Action en ItemResource (modal con bodega, tipo, cantidad, motivo)
+  - Artisan command inventory:migrate-legacy-stock
+  - 22 tests (7 WarehouseAppScope, 9 StockMovementAppScope, 4 WarehouseRls, 2 StockMovementRls, 4 TransactionStockIntegration)
+- **Notes:** Fase 1 Foundation completa. StockMovement sin SoftDeletes (solo timestamps). Integración Transaction: descuenta items spare/product/raw_material (no services).
+
 ## Test Suite
 
-- **Total tests:** 433
-- **Passing:** 433
-- **Assertions:** 887
+- **Total tests:** 463
+- **Passing:** 463
+- **Assertions:** 1001
 - **Status:** green
-- **Last run:** 2026-06-19
+- **Last run:** 2026-06-22
 
 ## Architecture Rules
 
@@ -285,6 +318,13 @@
 - Fix: AppServiceProvider en bootstrap/providers.php (TenantManager singleton)
 - Quote Approval con signed URLs (WorkOrderStatusEnum: Approved/Rejected, public approval page)
 - Notifications automáticas (Filament database bell, approved/rejected notifications a owner/editor)
+- Inventario Fase 1: Warehouses + StockMovements + RLS
+- AdjustItemStockAction único punto de creación de movimientos de stock
+- StockSyncService recalcula cache item.stock desde movimientos
+- TransactionService::issue() descuenta stock, cancel() repone stock
+- WarehouseResource Filament CRUD + StockMovementsRelationManager
+- Ajuste Rápido Action en ItemResource
+- 22 tests Inventario pasando (AppScope + RLS)
 
 ## Security Status
 
@@ -295,7 +335,8 @@
 - **rls_fixed:** GAP-001, GAP-002, GAP-003, GAP-004, GAP-005
 - **fix_priority:** none
 - **audit_logs:** implemented
-- **rate_limiting:** implemented
+- **rate_limiting:** layered (route + livewire + named limiters)
+- **rate_limiting_endpoints:** forgot-password (3/hora/IP), reset-password (5/hora/IP), login (5/60s/IP), sanctum/token (5/min/IP), register (10/hora/IP)
 - **connections:** app logic tests (BYPASSRLS=true, default connection), security integration tests (NOBYPASSRLS, app_user)
 
 ## Next Actions
@@ -303,6 +344,7 @@
 - [ ] Dashboard financiero con KPIs por tenant
 - [ ] Notificaciones push / SMS con SmsCode (post-MVP notifications)
 - [ ] Work Order Closure Phase 2 (checklist final, fotos antes/después)
+- [ ] Reemplazar 'Laravel' por 'Tu SaaS' en footer/título (APP_NAME en .env)
 
 ---
 

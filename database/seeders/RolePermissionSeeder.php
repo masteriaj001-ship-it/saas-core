@@ -14,13 +14,21 @@ class RolePermissionSeeder extends Seeder
     public function run(): void
     {
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        $permissions = [
-            'create_work_orders', 'edit_work_orders', 'delete_work_orders', 'view_work_orders',
-            'create_assets', 'edit_assets', 'delete_assets', 'view_assets',
-            'create_items', 'edit_items', 'delete_items', 'view_items',
-            'create_contacts', 'edit_contacts', 'delete_contacts', 'view_contacts',
-            'create_transactions', 'edit_transactions', 'delete_transactions', 'view_transactions',
+        $models = [
+            'work_orders', 'assets', 'items', 'contacts', 'transactions',
+            'invoices', 'budgets', 'budget_items', 'locations', 'service_catalogs',
+            'work_order_checklist_items', 'document_sequences', 'sms_codes',
+            'warehouses', 'stock_movements',
         ];
+
+        $actions = ['view', 'create', 'edit', 'delete'];
+
+        $permissions = [];
+        foreach ($models as $model) {
+            foreach ($actions as $action) {
+                $permissions[] = "{$action}_{$model}";
+            }
+        }
 
         foreach ($permissions as $perm) {
             Permission::findOrCreate($perm);
@@ -44,6 +52,16 @@ class RolePermissionSeeder extends Seeder
                 'view_items', 'create_items', 'edit_items',
                 'view_contacts', 'create_contacts', 'edit_contacts',
                 'view_transactions', 'create_transactions', 'edit_transactions',
+                'view_invoices', 'create_invoices', 'edit_invoices',
+                'view_budgets', 'create_budgets', 'edit_budgets',
+                'view_budget_items', 'create_budget_items', 'edit_budget_items',
+                'view_locations', 'create_locations', 'edit_locations',
+                'view_service_catalogs', 'create_service_catalogs', 'edit_service_catalogs',
+                'view_work_order_checklist_items', 'create_work_order_checklist_items', 'edit_work_order_checklist_items',
+                'view_document_sequences', 'create_document_sequences', 'edit_document_sequences',
+                'view_sms_codes', 'create_sms_codes', 'edit_sms_codes',
+                'view_warehouses', 'create_warehouses', 'edit_warehouses',
+                'view_stock_movements', 'create_stock_movements', 'edit_stock_movements',
             ])->get()
         );
 

@@ -7,15 +7,21 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ItemResource\Pages\CreateItem;
 use App\Filament\Resources\ItemResource\Pages\EditItem;
 use App\Filament\Resources\ItemResource\Pages\ListItems;
+use App\Filament\Resources\ItemResource\RelationManagers\StockMovementsRelationManager;
 use App\Models\Item;
+use App\Modules\Inventario\Actions\AdjustItemStockAction;
+use App\Modules\Inventario\Enums\MovementTypeEnum;
+use App\Modules\Inventario\Models\Warehouse;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -176,6 +182,56 @@ class ItemResource extends Resource
                     ->query(fn (Builder $query) => $query->whereColumn('stock', '<', 'min_stock')),
             ])
             ->actions([
+                Action::make('adjustStock')
+                    ->label(__('Ajustar Stock'))
+                    ->icon('heroicon-o-arrow-path')
+                    ->color('warning')
+                    ->form([
+                        Select::make('warehouse_id')
+                            ->label(__('Bodega'))
+                            ->options(fn (): array => Warehouse::where('is_active', true)->pluck('name', 'id')->toArray())
+                            ->required()
+                            ->searchable(),
+                        Select::make('movement_type')
+                            ->label(__('Tipo'))
+                            ->options([
+                                'entry' => __('Entrada'),
+                                'exit' => __('Salida'),
+                                'adjustment' => __('Ajuste'),
+                            ])
+                            ->required()
+                            ->live(),
+                        TextInput::make('quantity')
+                            ->label(__('Cantidad'))
+                            ->numeric()
+                            ->integer()
+                            ->minValue(1)
+                            ->required(),
+                        TextInput::make('reason')
+                            ->label(__('Motivo'))
+                            ->required()
+                            ->maxLength(100),
+                        Textarea::make('notes')
+                            ->label(__('Notas'))
+                            ->rows(2),
+                        Hidden::make('item_id'),
+                    ])
+                    ->action(function (array $data, Item $record): void {
+                        $warehouse = Warehouse::findOrFail($data['warehouse_id']);
+                        $movementType = MovementTypeEnum::from($data['movement_type']);
+
+                        app(AdjustItemStockAction::class)->execute(
+                            item: $record,
+                            warehouse: $warehouse,
+                            movementType: $movementType,
+                            quantity: (int) $data['quantity'],
+                            reason: $data['reason'],
+                            notes: $data['notes'] ?? null,
+                            user: auth()->user(),
+                        );
+                    })
+                    ->after(fn () => Notification::make()->success()->title(__('Stock ajustado correctamente.'))->send())
+                    ->visible(fn (): bool => auth()->user()->can('edit_items')),
                 EditAction::make()
                     ->visible(fn (): bool => auth()->user()->can('edit_items')),
                 DeleteAction::make()
@@ -195,6 +251,13 @@ class ItemResource extends Resource
             'index' => ListItems::route('/'),
             'create' => CreateItem::route('/create'),
             'edit' => EditItem::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            StockMovementsRelationManager::class,
         ];
     }
 

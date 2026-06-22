@@ -6,11 +6,51 @@ namespace App\Services\Transactions;
 
 use App\Models\Transaction;
 use App\Models\TransactionItem;
+use App\Modules\Inventario\Actions\AdjustItemStockAction;
+use App\Modules\Inventario\Enums\MovementTypeEnum;
+use App\Modules\Inventario\Models\Warehouse;
+use App\Services\TenantManager;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class TransactionService
 {
+    public function __construct(
+        private readonly AdjustItemStockAction $adjustItemStockAction,
+        private readonly TenantManager $tenantManager,
+    ) {}
+
+    private function getDefaultWarehouse(string $tenantId): Warehouse
+    {
+        return Warehouse::where('tenant_id', $tenantId)
+            ->where('is_default', true)
+            ->firstOr(fn () => Warehouse::where('tenant_id', $tenantId)->first())
+            ?? throw new \RuntimeException('No warehouse configured for this tenant.');
+    }
+
+    private function processTransactionStock(Transaction $transaction, MovementTypeEnum $type): void
+    {
+        $warehouse = $this->getDefaultWarehouse($transaction->tenant_id);
+        $itemsToProcess = $transaction->items->filter(fn (TransactionItem $tItem) => $tItem->item && in_array($tItem->item->item_type, ['spare', 'product', 'raw_material']));
+
+        foreach ($itemsToProcess as $tItem) {
+            $this->adjustItemStockAction->execute(
+                item: $tItem->item,
+                warehouse: $warehouse,
+                movementType: $type,
+                quantity: (int) $tItem->quantity,
+                reason: match ($transaction->type) {
+                    'purchase' => "Compra {$transaction->invoice_number}",
+                    'sale' => "Venta {$transaction->invoice_number}",
+                    default => "Transacción {$transaction->invoice_number}",
+                },
+                reference: $transaction,
+                unitCost: (float) ($tItem->item->cost ?? 0),
+                user: $transaction->createdBy,
+            );
+        }
+    }
+
     public function generateInvoiceNumber(Transaction $transaction): string
     {
         $type = $transaction->type;
@@ -80,11 +120,17 @@ class TransactionService
             throw new \RuntimeException('Solo transacciones en draft pueden emitirse.');
         }
 
-        $transaction->status = 'issued';
-        $transaction->cufe = 'CUFE-'.strtoupper((string) Str::uuid());
-        $transaction->save();
+        return DB::transaction(function () use ($transaction) {
+            $transaction->status = 'issued';
+            $transaction->cufe = 'CUFE-'.strtoupper((string) Str::uuid());
+            $transaction->save();
 
-        return $transaction;
+            $movementType = $transaction->type === 'purchase' ? MovementTypeEnum::Entry : MovementTypeEnum::Exit;
+
+            $this->processTransactionStock($transaction->fresh(['items.item']), $movementType);
+
+            return $transaction->fresh();
+        });
     }
 
     public function cancel(Transaction $transaction): Transaction
@@ -93,10 +139,16 @@ class TransactionService
             throw new \RuntimeException('Solo transacciones emitidas pueden anularse.');
         }
 
-        $transaction->status = 'cancelled';
-        $transaction->save();
+        return DB::transaction(function () use ($transaction) {
+            $transaction->status = 'cancelled';
+            $transaction->save();
 
-        return $transaction;
+            $reverseType = $transaction->type === 'purchase' ? MovementTypeEnum::Exit : MovementTypeEnum::Entry;
+
+            $this->processTransactionStock($transaction->fresh(['items.item']), $reverseType);
+
+            return $transaction->fresh();
+        });
     }
 
     public function createWithItems(array $transactionData, array $itemsData): Transaction

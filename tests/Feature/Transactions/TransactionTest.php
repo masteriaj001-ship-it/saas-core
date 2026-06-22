@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
+use App\Modules\Inventario\Models\Warehouse;
 use App\Services\TenantManager;
 use App\Services\Transactions\TransactionService;
 use Database\Seeders\RolePermissionSeeder;
@@ -53,6 +54,12 @@ class TransactionTest extends TestCase
         $this->client = Contact::factory()->client()->create(['tenant_id' => $this->tenant->id]);
         $this->supplier = Contact::factory()->supplier()->create(['tenant_id' => $this->tenant->id]);
         $this->item = Item::factory()->create(['tenant_id' => $this->tenant->id]);
+
+        Warehouse::factory()->default()->create([
+            'tenant_id' => $this->tenant->id,
+            'code' => 'TEST-WH',
+            'name' => 'Test Warehouse',
+        ]);
 
         $this->service = app(TransactionService::class);
 

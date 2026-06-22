@@ -2,6 +2,7 @@
 
 use App\Modules\Budget\Providers\BudgetServiceProvider;
 use App\Modules\Facturacion\Providers\FacturacionServiceProvider;
+use App\Modules\Inventario\Providers\InventarioServiceProvider;
 use App\Modules\Shared\Providers\SharedServiceProvider;
 use App\Modules\Talleres\Providers\TalleresServiceProvider;
 use App\Providers\AppServiceProvider;
@@ -14,6 +15,7 @@ return [
     AppServiceProvider::class,
     BudgetServiceProvider::class,
     FacturacionServiceProvider::class,
+    InventarioServiceProvider::class,
     SharedServiceProvider::class,
     TalleresServiceProvider::class,
 ];
