@@ -11,6 +11,7 @@ use App\Filament\Resources\ItemResource\RelationManagers\StockMovementsRelationM
 use App\Models\Item;
 use App\Modules\Inventario\Actions\AdjustItemStockAction;
 use App\Modules\Inventario\Enums\MovementTypeEnum;
+use App\Modules\Inventario\Exceptions\InsufficientStockException;
 use App\Modules\Inventario\Models\Warehouse;
 use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
@@ -197,7 +198,8 @@ class ItemResource extends Resource
                             ->options([
                                 'entry' => __('Entrada'),
                                 'exit' => __('Salida'),
-                                'adjustment' => __('Ajuste'),
+                                'adjustment_in' => __('Ajuste (+)'),
+                                'adjustment_out' => __('Ajuste (-)'),
                             ])
                             ->required()
                             ->live(),
@@ -220,17 +222,33 @@ class ItemResource extends Resource
                         $warehouse = Warehouse::findOrFail($data['warehouse_id']);
                         $movementType = MovementTypeEnum::from($data['movement_type']);
 
-                        app(AdjustItemStockAction::class)->execute(
-                            item: $record,
-                            warehouse: $warehouse,
-                            movementType: $movementType,
-                            quantity: (int) $data['quantity'],
-                            reason: $data['reason'],
-                            notes: $data['notes'] ?? null,
-                            user: auth()->user(),
-                        );
+                        try {
+                            app(AdjustItemStockAction::class)->execute(
+                                item: $record,
+                                warehouse: $warehouse,
+                                movementType: $movementType,
+                                quantity: (int) $data['quantity'],
+                                reason: $data['reason'],
+                                notes: $data['notes'] ?? null,
+                                user: auth()->user(),
+                            );
+
+                            Notification::make()
+                                ->success()
+                                ->title(__('Stock ajustado correctamente.'))
+                                ->send();
+                        } catch (InsufficientStockException $e) {
+                            Notification::make()
+                                ->danger()
+                                ->title(__('Stock insuficiente'))
+                                ->body(__('Disponible: :available, solicitado: :requested', [
+                                    'available' => $e->available,
+                                    'requested' => $e->requested,
+                                ]))
+                                ->persistent()
+                                ->send();
+                        }
                     })
-                    ->after(fn () => Notification::make()->success()->title(__('Stock ajustado correctamente.'))->send())
                     ->visible(fn (): bool => auth()->user()->can('edit_items')),
                 EditAction::make()
                     ->visible(fn (): bool => auth()->user()->can('edit_items')),
