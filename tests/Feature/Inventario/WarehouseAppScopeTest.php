@@ -124,4 +124,48 @@ final class WarehouseAppScopeTest extends TestCase
 
         $this->assertEquals(0, $count, 'Global scope should hide other tenant warehouses.');
     }
+
+    public function test_inactive_warehouse_not_returned_as_default(): void
+    {
+        Warehouse::factory()->default()->inactive()->create([
+            'tenant_id' => $this->tenant->id,
+            'code' => 'INACTIVE-DEFAULT',
+        ]);
+
+        $active = Warehouse::factory()->create([
+            'tenant_id' => $this->tenant->id,
+            'code' => 'ACTIVE-ONLY',
+            'is_default' => false,
+            'is_active' => true,
+        ]);
+
+        $result = Warehouse::where('tenant_id', $this->tenant->id)
+            ->where('is_default', true)
+            ->where('is_active', true)
+            ->first();
+
+        $this->assertNull($result, 'Inactive default warehouse should not be returned.');
+    }
+
+    public function test_get_default_warehouse_prefers_active(): void
+    {
+        Warehouse::factory()->default()->inactive()->create([
+            'tenant_id' => $this->tenant->id,
+            'code' => 'OLD-INACTIVE',
+        ]);
+
+        $active = Warehouse::factory()->create([
+            'tenant_id' => $this->tenant->id,
+            'code' => 'NEW-ACTIVE',
+            'is_default' => false,
+            'is_active' => true,
+        ]);
+
+        $result = Warehouse::where('tenant_id', $this->tenant->id)
+            ->where('is_active', true)
+            ->first();
+
+        $this->assertNotNull($result);
+        $this->assertEquals($active->id, $result->id);
+    }
 }

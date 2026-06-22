@@ -24,8 +24,9 @@ class TransactionService
     {
         return Warehouse::where('tenant_id', $tenantId)
             ->where('is_default', true)
-            ->firstOr(fn () => Warehouse::where('tenant_id', $tenantId)->first())
-            ?? throw new \RuntimeException('No warehouse configured for this tenant.');
+            ->where('is_active', true)
+            ->firstOr(fn () => Warehouse::where('tenant_id', $tenantId)->where('is_active', true)->first())
+            ?? throw new \RuntimeException('No active warehouse configured for this tenant.');
     }
 
     private function processTransactionStock(Transaction $transaction, MovementTypeEnum $type): void

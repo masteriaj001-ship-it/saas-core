@@ -266,13 +266,13 @@
   - Ajuste Rápido Action en ItemResource (modal con bodega, tipo, cantidad, motivo)
   - Artisan command inventory:migrate-legacy-stock
   - 22 tests (7 WarehouseAppScope, 9 StockMovementAppScope, 4 WarehouseRls, 2 StockMovementRls, 4 TransactionStockIntegration)
-- **Notes:** Fase 1 Foundation completa. StockMovement sin SoftDeletes (solo timestamps). Integración Transaction: descuenta items spare/product/raw_material (no services).
+- **Notes:** Fase 1 Foundation completa. Fixes post-audit: MovementTypeEnum con AdjustmentIn/AdjustmentOut (sin Adjustment ambiguo). AdjustItemStockAction: SELECT FOR UPDATE + InsufficientStockException + flag allow_negative_stock en settings JSONB. TransactionService.getDefaultWarehouse filtra is_active. 33 tests Inventario + 2 WarehouseAppScope.
 
 ## Test Suite
 
-- **Total tests:** 463
-- **Passing:** 463
-- **Assertions:** 1001
+- **Total tests:** 474
+- **Passing:** 474
+- **Assertions:** 1024
 - **Status:** green
 - **Last run:** 2026-06-22
 
@@ -318,13 +318,14 @@
 - Fix: AppServiceProvider en bootstrap/providers.php (TenantManager singleton)
 - Quote Approval con signed URLs (WorkOrderStatusEnum: Approved/Rejected, public approval page)
 - Notifications automáticas (Filament database bell, approved/rejected notifications a owner/editor)
+- Inventory Fixes: AdjustmentIn/AdjustmentOut enum, SELECT FOR UPDATE race condition fix, InsufficientStockException
 - Inventario Fase 1: Warehouses + StockMovements + RLS
 - AdjustItemStockAction único punto de creación de movimientos de stock
 - StockSyncService recalcula cache item.stock desde movimientos
 - TransactionService::issue() descuenta stock, cancel() repone stock
 - WarehouseResource Filament CRUD + StockMovementsRelationManager
 - Ajuste Rápido Action en ItemResource
-- 22 tests Inventario pasando (AppScope + RLS)
+- 33 tests Inventario pasando (AppScope + RLS + StockSyncService + negative stock + inactive warehouse + purchase cancel)
 
 ## Security Status
 

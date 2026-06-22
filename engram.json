@@ -271,17 +271,17 @@
         "Artisan command inventory:migrate-legacy-stock",
         "22 tests (7 WarehouseAppScope, 9 StockMovementAppScope, 4 WarehouseRls, 2 StockMovementRls, 4 TransactionStockIntegration)"
       ],
-      "notes": "Fase 1 Foundation completa. StockMovement sin SoftDeletes (solo timestamps). Integración Transaction: descuenta items spare/product/raw_material (no services)."
+      "notes": "Fase 1 Foundation completa. Fixes post-audit: MovementTypeEnum con AdjustmentIn/AdjustmentOut (sin Adjustment ambiguo). AdjustItemStockAction: SELECT FOR UPDATE + InsufficientStockException + flag allow_negative_stock en settings JSONB. TransactionService.getDefaultWarehouse filtra is_active. 33 tests Inventario + 2 WarehouseAppScope."
     }
   },
   "test_suite": {
-    "total_tests": 463,
-    "passing": 463,
+    "total_tests": 474,
+    "passing": 474,
     "skipped": 0,
-    "assertions": 1001,
+    "assertions": 1024,
     "status": "green",
     "last_run": "2026-06-22",
-    "note": "463 tests total (+22 Inventario Fase 1). Modulo inventario: Warehouse RLS, StockMovement, Transaction stock integration."
+    "note": "474 tests total (+11: InsufficientStockException, AdjustmentIn/Out, StockSync, inactive warehouse, purchase cancel). Race condition fix: SELECT FOR UPDATE. Negative stock validation: hard block + configurable flag in settings JSONB."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -323,13 +323,14 @@
     "Fix: AppServiceProvider en bootstrap/providers.php (TenantManager singleton)",
     "Quote Approval con signed URLs (WorkOrderStatusEnum: Approved/Rejected, public approval page)",
     "Notifications automáticas (Filament database bell, approved/rejected notifications a owner/editor)",
+    "Inventory Fixes: AdjustmentIn/AdjustmentOut enum, SELECT FOR UPDATE race condition fix, InsufficientStockException",
     "Inventario Fase 1: Warehouses + StockMovements + RLS",
     "AdjustItemStockAction único punto de creación de movimientos de stock",
     "StockSyncService recalcula cache item.stock desde movimientos",
     "TransactionService::issue() descuenta stock, cancel() repone stock",
     "WarehouseResource Filament CRUD + StockMovementsRelationManager",
     "Ajuste Rápido Action en ItemResource",
-    "22 tests Inventario pasando (AppScope + RLS)"
+    "33 tests Inventario pasando (AppScope + RLS + StockSyncService + negative stock + inactive warehouse + purchase cancel)"
   ],
   "security_status": {
     "mfa_superadmin": "implemented",
