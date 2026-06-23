@@ -28,6 +28,7 @@ class StockMovement extends Model
         'reference_id',
         'reason',
         'notes',
+        'transfer_group_id',
     ];
 
     protected $guarded = [
