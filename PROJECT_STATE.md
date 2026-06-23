@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.15.0 | **Status:** active_development | **Updated:** 2026-06-20
+> **Version:** 1.16.0 | **Status:** active_development | **Updated:** 2026-06-22
 
 ## Stack
 
@@ -45,7 +45,7 @@
 
 - **Status:** implemented
 - **Last check:** 2026-06-08
-- **Notes:** Custom Role/Permission models con BelongsToTenant + HasUuids. RBAC/ABAC definido por entidad.
+- **Notes:** Custom Role/Permission models con BelongsToTenant + HasUuids. RBAC/ABAC definido por entidad. Vector C Spatie cache fix: forgetCachedPermissions() post clearTenantContext() en RegisterTenantAction + CreateTenant::afterCreate().
 - **Roles:** Superadmin, Admin Tenant, Member, Cliente
 - **Checklist:** `checklists/taller_permissions.yaml`
 
@@ -266,7 +266,7 @@
   - Ajuste Rápido Action en ItemResource (modal con bodega, tipo, cantidad, motivo)
   - Artisan command inventory:migrate-legacy-stock
   - 22 tests (7 WarehouseAppScope, 9 StockMovementAppScope, 4 WarehouseRls, 2 StockMovementRls, 4 TransactionStockIntegration)
-- **Notes:** Fase 1 Foundation completa. Fixes post-audit: MovementTypeEnum con AdjustmentIn/AdjustmentOut (sin Adjustment ambiguo). AdjustItemStockAction: SELECT FOR UPDATE + InsufficientStockException + flag allow_negative_stock en settings JSONB. TransactionService.getDefaultWarehouse filtra is_active. 33 tests Inventario + 2 WarehouseAppScope.
+- **Notes:** Fase 1 Foundation + Fase 2 Transferencias completa. TransferStockAction con TransferOut/TransferIn atómico + transfer_group_id. WarehouseResource con Transferir Stock + Ajustar Stock actions. 39 tests Inventario.
 
 ## Test Suite
 
@@ -319,13 +319,16 @@
 - Quote Approval con signed URLs (WorkOrderStatusEnum: Approved/Rejected, public approval page)
 - Notifications automáticas (Filament database bell, approved/rejected notifications a owner/editor)
 - Inventory Fixes: AdjustmentIn/AdjustmentOut enum, SELECT FOR UPDATE race condition fix, InsufficientStockException
+- Inventario Fase 2: TransferStockAction atómico con transfer_group_id, Transferir Stock y Ajustar Stock en WarehouseResource
 - Inventario Fase 1: Warehouses + StockMovements + RLS
 - AdjustItemStockAction único punto de creación de movimientos de stock
 - StockSyncService recalcula cache item.stock desde movimientos
 - TransactionService::issue() descuenta stock, cancel() repone stock
 - WarehouseResource Filament CRUD + StockMovementsRelationManager
 - Ajuste Rápido Action en ItemResource
-- 33 tests Inventario pasando (AppScope + RLS + StockSyncService + negative stock + inactive warehouse + purchase cancel)
+- 39 tests Inventario pasando (AppScope + RLS + StockSyncService + negative stock + inactive warehouse + purchase cancel + TransferStockAction)
+- Spatie cache poisoning Vector C fix: forgetCachedPermissions() post clearTenantContext() en RegisterTenantAction + CreateTenant
+- Raw SQL injection fix: PDO quote + str_replace en migration create_app_user_role. Nueva migration update_app_user_password_escaped aplicada.
 
 ## Security Status
 
@@ -338,6 +341,7 @@
 - **audit_logs:** implemented
 - **rate_limiting:** layered (route + livewire + named limiters)
 - **rate_limiting_endpoints:** forgot-password (3/hora/IP), reset-password (5/hora/IP), login (5/60s/IP), sanctum/token (5/min/IP), register (10/hora/IP)
+- **raw_sql_injection_fixed:** 2026-06-22 — migration 2026_06_17_151704_create_app_user_role.php fixeada con PDO quote + str_replace. Nueva migration 2026_06_23_025404_update_app_user_password_escaped.php aplicada en DB.
 - **connections:** app logic tests (BYPASSRLS=true, default connection), security integration tests (NOBYPASSRLS, app_user)
 
 ## Next Actions
