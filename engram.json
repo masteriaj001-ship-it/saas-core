@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant Talleres",
-  "version": "1.16.0",
-  "last_updated": "2026-06-22",
+  "version": "1.1.75",
+  "last_updated": "2026-08-16",
   "vertical": "talleres",
   "status": "active_development",
   "stack": {
@@ -46,21 +46,37 @@
       "status": "implemented",
       "last_check": "2026-06-08",
       "checklist": "checklists/taller_permissions.yaml",
-      "roles_defined": ["Superadmin", "Admin Tenant", "Member", "Cliente"],
+      "roles_defined": [
+        "Superadmin",
+        "Admin Tenant",
+        "Member",
+        "Cliente"
+      ],
       "spatie_config": "teams=false, store=array, cache=array",
       "notes": "Custom Role/Permission models con BelongsToTenant + HasUuids. RBAC/ABAC definido por entidad. Vector C Spatie cache fix: forgetCachedPermissions() post clearTenantContext() en RegisterTenantAction + CreateTenant::afterCreate()."
     },
     "facturacion": {
       "status": "implemented",
-      "last_check": "2026-06-08",
+      "last_check": "2026-08-08",
       "features": [
         "InvoiceResource con List/Create/Edit",
         "InvoiceCodeGenerator con DB lock (FV-000001)",
         "GenerateInvoiceFromWorkOrderAction (botón en EditWorkOrder)",
         "IVA configurable por tenant (settings.es_responsable_iva)",
-        "PDF condicional (oculta IVA si tax_total=0)"
+        "PDF condicional (oculta IVA si tax_total=0)",
+        "Pagos por invoice: migration invoice_payments (UUID+RLS), InvoicePayment model + factory",
+        "PaymentMethodEnum cash/card/transfer/check/credit",
+        "Invoice::payments()/amountPaid()/balanceDue()/isPaid()",
+        "InvoiceCreationService::registerPayment() con bloqueo de sobrepago y cambio",
+        "POS con pago -> status=paid al instante (pos_sequence)",
+        "Ticket térmico 80mm (ticket-pos.blade.php, window.print) + ruta invoices.ticket",
+        "Protección cross-tenant 403 en ticket/pdf",
+        "PosPage Filament kiosko full-screen: 3 paneles (categorías/catálogo/ticket), dark mode amber",
+        "PosPage: búsqueda, filtro por item_type, carrito, pago modal (efectivo/tarjeta/transferencia)",
+        "PosPage: cálculo de cambio, atajos de teclado (F2/F4/F5/F10), historial de ventas",
+        "26 tests POS: PosCheckoutTest (8) + PosPageTest (18)"
       ],
-      "notes": "Toggle IVA en Superadmin TenantResource → Section Facturación."
+      "notes": "M3 POS Kiosko completado: PosPage full-screen con 3 paneles (categorías por item_type, catálogo con búsqueda, ticket), modal de pago con efectivo/tarjeta/transferencia, cálculo de cambio, historial de ventas. Atajos de teclado F2/F4/F5/F10. Hardware impresora/cajón queda parametrizable: opción B (window.print/driver OS) o A (ESC/POS por TCP 9100)."
     },
     "work_order_reception": {
       "status": "implemented",
@@ -98,9 +114,13 @@
         "blocked_until en contacts para restricción de clientes",
         "sms_codes table con RLS",
         "Migración de datos legacy: completed → work_done + flag is_legacy_closure",
-        "10 tests PHPUnit (transiciones, SMS, legacy, RLS)"
+        "Fase 2: columna stage (before/after) en work_order_media + enum WorkOrderMediaStageEnum + CHECK constraint",
+        "Fase 2: WorkOrderClosureService con transiciones validadas (gate de checklist final + fotos antes/después + firma) y audit trail",
+        "Fase 2: WorkOrder::hasCompleteFinalChecklist() + hasBeforeAfterPhotos()",
+        "7 tests WorkOrderClosurePhase2Test (checklist, fotos, happy path, legacy, stage, firma, RLS media)",
+        "17 tests PHPUnit (transiciones, SMS, legacy, RLS, fase 2)"
       ],
-      "notes": "FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. RLS en sms_codes. 222 tests total."
+      "notes": "FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. Fase 2 completada: gate de cierre (checklist completa + fotos before/after + firma) enforcement vía WorkOrderClosureService con audit trail en activities. RLS en sms_codes. 395 tests total."
     },
     "tenant_job_context": {
       "status": "implemented",
@@ -272,16 +292,28 @@
         "22 tests (7 WarehouseAppScope, 9 StockMovementAppScope, 4 WarehouseRls, 2 StockMovementRls, 4 TransactionStockIntegration)"
       ],
       "notes": "Fase 1 Foundation + Fase 2 Transferencias completa. TransferStockAction con TransferOut/TransferIn atómico + transfer_group_id. WarehouseResource con Transferir Stock + Ajustar Stock actions. 39 tests Inventario."
+    },
+    "financial_dashboard": {
+      "status": "implemented",
+      "last_check": "2026-08-08",
+      "features": [
+        "FinancialStatsOverview: KPI cards (ventas hoy, ingresos mes, ticket promedio, ingresos semana)",
+        "DailySalesChart: bar chart Chart.js ingresos últimos 7 días",
+        "TopItemsWidget: top 5 artículos más vendidos del mes",
+        "PaymentMethodsBreakdown: desglose por método de pago (efectivo/tarjeta/transferencia/cheque/crédito) con porcentajes",
+        "14 tests FinancialDashboardTest (stats, chart, top items, payment methods, tenant isolation)"
+      ],
+      "notes": "Dashboard financiero tenant-scoped. 4 widgets auto-discovered en Dashboard. TopItems usa StatsOverviewWidget (no TableWidget) para evitar GROUP BY con UUID en PostgreSQL."
     }
   },
   "test_suite": {
-    "total_tests": 474,
-    "passing": 474,
+    "total_tests": 395,
+    "passing": 395,
     "skipped": 0,
-    "assertions": 1024,
+    "assertions": 950,
     "status": "green",
-    "last_run": "2026-06-22",
-    "note": "474 tests total (+6 TransferStockAction). Fase 2: TransferStockAction atómico, transfer_group_id, WarehouseResource Transfer/Ajustar actions."
+    "last_run": "2026-08-09",
+    "note": "Suite Feature POS re-verificada 18/18 en verde tras realinear migraciones de saas_core. Se agregaron guardrails de DB (AppServiceProvider::guardDestructiveDatabaseCommands) para bloquear migrate:fresh/refresh/rollback/db:wipe/db:seed fuera de allowlist."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -289,8 +321,13 @@
     "spatie_teams_disabled": true,
     "superadmin_tenant_id_null": true,
     "uuid_pks": true,
-    "soft_deletes_exceptions": ["WorkOrderActivity", "WorkOrderInspection", "WorkOrderMedia"],
-    "module_activation_system": true
+    "soft_deletes_exceptions": [
+      "WorkOrderActivity",
+      "WorkOrderInspection",
+      "WorkOrderMedia"
+    ],
+    "module_activation_system": true,
+    "db_destructive_guard": "migrate:fresh/refresh/rollback/db:wipe/db:seed bloqueados salvo allowlist (DB_DESTRUCTIVE_ALLOWLIST)"
   },
   "features_existing": [
     "Multi-tenancy con RLS PostgreSQL",
@@ -333,18 +370,34 @@
     "Ajuste Rápido Action en ItemResource",
     "39 tests Inventario pasando (AppScope + RLS + StockSyncService + negative stock + inactive warehouse + purchase cancel + TransferStockAction)",
     "Spatie cache poisoning Vector C fix: forgetCachedPermissions() post clearTenantContext() en RegisterTenantAction + CreateTenant",
-    "Raw SQL injection fix: PDO quote + str_replace en migration create_app_user_role. Nueva migration update_app_user_password_escaped aplicada."
+    "Raw SQL injection fix: PDO quote + str_replace en migration create_app_user_role. Nueva migration update_app_user_password_escaped aplicada.",
+    "POS Kiosko full-screen (PosPage con Livewire: categorías, catálogo, ticket, pago modal, historial, atajos teclado)",
+    "Work Order Closure Fase 2: gate de cierre (checklist final + fotos antes/después + firma) vía WorkOrderClosureService con audit trail",
+    "work_order_media.stage (before/after) con WorkOrderMediaStageEnum + CHECK constraint + factory states asBefore",
+    "POS kiosko fix (Livewire v4): single root div en pos.blade.php + Alpine posKiosk registrado via FilamentView::registerRenderHook(SCRIPTS_AFTER). Commit 9493ade 2026-08-16. Verificado en navegador (root DIV, filtro 2->0, fullscreen, sin errores JS)"
   ],
   "security_status": {
     "mfa_superadmin": "implemented",
     "rls_enabled": "verified_5of5_fixed",
     "rls_audit_date": "2026-06-17",
     "rls_gaps": [],
-    "rls_fixed": ["GAP-001", "GAP-002", "GAP-003", "GAP-004", "GAP-005"],
+    "rls_fixed": [
+      "GAP-001",
+      "GAP-002",
+      "GAP-003",
+      "GAP-004",
+      "GAP-005"
+    ],
     "fix_priority": "none",
     "audit_logs": "implemented",
     "rate_limiting": "layered (route + livewire + named limiters)",
-    "rate_limiting_endpoints": ["forgot-password (3/hora/IP)", "reset-password (5/hora/IP)", "login (5/60s/IP)", "sanctum/token (5/min/IP)", "register (10/hora/IP)"],
+    "rate_limiting_endpoints": [
+      "forgot-password (3/hora/IP)",
+      "reset-password (5/hora/IP)",
+      "login (5/60s/IP)",
+      "sanctum/token (5/min/IP)",
+      "register (10/hora/IP)"
+    ],
     "raw_sql_injection_fixed": "2026-06-22 — migration 2026_06_17_151704_create_app_user_role.php fixeada con PDO quote + str_replace. Nueva migration 2026_06_23_025404_update_app_user_password_escaped.php aplicada en DB.",
     "connections": {
       "pgsql_sail": "app logic tests (BYPASSRLS=true, default connection)",
@@ -378,13 +431,34 @@
     "gate_0": "Leer checklist + engram.json",
     "gate_1": "Rama feature/nombre",
     "gate_2": "Schema SQL → APROBADO → migración → APROBADO → migrate",
-    "development_order": ["Test", "Docs", "Code", "Report", "Update FEATURE_SPEC"],
+    "development_order": [
+      "Test",
+      "Docs",
+      "Code",
+      "Report",
+      "Update FEATURE_SPEC"
+    ],
     "gate_3": "0 tests rojos → commit"
   },
   "next_actions": [
-    "Dashboard financiero con KPIs por tenant",
-    "Notificaciones push / SMS con SmsCode (post-MVP notifications)",
-    "Work Order Closure Phase 2 (checklist final, fotos antes/después)",
-    "Reemplazar 'Laravel' por 'Tu SaaS' en footer/título (APP_NAME en .env)"
-  ]
+    "Implementar Hardware POS parametrizable (impresora termica TCP 9100/cajon; drivers esc_pos (A) y window_print (B)). FEATURE_SPEC creada en docs/features/pos-hardware/FEATURE_SPEC.md — GATE 0 abierto, espera APROBADO de John",
+    "Work Order Closure Phase 3: automatismos de vencimiento (breach a las 72h, alertas de recogida 48h)",
+    "Restaurar demo-taller en saas_core SOLO si John lo decide explicitamente (requiere DB_DESTRUCTIVE_ALLOWLIST=saas_core) o navegar POS contra dusk_testing",
+    "POS kiosko YA validado manualmente contra saas_core (commit 9493ade). Resta opcional: validacion formal en navegador contra dusk_testing (estado demo) para confirmar filtro/busqueda tras realign de migraciones",
+    "Notificaciones push / SMS con SmsCode (post-MVP notifications)"
+  ],
+  "db_guardrails": {
+    "introduced": "2026-08-09",
+    "layers": [
+      "guard_hard_bloqueo: AppServiceProvider::guardDestructiveDatabaseCommands() lanza RuntimeException para migrate:fresh, migrate:refresh, migrate:rollback, db:wipe, db:seed cuando la DB objetivo no esta en DB_DESTRUCTIVE_ALLOWLIST o DB_TEST_DATABASE (default testing).",
+      "env_dusk_aislada: .env.dusk.local apunta a DB propia dusk_testing. Dusk jamas toca saas_core.",
+      "teardown_resiliente: down() de 2026_06_17_151704_create_app_user_role tolera deps cluster-wide del rol app_user (no rompe rollbacks)."
+    ],
+    "trigger_incident": "Un test Dush heredaba DB base (saas_core) y ejecutaba migrate:fresh que destruyo el demo de desarrollo. Causa: falta de .env.dusk.local + dependencia del rol app_user cluster-wide.",
+    "databases_state": {
+      "saas_core": "intacta - 0 pendientes, tenants conservados (alias, galias-Iewx). NO tocada por el equipo during remediation.",
+      "dusk_testing": "DB aislada creada; demo-taller (plan pro) + demo data sembrada aqui.",
+      "testing": "suite de tests; se usa para phpunit/dask via .env.dusk.local y permite comandos destructivos por default."
+    }
+  }
 }
