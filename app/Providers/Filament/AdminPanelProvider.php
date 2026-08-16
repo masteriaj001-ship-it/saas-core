@@ -87,6 +87,24 @@ class AdminPanelProvider extends PanelProvider
             fn (): string => Blade::render('<p class="text-sm text-center text-gray-600 dark:text-gray-400 mt-6">¿No tienes cuenta? <x-filament::link :href="route(\'register\')">Crear cuenta</x-filament::link></p>'),
         );
 
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::SCRIPTS_AFTER,
+            fn (): string => Blade::render(<<<'HTML'
+                <script>
+                document.addEventListener('alpine:init', () => {
+                    Alpine.data('posKiosk', () => ({
+                        init() {
+                            this.$nextTick(() => {
+                                const searchInput = this.$el.querySelector('.search');
+                                if (searchInput) searchInput.focus();
+                            });
+                        }
+                    }));
+                });
+                </script>
+                HTML),
+        );
+
         return $panel;
     }
 }
