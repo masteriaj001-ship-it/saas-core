@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Modules\Talleres\Models;
 
+use App\Enums\WorkOrderChecklistStatusEnum;
+use App\Enums\WorkOrderMediaStageEnum;
 use App\Enums\WorkOrderStatusEnum;
 use App\Models\Concerns\Auditable;
 use App\Models\Contact;
@@ -75,6 +77,19 @@ class WorkOrder extends TenantModel
     public function isLegacyClosure(): bool
     {
         return (bool) ($this->settings['is_legacy_closure'] ?? false);
+    }
+
+    public function hasCompleteFinalChecklist(): bool
+    {
+        return $this->checklistItems()
+            ->where('status', WorkOrderChecklistStatusEnum::Pending)
+            ->doesntExist();
+    }
+
+    public function hasBeforeAfterPhotos(): bool
+    {
+        return $this->media()->where('stage', WorkOrderMediaStageEnum::Before)->exists()
+            && $this->media()->where('stage', WorkOrderMediaStageEnum::After)->exists();
     }
 
     public function asset(): BelongsTo

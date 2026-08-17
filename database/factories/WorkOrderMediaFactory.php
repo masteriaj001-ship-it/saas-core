@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Database\Factories;
 
+use App\Enums\WorkOrderMediaStageEnum;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Models\WorkOrderInspection;
 use App\Modules\Talleres\Models\WorkOrderMedia;
@@ -23,6 +24,7 @@ class WorkOrderMediaFactory extends Factory
             'original_name' => $this->faker->word().'.jpg',
             'storage_path' => (string) Str::uuid(),
             'mime_type' => 'image/jpeg',
+            'stage' => WorkOrderMediaStageEnum::After,
             'size' => $this->faker->numberBetween(1000, 50000),
             'metadata' => [
                 'category' => null,
@@ -54,6 +56,13 @@ class WorkOrderMediaFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'work_order_inspection_id' => $inspection->id,
+        ]);
+    }
+
+    public function asBefore(): self
+    {
+        return $this->state(fn (array $attributes): array => [
+            'stage' => WorkOrderMediaStageEnum::Before,
         ]);
     }
 }

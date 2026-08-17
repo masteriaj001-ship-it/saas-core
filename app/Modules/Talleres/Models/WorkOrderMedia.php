@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Talleres\Models;
 
+use App\Enums\WorkOrderMediaStageEnum;
 use App\Models\Concerns\BelongsToTenant;
 use App\Models\User;
 use Database\Factories\WorkOrderMediaFactory;
@@ -28,6 +29,7 @@ class WorkOrderMedia extends Model
         'original_name',
         'storage_path',
         'mime_type',
+        'stage',
         'size',
         'metadata',
     ];
@@ -62,6 +64,7 @@ class WorkOrderMedia extends Model
             'work_order_id' => 'string',
             'work_order_inspection_id' => 'string',
             'user_id' => 'string',
+            'stage' => WorkOrderMediaStageEnum::class,
             'size' => 'integer',
             'metadata' => 'array',
             'created_at' => 'datetime',
