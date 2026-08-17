@@ -71,4 +71,24 @@ class Invoice extends TenantModel
     {
         return $this->hasMany(InvoiceItem::class);
     }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(InvoicePayment::class);
+    }
+
+    public function amountPaid(): float
+    {
+        return (float) $this->payments()->sum('amount');
+    }
+
+    public function balanceDue(): float
+    {
+        return round((float) $this->grand_total - $this->amountPaid(), 2);
+    }
+
+    public function isPaid(): bool
+    {
+        return $this->balanceDue() <= 0;
+    }
 }

@@ -5,8 +5,13 @@ declare(strict_types=1);
 namespace App\Modules\Facturacion\Services;
 
 use App\Enums\InvoiceDocumentTypeEnum;
+use App\Enums\InvoiceStatusEnum;
+use App\Enums\PaymentMethodEnum;
 use App\Models\Tenant;
+use App\Modules\Facturacion\Exceptions\PaymentExceedsBalanceException;
 use App\Modules\Facturacion\Models\Invoice;
+use App\Modules\Facturacion\Models\InvoicePayment;
+use Illuminate\Support\Facades\DB;
 
 class InvoiceCreationService
 {
@@ -58,13 +63,15 @@ class InvoiceCreationService
 
         $grandTotal = $subtotal + $taxTotal;
 
+        $payment = $data['payment'] ?? null;
+
         $invoice = Invoice::create([
             'document_type' => $documentType,
             'prefix' => $isPos ? 'POS' : 'FE',
             'sequence' => $isPos ? null : $sequence,
             'pos_sequence' => $isPos ? $sequence : null,
             'document_number' => $documentNumber,
-            'status' => 'draft',
+            'status' => $payment !== null ? InvoiceStatusEnum::Paid->value : InvoiceStatusEnum::Draft->value,
             'issued_at' => now(),
             'subtotal' => $subtotal,
             'discount_total' => 0,
@@ -77,6 +84,43 @@ class InvoiceCreationService
             $invoice->items()->create($itemData);
         }
 
-        return $invoice->load('items');
+        if ($payment !== null) {
+            $this->registerPayment($invoice, $payment);
+        }
+
+        return $invoice->load('items', 'payments');
+    }
+
+    public function registerPayment(Invoice $invoice, array $payment): InvoicePayment
+    {
+        return DB::transaction(function () use ($invoice, $payment) {
+            $amount = round((float) ($payment['amount'] ?? 0), 2);
+            $balance = $invoice->balanceDue();
+
+            if ($amount > $balance + 0.01) {
+                throw new PaymentExceedsBalanceException($invoice, $amount, $balance);
+            }
+
+            $method = PaymentMethodEnum::tryFrom($payment['method']) ?? PaymentMethodEnum::Cash;
+            $cashReceived = $payment['cash_received'] ?? null;
+            $changeDue = $method === PaymentMethodEnum::Cash && $cashReceived !== null
+                ? round(max(0, (float) $cashReceived - $amount), 2)
+                : null;
+
+            $invoicePayment = $invoice->payments()->create([
+                'payment_method' => $method->value,
+                'amount' => $amount,
+                'cash_received' => $cashReceived,
+                'change_due' => $changeDue,
+                'reference' => $payment['reference'] ?? null,
+                'paid_at' => now(),
+            ]);
+
+            if ($invoice->balanceDue() <= 0) {
+                $invoice->update(['status' => InvoiceStatusEnum::Paid->value]);
+            }
+
+            return $invoicePayment;
+        });
     }
 }

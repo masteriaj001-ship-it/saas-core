@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\ForgotPasswordController;
 use App\Http\Controllers\Auth\RegisterController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\InvoicePdfController;
+use App\Http\Controllers\InvoiceTicketController;
 use App\Http\Controllers\PosPrintController;
 use App\Http\Controllers\QuoteApprovalController;
 use Illuminate\Support\Facades\Route;
@@ -32,6 +33,10 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')
     ->get('/invoices/{invoice}/pdf', InvoicePdfController::class)
     ->name('invoices.pdf');
+
+Route::middleware('auth')
+    ->get('/invoices/{invoice}/ticket', InvoiceTicketController::class)
+    ->name('invoices.ticket');
 
 Route::middleware('auth')
     ->post('/pos/print', PosPrintController::class)
