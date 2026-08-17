@@ -8,6 +8,7 @@ use App\Filament\Pages\PosPage;
 use App\Models\Item;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Facturacion\Models\Invoice;
 use App\Services\TenantManager;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -243,7 +244,7 @@ class PosPageTest extends TestCase
             ->set('amountReceived', 15000)
             ->call('checkout');
 
-        $invoice = \App\Modules\Facturacion\Models\Invoice::where('tenant_id', $this->tenant->id)->first();
+        $invoice = Invoice::where('tenant_id', $this->tenant->id)->first();
 
         $component
             ->assertSet('showTicketModal', true)
