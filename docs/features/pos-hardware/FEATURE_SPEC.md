@@ -1,6 +1,13 @@
 # FEATURE_SPEC — Hardware POS parametrizable
 
-> Estado: Borrador | Autor: opencode | Fecha: 2026-08-16
+> Estado: Aprobado — implementado | Autor: opencode | Fecha: 2026-08-16
+>
+> **Desviaciones del plan (2026-08-16):**
+> - Patrón de settings confirmado: `tenants.settings->pos_hardware` vía cast `array` existente + `PrinterSettingsResolver` (no JSONB FK dedicado)
+> - `esc_pos` driver implementado en `App\Modules\Shared\Services\Print\EscPosService` (inicio TS 9100, `GS @`, `ESC p` cajón, corte `GS V`)
+> - Endpoint `POST /pos/print` (`PosPrintController`) con verificación `invoice->tenant_id === auth()->user()->tenant_id` (patrón `InvoiceTicketController`)
+> - Driver `window_print` resuelto en el controlador (no requiere servicio separado; usa la vista existente `facturacion.ticket-pos`)
+> - 10 tests nuevos + suite completa 405 tests verdes. Commits: `ca79997` (feature), `ba58974` (engram)
 
 ---
 
