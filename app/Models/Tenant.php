@@ -85,4 +85,24 @@ class Tenant extends Model
             default => InvoiceDocumentTypeEnum::Invoice,
         };
     }
+
+    public function posPrinterDriver(): string
+    {
+        return $this->settings['pos_hardware']['printer_driver'] ?? 'window_print';
+    }
+
+    public function posPrinterHost(): string
+    {
+        return $this->settings['pos_hardware']['printer_host'] ?? '127.0.0.1';
+    }
+
+    public function posPrinterPort(): int
+    {
+        return (int) ($this->settings['pos_hardware']['printer_port'] ?? 9100);
+    }
+
+    public function posCashDrawerEnabled(): bool
+    {
+        return (bool) ($this->settings['pos_hardware']['cash_drawer_after_payment'] ?? true);
+    }
 }
