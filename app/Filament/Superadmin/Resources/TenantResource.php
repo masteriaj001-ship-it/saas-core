@@ -17,6 +17,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -79,6 +80,46 @@ class TenantResource extends Resource
                             ->label(__('¿Responsable de IVA?'))
                             ->helperText(__('Activa si el taller está en régimen común y cobra IVA en sus facturas.'))
                             ->default(false),
+                    ]),
+                Section::make(__('Impresión'))
+                    ->description(__('Configuración del Punto de Venta (impresora térmica y cajón).'))
+                    ->columns(2)
+                    ->schema([
+                        Select::make('settings.pos_hardware.printer_driver')
+                            ->label(__('Driver de impresión'))
+                            ->options([
+                                'window_print' => __('Navegador (window.print)'),
+                                'esc_pos' => __('ESC/POS (red TCP)'),
+                            ])
+                            ->default('window_print')
+                            ->live()
+                            ->columnSpanFull(),
+                        TextInput::make('settings.pos_hardware.printer_host')
+                            ->label(__('IP de la impresora'))
+                            ->placeholder('192.168.1.50')
+                            ->helperText(__('Solo usado con driver ESC/POS.'))
+                            ->visible(fn (Get $get): bool => $get('settings.pos_hardware.printer_driver') === 'esc_pos'),
+                        TextInput::make('settings.pos_hardware.printer_port')
+                            ->label(__('Puerto'))
+                            ->numeric()
+                            ->default(9100)
+                            ->minValue(1)
+                            ->maxValue(65535)
+                            ->visible(fn (Get $get): bool => $get('settings.pos_hardware.printer_driver') === 'esc_pos'),
+                        Toggle::make('settings.pos_hardware.cash_drawer_after_payment')
+                            ->label(__('Abrir cajón tras cobro'))
+                            ->default(true)
+                            ->live(),
+                        Select::make('settings.pos_hardware.cash_drawer_channel')
+                            ->label(__('Canal del cajón'))
+                            ->options([
+                                0 => '0',
+                                1 => '1',
+                                2 => '2',
+                            ])
+                            ->default(2)
+                            ->helperText(__('Canal ESC/POS de pulses (habitual 2).'))
+                            ->visible(fn (Get $get): bool => $get('settings.pos_hardware.cash_drawer_after_payment') === true),
                     ]),
                 Section::make('Administrador del Taller')
                     ->description('Usuario que administrará este tenant')

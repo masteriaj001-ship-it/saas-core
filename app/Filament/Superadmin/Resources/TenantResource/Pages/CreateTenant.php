@@ -28,6 +28,7 @@ class CreateTenant extends CreateRecord
                 'slug' => $data['slug'],
                 'plan' => $data['plan'],
                 'is_active' => $data['is_active'],
+                'settings' => $data['settings'] ?? [],
             ]);
 
             app(TenantManager::class)->setTenantContext($tenant->id);

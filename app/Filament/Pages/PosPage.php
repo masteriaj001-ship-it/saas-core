@@ -8,6 +8,8 @@ use App\Enums\InvoiceDocumentTypeEnum;
 use App\Models\Item;
 use App\Modules\Facturacion\Models\Invoice;
 use App\Modules\Facturacion\Services\InvoiceCreationService;
+use App\Modules\Shared\Services\Print\EscPosService;
+use App\Modules\Shared\Services\Print\PrinterSettingsResolver;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -44,7 +46,11 @@ class PosPage extends Page
 
     public bool $showPaymentModal = false;
 
+    public bool $showTicketModal = false;
+
     public bool $showHistory = false;
+
+    public ?string $lastInvoiceId = null;
 
     public function mount(): void
     {
@@ -265,8 +271,10 @@ class PosPage extends Page
                 ]);
             });
 
+            $this->lastInvoiceId = $invoice->id;
             $this->cart = [];
             $this->showPaymentModal = false;
+            $this->showTicketModal = true;
             $this->paymentMethod = 'cash';
             $this->amountReceived = 0;
             $this->search = '';
@@ -304,6 +312,21 @@ class PosPage extends Page
             ->get();
     }
 
+    public function getLastInvoiceGrandTotalProperty(): ?string
+    {
+        if ($this->lastInvoiceId === null) {
+            return null;
+        }
+
+        $tenant = Filament::getTenant();
+
+        $grandTotal = Invoice::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('id', $this->lastInvoiceId)
+            ->value('grand_total');
+
+        return $grandTotal === null ? null : number_format((float) $grandTotal, 0, ',', '.');
+    }
 
     public function setCategory(?string $category): void
     {
@@ -316,5 +339,60 @@ class PosPage extends Page
         $this->amountReceived = 0;
     }
 
+    public function closeTicketModal(): void
+    {
+        $this->showTicketModal = false;
+        $this->lastInvoiceId = null;
+    }
 
+    public function printInvoice(): void
+    {
+        if ($this->lastInvoiceId === null) {
+            return;
+        }
+
+        $tenant = Filament::getTenant();
+        $resolver = new PrinterSettingsResolver($tenant);
+
+        if (! $resolver->usesEscPos()) {
+            Notification::make()
+                ->title(__('Usa la vista del ticket'))
+                ->body(__('Este taller usa impresión por navegador: abre "Ver ticket" e imprime desde ahí.'))
+                ->info()
+                ->send();
+
+            return;
+        }
+
+        $invoice = Invoice::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('id', $this->lastInvoiceId)
+            ->first();
+
+        if ($invoice === null) {
+            return;
+        }
+
+        $service = new EscPosService;
+
+        $ok = $service->send(
+            $service->build($invoice),
+            $resolver->host(),
+            $resolver->port(),
+        );
+
+        if ($resolver->cashDrawerEnabled()) {
+            $service->send(
+                $service->cashDrawerPulse($resolver->cashDrawerChannel()),
+                $resolver->host(),
+                $resolver->port(),
+            );
+        }
+
+        Notification::make()
+            ->title($ok ? __('Ticket enviado a impresora') : __('Impresora no alcanzable'))
+            ->body($ok ? __('Documento :number enviado por TCP.', ['number' => $invoice->document_number]) : __('Vuelve a intentarlo o usa "Ver ticket".'))
+            ->{$ok ? 'success' : 'warning'}()
+            ->send();
+    }
 }

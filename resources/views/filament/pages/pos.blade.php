@@ -276,6 +276,31 @@
         </div>
     @endif
 
+    @if($showTicketModal && $lastInvoiceId)
+        <div class="pos-modal-overlay" x-on:keydown.escape.window="$wire.closeTicketModal()">
+            <div class="pos-modal">
+                <div class="pos-modal-header">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                        <h3 style="margin:0;">Venta registrada</h3>
+                        <button wire:click="closeTicketModal" style="background:none;border:none;color:#6b7280;cursor:pointer;font-size:20px;">&times;</button>
+                    </div>
+                    <div class="total-label">Documento</div>
+                    <div style="font-size:16px;font-weight:600;color:#fff;">{{ $lastInvoiceId }}</div>
+                    <div class="total-amount" style="margin-top:12px;">${{ $this->lastInvoiceGrandTotal ?? '0' }}</div>
+                </div>
+                <div class="pos-modal-body">
+                    <button wire:click="printInvoice" class="pos-confirm-btn ready">
+                        Imprimir
+                    </button>
+                    <a href="{{ route('invoices.ticket', ['invoice' => $lastInvoiceId]) }}" target="_blank" rel="noopener" style="display:block;text-decoration:none;">
+                        <button class="pos-confirm-btn ready" style="background:#f59e0b;margin-top:8px;">Ver ticket</button>
+                    </a>
+                    <button wire:click="closeTicketModal" class="pos-cancel-btn">Cerrar (Esc)</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
     @if($showHistory)
         <div class="pos-history-overlay" x-on:keydown.escape.window="$wire.set('showHistory', false)">
             <div class="pos-history-panel">

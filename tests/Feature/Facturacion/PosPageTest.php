@@ -232,5 +232,29 @@ class PosPageTest extends TestCase
         $this->assertEquals(1, $spareCat['total']);
     }
 
+    public function test_pos_page_checkout_opens_ticket_modal(): void
+    {
+        $item = Item::factory()->product()->for($this->tenant)->create(['price' => 15000, 'stock' => 10]);
 
+        $component = Livewire::test(PosPage::class);
+        $component
+            ->call('addItem', $item->id)
+            ->set('paymentMethod', 'cash')
+            ->set('amountReceived', 15000)
+            ->call('checkout');
+
+        $invoice = \App\Modules\Facturacion\Models\Invoice::where('tenant_id', $this->tenant->id)->first();
+
+        $component
+            ->assertSet('showTicketModal', true)
+            ->assertSet('lastInvoiceId', $invoice?->id);
+    }
+
+    public function test_pos_page_close_ticket_modal(): void
+    {
+        Livewire::test(PosPage::class)
+            ->set('showTicketModal', true)
+            ->call('closeTicketModal')
+            ->assertSet('showTicketModal', false);
+    }
 }
