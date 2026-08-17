@@ -10,6 +10,9 @@ use App\Models\Tenant;
 use App\Models\Transaction;
 use App\Models\TransactionItem;
 use App\Models\User;
+use App\Modules\Inventario\Enums\MovementTypeEnum;
+use App\Modules\Inventario\Models\StockMovement;
+use App\Modules\Inventario\Models\Warehouse;
 use App\Modules\Talleres\Models\Asset;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Models\WorkOrderItem;
@@ -55,6 +58,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $admin->assignRole('owner');
+
+        Warehouse::factory()->default()->state([
+            'tenant_id' => $tenant->id,
+            'is_active' => true,
+        ])->create();
 
         $this->seedAssets();
         $this->seedItems();
@@ -140,7 +148,19 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($items as $data) {
-            Item::create($data);
+            $item = Item::create($data);
+
+            if (($data['stock'] ?? 0) > 0) {
+                StockMovement::create([
+                    'item_id' => $item->id,
+                    'warehouse_id' => Warehouse::where('tenant_id', Tenant::first()->id)->where('is_default', true)->value('id'),
+                    'movement_type' => MovementTypeEnum::Entry,
+                    'quantity' => $data['stock'],
+                    'stock_before' => 0,
+                    'stock_after' => $data['stock'],
+                    'reason' => 'Initial stock',
+                ]);
+            }
         }
     }
 
@@ -251,7 +271,7 @@ class DatabaseSeeder extends Seeder
     {
         $clients = Contact::where('contact_type', 'client')->get();
         $suppliers = Contact::where('contact_type', 'supplier')->get();
-        $items = Item::all();
+        $items = Item::orderBy('sku')->get();
         $admin = User::first();
         $service = app(TransactionService::class);
 
@@ -275,6 +295,42 @@ class DatabaseSeeder extends Seeder
             ['contact_idx' => 3, 'status' => 'issued', 'payment_method' => 'check',    'items' => [[5, 8, 19], [13, 5, 19]]],
             ['contact_idx' => 4, 'status' => 'cancelled', 'payment_method' => 'transfer', 'items' => [[12, 20, 19]]],
         ];
+
+        // Purchases must be processed before sales so inventory is available.
+        foreach ($purchases as $purchase) {
+            $contact = $suppliers[$purchase['contact_idx']] ?? $suppliers[0];
+            $itemsData = [];
+            foreach ($purchase['items'] as [$itemIdx, $qty, $taxRate]) {
+                $item = $items[$itemIdx] ?? $items[0];
+                $itemsData[] = [
+                    'item_id' => $item->id,
+                    'quantity' => $qty,
+                    'unit_price' => $item->cost,
+                    'tax_rate' => $taxRate,
+                    'tax_amount' => 0,
+                    'discount_amount' => 0,
+                    'total_item_amount' => 0,
+                ];
+            }
+
+            $transaction = $service->createWithItems([
+                'tenant_id' => Tenant::first()->id,
+                'contact_id' => $contact->id,
+                'type' => 'purchase',
+                'status' => 'draft',
+                'payment_method' => $purchase['payment_method'],
+                'notes' => null,
+                'created_by' => $admin?->id,
+                'total_retentions' => fake()->randomFloat(2, 0, 30000),
+            ], $itemsData);
+
+            if ($purchase['status'] === 'issued') {
+                $service->issue($transaction);
+            } elseif ($purchase['status'] === 'cancelled') {
+                $service->issue($transaction);
+                $service->cancel($transaction);
+            }
+        }
 
         foreach ($sales as $sale) {
             $contact = $clients[$sale['contact_idx']] ?? $clients[0];
@@ -306,41 +362,6 @@ class DatabaseSeeder extends Seeder
             if ($sale['status'] === 'issued') {
                 $service->issue($transaction);
             } elseif ($sale['status'] === 'cancelled') {
-                $service->issue($transaction);
-                $service->cancel($transaction);
-            }
-        }
-
-        foreach ($purchases as $purchase) {
-            $contact = $suppliers[$purchase['contact_idx']] ?? $suppliers[0];
-            $itemsData = [];
-            foreach ($purchase['items'] as [$itemIdx, $qty, $taxRate]) {
-                $item = $items[$itemIdx] ?? $items[0];
-                $itemsData[] = [
-                    'item_id' => $item->id,
-                    'quantity' => $qty,
-                    'unit_price' => $item->cost,
-                    'tax_rate' => $taxRate,
-                    'tax_amount' => 0,
-                    'discount_amount' => 0,
-                    'total_item_amount' => 0,
-                ];
-            }
-
-            $transaction = $service->createWithItems([
-                'tenant_id' => Tenant::first()->id,
-                'contact_id' => $contact->id,
-                'type' => 'purchase',
-                'status' => 'draft',
-                'payment_method' => $purchase['payment_method'],
-                'notes' => null,
-                'created_by' => $admin?->id,
-                'total_retentions' => fake()->randomFloat(2, 0, 30000),
-            ], $itemsData);
-
-            if ($purchase['status'] === 'issued') {
-                $service->issue($transaction);
-            } elseif ($purchase['status'] === 'cancelled') {
                 $service->issue($transaction);
                 $service->cancel($transaction);
             }

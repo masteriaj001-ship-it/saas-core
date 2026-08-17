@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.16.0 | **Status:** active_development | **Updated:** 2026-06-22
+> **Version:** 1.1.74 | **Status:** active_development | **Updated:** 2026-08-09
 
 ## Stack
 
@@ -52,14 +52,25 @@
 ### facturacion
 
 - **Status:** implemented
-- **Last check:** 2026-06-08
+- **Last check:** 2026-08-08
 - **Features:**
   - InvoiceResource con List/Create/Edit
   - InvoiceCodeGenerator con DB lock (FV-000001)
   - GenerateInvoiceFromWorkOrderAction (botón en EditWorkOrder)
   - IVA configurable por tenant (settings.es_responsable_iva)
   - PDF condicional (oculta IVA si tax_total=0)
-- **Notes:** Toggle IVA en Superadmin TenantResource → Section Facturación.
+  - Pagos por invoice: migration invoice_payments (UUID+RLS), InvoicePayment model + factory
+  - PaymentMethodEnum cash/card/transfer/check/credit
+  - Invoice::payments()/amountPaid()/balanceDue()/isPaid()
+  - InvoiceCreationService::registerPayment() con bloqueo de sobrepago y cambio
+  - POS con pago -> status=paid al instante (pos_sequence)
+  - Ticket térmico 80mm (ticket-pos.blade.php, window.print) + ruta invoices.ticket
+  - Protección cross-tenant 403 en ticket/pdf
+  - PosPage Filament kiosko full-screen: 3 paneles (categorías/catálogo/ticket), dark mode amber
+  - PosPage: búsqueda, filtro por item_type, carrito, pago modal (efectivo/tarjeta/transferencia)
+  - PosPage: cálculo de cambio, atajos de teclado (F2/F4/F5/F10), historial de ventas
+  - 26 tests POS: PosCheckoutTest (8) + PosPageTest (18)
+- **Notes:** M3 POS Kiosko completado: PosPage full-screen con 3 paneles (categorías por item_type, catálogo con búsqueda, ticket), modal de pago con efectivo/tarjeta/transferencia, cálculo de cambio, historial de ventas. Atajos de teclado F2/F4/F5/F10. Hardware impresora/cajón queda parametrizable: opción B (window.print/driver OS) o A (ESC/POS por TCP 9100).
 
 ### work_order_reception
 
@@ -98,8 +109,12 @@
   - blocked_until en contacts para restricción de clientes
   - sms_codes table con RLS
   - Migración de datos legacy: completed → work_done + flag is_legacy_closure
-  - 10 tests PHPUnit (transiciones, SMS, legacy, RLS)
-- **Notes:** FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. RLS en sms_codes. 222 tests total.
+  - Fase 2: columna stage (before/after) en work_order_media + enum WorkOrderMediaStageEnum + CHECK constraint
+  - Fase 2: WorkOrderClosureService con transiciones validadas (gate de checklist final + fotos antes/después + firma) y audit trail
+  - Fase 2: WorkOrder::hasCompleteFinalChecklist() + hasBeforeAfterPhotos()
+  - 7 tests WorkOrderClosurePhase2Test (checklist, fotos, happy path, legacy, stage, firma, RLS media)
+  - 17 tests PHPUnit (transiciones, SMS, legacy, RLS, fase 2)
+- **Notes:** FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. Fase 2 completada: gate de cierre (checklist completa + fotos before/after + firma) enforcement vía WorkOrderClosureService con audit trail en activities. RLS en sms_codes. 395 tests total.
 
 ### tenant_job_context
 
@@ -268,13 +283,25 @@
   - 22 tests (7 WarehouseAppScope, 9 StockMovementAppScope, 4 WarehouseRls, 2 StockMovementRls, 4 TransactionStockIntegration)
 - **Notes:** Fase 1 Foundation + Fase 2 Transferencias completa. TransferStockAction con TransferOut/TransferIn atómico + transfer_group_id. WarehouseResource con Transferir Stock + Ajustar Stock actions. 39 tests Inventario.
 
+### financial_dashboard
+
+- **Status:** implemented
+- **Last check:** 2026-08-08
+- **Features:**
+  - FinancialStatsOverview: KPI cards (ventas hoy, ingresos mes, ticket promedio, ingresos semana)
+  - DailySalesChart: bar chart Chart.js ingresos últimos 7 días
+  - TopItemsWidget: top 5 artículos más vendidos del mes
+  - PaymentMethodsBreakdown: desglose por método de pago (efectivo/tarjeta/transferencia/cheque/crédito) con porcentajes
+  - 14 tests FinancialDashboardTest (stats, chart, top items, payment methods, tenant isolation)
+- **Notes:** Dashboard financiero tenant-scoped. 4 widgets auto-discovered en Dashboard. TopItems usa StatsOverviewWidget (no TableWidget) para evitar GROUP BY con UUID en PostgreSQL.
+
 ## Test Suite
 
-- **Total tests:** 474
-- **Passing:** 474
-- **Assertions:** 1024
+- **Total tests:** 395
+- **Passing:** 395
+- **Assertions:** 950
 - **Status:** green
-- **Last run:** 2026-06-22
+- **Last run:** 2026-08-09
 
 ## Architecture Rules
 
@@ -285,6 +312,7 @@
 - **uuid_pks:** ✅
 - **soft_deletes_exceptions:** ✅
 - **module_activation_system:** ✅
+- **db_destructive_guard:** ✅
 
 ## Features Implemented
 
@@ -329,6 +357,9 @@
 - 39 tests Inventario pasando (AppScope + RLS + StockSyncService + negative stock + inactive warehouse + purchase cancel + TransferStockAction)
 - Spatie cache poisoning Vector C fix: forgetCachedPermissions() post clearTenantContext() en RegisterTenantAction + CreateTenant
 - Raw SQL injection fix: PDO quote + str_replace en migration create_app_user_role. Nueva migration update_app_user_password_escaped aplicada.
+- POS Kiosko full-screen (PosPage con Livewire: categorías, catálogo, ticket, pago modal, historial, atajos teclado)
+- Work Order Closure Fase 2: gate de cierre (checklist final + fotos antes/después + firma) vía WorkOrderClosureService con audit trail
+- work_order_media.stage (before/after) con WorkOrderMediaStageEnum + CHECK constraint + factory states asBefore
 
 ## Security Status
 
@@ -346,10 +377,11 @@
 
 ## Next Actions
 
-- [ ] Dashboard financiero con KPIs por tenant
+- [ ] Hardware POS parametrizable (impresora termica por TCP 9100/cajon, opcion B window.print o A ESC/POS)
+- [ ] Work Order Closure Phase 3: automatismos de vencimiento (breach a las 72h, alertas de recogida 48h)
+- [ ] Restaurar demo-taller en saas_core SOLO si John lo decide explicitamente (requiere DB_DESTRUCTIVE_ALLOWLIST=saas_core) o navegar POS contra dusk_testing
+- [ ] Validar POS kiosko en navegador contra dusk_testing (estado demo) para confirmar filtro/busqueda tras realign de migraciones
 - [ ] Notificaciones push / SMS con SmsCode (post-MVP notifications)
-- [ ] Work Order Closure Phase 2 (checklist final, fotos antes/después)
-- [ ] Reemplazar 'Laravel' por 'Tu SaaS' en footer/título (APP_NAME en .env)
 
 ---
 

@@ -28,6 +28,21 @@ return new class extends Migration
 
     public function down(): void
     {
-        DB::statement('DROP ROLE IF EXISTS app_user');
+        try {
+            // Drops privileges owned by the role in THIS database only.
+            DB::statement('DROP OWNED BY IF EXISTS app_user');
+        } catch (Throwable) {
+            // El rol no existe o no hay privilegios locales que limpiar.
+        }
+
+        try {
+            // El rol es cluster-wide: si conserva privilegios en otras bases de
+            // datos, DROP ROLE lanzara una dependencia. Lo omitimos para no
+            // romper rollbacks/fresh en bases de test; `up()` es idempotente.
+            DB::statement('DROP ROLE IF EXISTS app_user');
+        } catch (Throwable) {
+            // El rol permanece para no romper el teardown; es el comportamiento
+            // esperado para roles compartidos entre bases de un mismo cluster.
+        }
     }
 };
