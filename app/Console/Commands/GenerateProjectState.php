@@ -104,6 +104,29 @@ class GenerateProjectState extends Command
         $md .= "- **Last run:** {$data['test_suite']['last_run']}\n";
         $md .= "\n";
 
+        if (! empty($data['deployment'])) {
+            $md .= "## Deployment\n\n";
+            $md .= "- **Platform:** {$data['deployment']['platform']}\n";
+            $md .= "- **URL:** {$data['deployment']['url']}\n";
+            $md .= "- **Custom domain:** {$data['deployment']['custom_domain']}\n";
+            $md .= "- **Database:** {$data['deployment']['database']}\n";
+
+            if (! empty($data['deployment']['fixes_applied'])) {
+                $md .= "- **Fixes applied:**\n";
+                foreach ($data['deployment']['fixes_applied'] as $fix) {
+                    $md .= "  - {$fix}\n";
+                }
+            }
+
+            if (! empty($data['deployment']['open_items'])) {
+                $md .= "- **Open items:**\n";
+                foreach ($data['deployment']['open_items'] as $item) {
+                    $md .= "  - [ ] {$item}\n";
+                }
+            }
+            $md .= "\n";
+        }
+
         $md .= "## Architecture Rules\n\n";
         foreach ($data['architecture_rules'] as $rule => $enabled) {
             $md .= "- **{$rule}:** ".($enabled ? '✅' : '❌')."\n";

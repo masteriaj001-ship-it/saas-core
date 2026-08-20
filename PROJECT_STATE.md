@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.78 | **Status:** active_development | **Updated:** 2026-08-20
+> **Version:** 1.1.79 | **Status:** active_development | **Updated:** 2026-08-20
 
 ## Stack
 
@@ -302,6 +302,25 @@
 - **Assertions:** 984
 - **Status:** green
 - **Last run:** 2026-08-20
+
+## Deployment
+
+- **Platform:** Railway
+- **URL:** https://saas-core-production-7165.up.railway.app
+- **Custom domain:** pending (decidir nombre de proyecto antes del dominio)
+- **Database:** PostgreSQL Railway (host postgres.railway.internal, user sin BYPASSRLS = RLS activo)
+- **Fixes applied:**
+  - Multi-stage Dockerfile: vendor + assets (node:22) + runtime (php:8.5-fpm-alpine + nginx)
+  - APP_URL=https://... en Railway Variables (https, no http) — resolvio Mixed Content de Livewire
+  - bootstrap/app.php: $middleware->trustProxies(at: '*') — Railway termina TLS en proxy, X-Forwarded-Proto
+  - nginx-default.conf: try_files $uri /index.php en bloque de estáticos — /livewire-*/livewire.min.js se sirve via PHP (antes 404 nginx)
+  - entrypoint.sh: livewire:publish --assets sin --force (flag no existe en v5), removido route:cache (Livewire registra rutas de assets dinámicamente)
+  - User model implementa FilamentUser (canAccessPanel) — sin eso el panel admin da 403 en production
+  - Railway no soporta --build-arg; todas las env via dashboard
+- **Open items:**
+  - [ ] Obtener dominio propio y agregar como Custom Domain en Railway (Networking)
+  - [ ] MFA no configurada para admin@demo.com aún (opcional)
+  - [ ] Fallback DB config en container: verificar DB_HOST desde DATABASE_URL en cada boot (entrypoint ya parsea)
 
 ## Architecture Rules
 
