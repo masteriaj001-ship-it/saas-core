@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant Talleres
 
-> **Version:** 1.1.74 | **Status:** active_development | **Updated:** 2026-08-09
+> **Version:** 1.1.77 | **Status:** active_development | **Updated:** 2026-08-20
 
 ## Stack
 
@@ -52,7 +52,7 @@
 ### facturacion
 
 - **Status:** implemented
-- **Last check:** 2026-08-08
+- **Last check:** 2026-08-20
 - **Features:**
   - InvoiceResource con List/Create/Edit
   - InvoiceCodeGenerator con DB lock (FV-000001)
@@ -62,15 +62,15 @@
   - Pagos por invoice: migration invoice_payments (UUID+RLS), InvoicePayment model + factory
   - PaymentMethodEnum cash/card/transfer/check/credit
   - Invoice::payments()/amountPaid()/balanceDue()/isPaid()
-  - InvoiceCreationService::registerPayment() con bloqueo de sobrepago y cambio
+  - InvoiceCreationService::registerPayment() con bloqueo de sobrepago y cambio (PaymentExceedsBalanceException)
   - POS con pago -> status=paid al instante (pos_sequence)
-  - Ticket térmico 80mm (ticket-pos.blade.php, window.print) + ruta invoices.ticket
-  - Protección cross-tenant 403 en ticket/pdf
+  - Ticket térmico 80mm (ticket-pos.blade.php, window.print) + ruta invoices.ticket (protección cross-tenant 403)
   - PosPage Filament kiosko full-screen: 3 paneles (categorías/catálogo/ticket), dark mode amber
-  - PosPage: búsqueda, filtro por item_type, carrito, pago modal (efectivo/tarjeta/transferencia)
-  - PosPage: cálculo de cambio, atajos de teclado (F2/F4/F5/F10), historial de ventas
-  - 26 tests POS: PosCheckoutTest (8) + PosPageTest (18)
-- **Notes:** M3 POS Kiosko completado: PosPage full-screen con 3 paneles (categorías por item_type, catálogo con búsqueda, ticket), modal de pago con efectivo/tarjeta/transferencia, cálculo de cambio, historial de ventas. Atajos de teclado F2/F4/F5/F10. Hardware impresora/cajón queda parametrizable: opción B (window.print/driver OS) o A (ESC/POS por TCP 9100).
+  - PosPage: búsqueda, filtro por item_type, carrito, pago modal (efectivo/tarjeta/transferencia), cálculo de cambio, atajos F2/F4/F5/F10, historial de ventas
+  - Hardware POS parametrizable en TenantResource (Section Impresión): driver esc_pos/window_print, host, port, canal cajón, abrir cajón tras cobro — persistido en tenants.settings->pos_hardware
+  - Modal post-pago en PosPage ('Venta registrada'): botones IMPRIMIR / VER TICKET (invoices.ticket) / Cerrar (Esc) — commit de3ce46
+  - 30 tests POS+UI: PosCheckoutTest (8) + PosPageTest (20) + TenantPosSettingsTest (2)
+- **Notes:** M3 POS Kiosko completado y mergeado a main (commits 3efbe70, de3ce46, f196dd2). Validado en navegador: superadmin crea/edita Section Impresión (labels, host/port/canal dinámicos por driver), POS modal post-pago con IMPRIMIR/VER TICKET/Cerrar Esc. Fixes Filament v5 al voletear: Section en Schemas (BudgetResource) y KeyValue import (ItemResource). Suite completa 409 verdes.
 
 ### work_order_reception
 
@@ -297,11 +297,11 @@
 
 ## Test Suite
 
-- **Total tests:** 395
-- **Passing:** 395
-- **Assertions:** 950
+- **Total tests:** 409
+- **Passing:** 409
+- **Assertions:** 1003
 - **Status:** green
-- **Last run:** 2026-08-09
+- **Last run:** 2026-08-20
 
 ## Architecture Rules
 
@@ -360,6 +360,11 @@
 - POS Kiosko full-screen (PosPage con Livewire: categorías, catálogo, ticket, pago modal, historial, atajos teclado)
 - Work Order Closure Fase 2: gate de cierre (checklist final + fotos antes/después + firma) vía WorkOrderClosureService con audit trail
 - work_order_media.stage (before/after) con WorkOrderMediaStageEnum + CHECK constraint + factory states asBefore
+- POS kiosko fix (Livewire v4): single root div en pos.blade.php + Alpine posKiosk registrado via FilamentView::registerRenderHook(SCRIPTS_AFTER). Commit 9493ade 2026-08-16. Verificado en navegador (root DIV, filtro 2->0, fullscreen, sin errores JS)
+- Hardware POS parametrizable: PrinterSettingsResolver + EscPosService (TCP 9100, GS @ init, ESC p pulses cajon, corte) + TicketRenderer + PosPrintController endpoint POST /pos/print con proteccion cross-tenant 403. Drivers esc_pos (A) y window_print (B). Settings via tenants.settings->pos_hardware. Commit ca79997 en feature/pos-hardware. 10 tests nuevos.
+- UI POS hardware (commit de3ce46): TenantResource Section Impresión (driver/host/port/canal/cajón, dinámico por driver) + modal post-pago en PosPage (IMPRIMIR/VER TICKET/Cerrar Esc). Validado en navegador via Selenium grid.
+- Fix Filament v5 (2026-08-20): import KeyValue en ItemResource (Class App\Filament\Resources\KeyValue not found) y Section en Schemas\Components para BudgetResource (Class Filament\Forms\Components\Section not found — en v5 Section vive en Filament\Schemas\Components\Section).
+- feature/pos-hardware-ui ff-mergeado a main (f196dd2): 5 commits (3efbe70 M3 kiosko + pagos + ticket, de3ce46 UI hardware + modal, 0fc848a taller closure fase 2, d8b708b infra guard+seeder+down fix, f196dd2 pint). Suite 409/409 verde.
 
 ## Security Status
 
@@ -377,10 +382,9 @@
 
 ## Next Actions
 
-- [ ] Hardware POS parametrizable (impresora termica por TCP 9100/cajon, opcion B window.print o A ESC/POS)
 - [ ] Work Order Closure Phase 3: automatismos de vencimiento (breach a las 72h, alertas de recogida 48h)
 - [ ] Restaurar demo-taller en saas_core SOLO si John lo decide explicitamente (requiere DB_DESTRUCTIVE_ALLOWLIST=saas_core) o navegar POS contra dusk_testing
-- [ ] Validar POS kiosko en navegador contra dusk_testing (estado demo) para confirmar filtro/busqueda tras realign de migraciones
+- [ ] Decidir si sketches/pos-kiosk.html entra al repo o se ignora (boceto HTML, quedó fuera de los commits)
 - [ ] Notificaciones push / SMS con SmsCode (post-MVP notifications)
 
 ---
