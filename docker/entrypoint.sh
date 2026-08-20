@@ -8,13 +8,14 @@ if [ -z "${APP_KEY}" ]; then
     exit 1
 fi
 
-# Railway PostgreSQL: map PG* vars to DB_* if not already set
-if [ -n "${PGHOST}" ] && [ -z "${DB_HOST}" ]; then
-    export DB_HOST="${PGHOST}"
-    export DB_PORT="${PGPORT:-5432}"
-    export DB_DATABASE="${PGDATABASE}"
-    export DB_USERNAME="${PGUSER}"
-    export DB_PASSWORD="${PGPASSWORD}"
+# Railway provides DATABASE_URL, parse it into DB_* for Laravel
+if [ -n "${DATABASE_URL}" ] && [ -z "${DB_HOST}" ]; then
+    # DATABASE_URL format: postgresql://user:password@host:port/database
+    export DB_HOST=$(echo "$DATABASE_URL" | sed -n 's|.*@\([^:]*\):\([0-9]*\)/.*|\1|p')
+    export DB_PORT=$(echo "$DATABASE_URL" | sed -n 's|.*@\([^:]*\):\([0-9]*\)/.*|\2|p')
+    export DB_DATABASE=$(echo "$DATABASE_URL" | sed -n 's|.*/\([^?]*\).*|\1|p')
+    export DB_USERNAME=$(echo "$DATABASE_URL" | sed -n 's|://\([^:]*\):.*|\1|p')
+    export DB_PASSWORD=$(echo "$DATABASE_URL" | sed -n 's|://[^:]*:\([^@]*\)@.*|\1|p')
 fi
 
 php artisan storage:link >/dev/null 2>&1 || true
