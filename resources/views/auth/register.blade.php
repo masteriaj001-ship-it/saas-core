@@ -48,18 +48,6 @@
                 </div>
 
                 <div>
-                    <label for="industry" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Industria</label>
-                    <select name="industry" id="industry"
-                        class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm focus:border-amber-500 focus:ring-1 focus:ring-amber-500">
-                        <option value="general" {{ old('industry') === 'general' ? 'selected' : '' }}>Retail / General</option>
-                        <option value="mechanic" {{ old('industry') === 'mechanic' ? 'selected' : '' }}>Taller mecánico</option>
-                        <option value="restaurant" {{ old('industry') === 'restaurant' ? 'selected' : '' }}>Restaurante</option>
-                        <option value="construction" {{ old('industry') === 'construction' ? 'selected' : '' }}>Constructora</option>
-                        <option value="clinic" {{ old('industry') === 'clinic' ? 'selected' : '' }}>Clínica</option>
-                    </select>
-                </div>
-
-                <div>
                     <label for="business_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Nombre del negocio</label>
                     <input type="text" name="business_name" id="business_name" value="{{ old('business_name') }}" required
                         class="mt-1 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 shadow-sm placeholder:text-gray-400 focus:border-amber-500 focus:ring-1 focus:ring-amber-500">

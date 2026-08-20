@@ -87,10 +87,9 @@ class TallerOnboarding extends Page
                     'name' => $this->data['owner_name'] ?? 'Admin',
                     'email' => $this->data['email'] ?? '',
                     'password' => $this->data['password'] ?? '',
-                    'industry' => 'mechanic',
                 ]);
 
-                app(TenantTemplateSeeder::class)->seed($user->tenant, 'mechanic');
+                app(TenantTemplateSeeder::class)->seed($user->tenant);
 
                 $settings = $user->tenant->settings ?? [];
                 $settings['taller'] = [

@@ -19,7 +19,6 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Route;
 use Livewire\Livewire;
-use PHPUnit\Framework\Attributes\DataProvider;
 use Symfony\Component\HttpFoundation\Response;
 use Tests\TestCase;
 
@@ -138,67 +137,32 @@ class OnboardingWizardTest extends TestCase
     public function test_completing_onboarding_marks_tenant_as_completed(): void
     {
         $seeder = $this->app->make(TenantTemplateSeeder::class);
-        $seeder->seed($this->incompleteTenant, 'general');
+        $seeder->seed($this->incompleteTenant);
 
         $this->assertTrue($this->incompleteTenant->fresh()->onboarding_completed);
     }
 
-    #[DataProvider('industryProvider')]
-    public function test_template_seeder_creates_assets_for_each_industry(
-        string $industry,
-        int $expectedCategories,
-        int $expectedItems,
-        int $expectedAssets,
-    ): void {
+    public function test_template_seeder_creates_defaults(): void
+    {
         $tenant = Tenant::factory()->create(['onboarding_completed' => false]);
 
         $seeder = $this->app->make(TenantTemplateSeeder::class);
-        $seeder->seed($tenant, $industry);
+        $seeder->seed($tenant);
 
-        $this->assertCount($expectedCategories, Category::where('tenant_id', $tenant->id)->get());
-        $this->assertCount($expectedItems, Item::where('tenant_id', $tenant->id)->get());
-        $this->assertCount($expectedAssets, Asset::where('tenant_id', $tenant->id)->get());
+        $this->assertCount(4, Category::where('tenant_id', $tenant->id)->get());
+        $this->assertCount(4, Item::where('tenant_id', $tenant->id)->get());
+        $this->assertCount(2, Asset::where('tenant_id', $tenant->id)->get());
         $this->assertTrue($tenant->fresh()->onboarding_completed);
     }
 
-    public static function industryProvider(): array
-    {
-        return [
-            'general' => ['general',      4, 3, 1],
-            'mechanic' => ['mechanic',     4, 3, 2],
-            'restaurant' => ['restaurant',   4, 3, 2],
-            'construction' => ['construction', 4, 3, 2],
-            'clinic' => ['clinic',       4, 3, 2],
-        ];
-    }
-
-    public function test_onboarding_wizard_renders_with_select_if_no_industry_detected(): void
+    public function test_onboarding_wizard_has_no_industry_select(): void
     {
         $this->actingAs($this->incompleteUser);
         Filament::setCurrentPanel(Filament::getPanel('admin'));
         Filament::setTenant($this->incompleteTenant);
 
         Livewire::test(Onboarding::class)
-            ->assertSet('detectedIndustry', null);
-    }
-
-    public function test_onboarding_wizard_prepopulates_if_industry_is_detected(): void
-    {
-        $tenantWithIndustry = Tenant::factory()->create([
-            'onboarding_completed' => false,
-            'settings' => ['industry' => 'mechanic'],
-        ]);
-        $user = User::factory()->create([
-            'tenant_id' => $tenantWithIndustry->id,
-        ]);
-
-        $this->actingAs($user);
-        Filament::setCurrentPanel(Filament::getPanel('admin'));
-        Filament::setTenant($tenantWithIndustry);
-
-        Livewire::test(Onboarding::class)
-            ->assertSet('detectedIndustry', 'mechanic')
-            ->assertSet('data.industry', 'mechanic');
+            ->assertFormFieldDoesNotExist('industry');
     }
 
     public function test_onboarding_wizard_submits_successfully(): void
@@ -208,7 +172,6 @@ class OnboardingWizardTest extends TestCase
         Filament::setTenant($this->incompleteTenant);
 
         Livewire::test(Onboarding::class)
-            ->set('data.industry', 'mechanic')
             ->call('complete')
             ->assertHasNoErrors();
 

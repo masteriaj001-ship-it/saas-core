@@ -36,7 +36,7 @@ class RegistrationTest extends TestCase
         $response = $this->post(route('register'), [
             'name' => 'Test User',
             'business_name' => 'Test Business',
-            'industry' => 'general',
+
             'email' => 'test@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
@@ -59,7 +59,7 @@ class RegistrationTest extends TestCase
         $this->post(route('register'), [
             'name' => 'Jane Doe',
             'business_name' => 'Jane Business',
-            'industry' => 'general',
+
             'email' => 'jane@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
@@ -78,7 +78,7 @@ class RegistrationTest extends TestCase
         $this->post(route('register'), [
             'name' => 'Owner User',
             'business_name' => 'Owner Business',
-            'industry' => 'general',
+
             'email' => 'owner@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
@@ -93,7 +93,7 @@ class RegistrationTest extends TestCase
         $this->post(route('register'), [
             'name' => 'Perm User',
             'business_name' => 'Perm Business',
-            'industry' => 'general',
+
             'email' => 'perm@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
@@ -121,7 +121,7 @@ class RegistrationTest extends TestCase
         $response = $this->post(route('register'), [
             'name' => 'Another User',
             'business_name' => 'Duplicate Business',
-            'industry' => 'general',
+
             'email' => 'duplicate@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
@@ -135,7 +135,7 @@ class RegistrationTest extends TestCase
         $response = $this->post(route('register'), [
             'name' => 'Weak Pass',
             'business_name' => 'Weak Business',
-            'industry' => 'general',
+
             'email' => 'weak@example.com',
             'password' => 'short',
             'password_confirmation' => 'short',
@@ -149,7 +149,7 @@ class RegistrationTest extends TestCase
         $response = $this->post(route('register'), [
             'name' => 'No Upper',
             'business_name' => 'NoUpper Business',
-            'industry' => 'general',
+
             'email' => 'noupper@example.com',
             'password' => 'lowercase1!',
             'password_confirmation' => 'lowercase1!',
@@ -163,7 +163,7 @@ class RegistrationTest extends TestCase
         $response = $this->post(route('register'), [
             'name' => 'No Number',
             'business_name' => 'NoNumber Business',
-            'industry' => 'general',
+
             'email' => 'nonumber@example.com',
             'password' => 'UpperCase!',
             'password_confirmation' => 'UpperCase!',
@@ -177,7 +177,7 @@ class RegistrationTest extends TestCase
         $response = $this->post(route('register'), [
             'name' => 'No Special',
             'business_name' => 'NoSpecial Business',
-            'industry' => 'general',
+
             'email' => 'nospecial@example.com',
             'password' => 'Uppercase1',
             'password_confirmation' => 'Uppercase1',
@@ -191,7 +191,7 @@ class RegistrationTest extends TestCase
         $response1 = $this->post(route('register'), [
             'name' => 'Alpha',
             'business_name' => 'Alpha Corp',
-            'industry' => 'general',
+
             'email' => 'alpha@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
@@ -204,7 +204,7 @@ class RegistrationTest extends TestCase
         $response2 = $this->post(route('register'), [
             'name' => 'Beta',
             'business_name' => 'Beta Corp',
-            'industry' => 'general',
+
             'email' => 'beta@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
@@ -222,7 +222,7 @@ class RegistrationTest extends TestCase
         $this->post(route('register'), [
             'name' => 'Free User',
             'business_name' => 'Free Business',
-            'industry' => 'general',
+
             'email' => 'free@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',

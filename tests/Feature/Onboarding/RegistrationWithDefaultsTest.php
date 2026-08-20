@@ -44,40 +44,38 @@ class RegistrationWithDefaultsTest extends TestCase
         $this->assertTrue($location->is_active);
     }
 
-    public function test_creates_industry_categories(): void
+    public function test_creates_default_categories(): void
     {
         $this->post(route('register'), [
             'name' => 'Test User',
-            'business_name' => 'Mecánico Taller',
-            'email' => 'mechanic@example.com',
-            'industry' => 'mechanic',
+            'business_name' => 'Taller Test',
+            'email' => 'taller@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
         ]);
 
-        $user = User::where('email', 'mechanic@example.com')->first();
+        $user = User::where('email', 'taller@example.com')->first();
         $categories = Category::where('tenant_id', $user->tenant_id)->get();
 
         $this->assertCount(4, $categories);
-        $this->assertEquals('Repuestos', $categories[0]->name);
+        $this->assertEquals('Servicios', $categories[0]->name);
     }
 
-    public function test_creates_industry_items(): void
+    public function test_creates_default_items(): void
     {
         $this->post(route('register'), [
             'name' => 'Test User',
-            'business_name' => 'Restaurante Test',
-            'email' => 'restaurant@example.com',
-            'industry' => 'restaurant',
+            'business_name' => 'Taller Items',
+            'email' => 'items@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
         ]);
 
-        $user = User::where('email', 'restaurant@example.com')->first();
+        $user = User::where('email', 'items@example.com')->first();
         $items = Item::where('tenant_id', $user->tenant_id)->get();
 
-        $this->assertCount(3, $items);
-        $this->assertEquals('Agua mineral', $items[0]->name);
+        $this->assertCount(4, $items);
+        $this->assertEquals('Filtro de aceite', $items[0]->name);
     }
 
     public function test_creates_default_contacts(): void
@@ -119,11 +117,11 @@ class RegistrationWithDefaultsTest extends TestCase
         $this->assertTrue($modules->pluck('module_slug')->contains('contacts'));
     }
 
-    public function test_uses_general_defaults_when_no_industry(): void
+    public function test_single_template_creates_taller_defaults(): void
     {
         $this->post(route('register'), [
             'name' => 'Test User',
-            'business_name' => 'General Business',
+            'business_name' => 'Taller General',
             'email' => 'general@example.com',
             'password' => 'SecurePass1!',
             'password_confirmation' => 'SecurePass1!',
@@ -134,8 +132,8 @@ class RegistrationWithDefaultsTest extends TestCase
         $items = Item::where('tenant_id', $user->tenant_id)->get();
 
         $this->assertCount(4, $categories);
-        $this->assertEquals('General', $categories[0]->name);
-        $this->assertCount(3, $items);
-        $this->assertEquals('Producto de ejemplo', $items[0]->name);
+        $this->assertEquals('Servicios', $categories[0]->name);
+        $this->assertCount(4, $items);
+        $this->assertEquals('Filtro de aceite', $items[0]->name);
     }
 }

@@ -30,8 +30,6 @@ final class RegisterTenantAction
                 ? $data['settings']
                 : [];
 
-            $settings['industry'] = $data['industry'] ?? 'mechanic';
-
             $tenant = Tenant::create([
                 'name' => $data['business_name'],
                 'slug' => $slug,

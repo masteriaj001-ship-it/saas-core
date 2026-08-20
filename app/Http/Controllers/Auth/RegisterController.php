@@ -30,7 +30,6 @@ class RegisterController extends Controller
                 'required', 'string', 'email', 'max:255',
                 Rule::unique('users')->whereNull('deleted_at'),
             ],
-            'industry' => ['nullable', 'string', 'in:mechanic,restaurant,construction,clinic,general'],
             'password' => [
                 'required',
                 'string',

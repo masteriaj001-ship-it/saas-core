@@ -32,14 +32,12 @@ class RegisterService
                 ->slug()
                 ->append('-', Str::random(4));
 
-            $industry = $data['industry'] ?? 'general';
-
             $tenant = Tenant::create([
                 'name' => $data['business_name'],
                 'slug' => $slug,
                 'plan' => 'free',
                 'is_active' => true,
-                'settings' => ['industry' => $industry],
+                'settings' => [],
             ]);
 
             $this->tenantManager->setTenantContext($tenant->id);
@@ -55,7 +53,7 @@ class RegisterService
 
             $user->assignRole('owner');
 
-            $this->createDefaults($industry);
+            $this->createDefaults();
 
             Auth::login($user);
 
@@ -63,7 +61,7 @@ class RegisterService
         });
     }
 
-    private function createDefaults(string $industry): void
+    private function createDefaults(): void
     {
         Location::create([
             'name' => 'Sede Principal',
@@ -71,7 +69,7 @@ class RegisterService
             'is_active' => true,
         ]);
 
-        $defaults = config("industry-defaults.industries.{$industry}", config('industry-defaults.industries.general'));
+        $defaults = config('industry-defaults.industries.general', []);
 
         foreach ($defaults['categories'] as $catName) {
             Category::create(['name' => $catName]);

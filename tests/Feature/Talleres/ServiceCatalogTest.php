@@ -85,19 +85,17 @@ class ServiceCatalogTest extends TestCase
         $this->assertEquals('pickup_truck', VehicleTypeEnum::PickupTruck->value);
     }
 
-    public function test_mechanic_template_seeds_service_catalogs(): void
+    public function test_default_template_seeds_service_catalogs(): void
     {
         $seeder = app(TenantTemplateSeeder::class);
 
-        $seeder->seed($this->tenant, 'mechanic');
+        $seeder->seed($this->tenant);
 
         $catalogs = ServiceCatalog::where('tenant_id', $this->tenant->id)->get();
 
-        $this->assertCount(5, $catalogs);
+        $this->assertCount(3, $catalogs);
         $this->assertNotNull($catalogs->firstWhere('name', 'Cambio de aceite y filtro'));
         $this->assertNotNull($catalogs->firstWhere('name', 'Revisión de frenos'));
         $this->assertNotNull($catalogs->firstWhere('name', 'Diagnóstico electrónico'));
-        $this->assertNotNull($catalogs->firstWhere('name', 'Alineación y balanceo'));
-        $this->assertNotNull($catalogs->firstWhere('name', 'Sincronización de motor'));
     }
 }

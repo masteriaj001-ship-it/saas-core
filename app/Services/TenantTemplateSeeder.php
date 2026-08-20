@@ -17,11 +17,11 @@ class TenantTemplateSeeder
         private readonly TenantManager $tenantManager,
     ) {}
 
-    public function seed(Tenant $tenant, string $industry): void
+    public function seed(Tenant $tenant): void
     {
         $this->tenantManager->setTenantContext($tenant->id);
 
-        $defaults = config("industry-defaults.industries.{$industry}", config('industry-defaults.industries.general'));
+        $defaults = config('industry-defaults.industries.general', []);
 
         foreach ($defaults['categories'] as $catName) {
             Category::firstOrCreate(['name' => $catName]);

@@ -46,7 +46,7 @@ class CreateTenant extends CreateRecord
 
             $user->assignRole('owner');
 
-            app(TenantTemplateSeeder::class)->seed($tenant, 'mechanic');
+            app(TenantTemplateSeeder::class)->seed($tenant);
 
             return $tenant;
         });
