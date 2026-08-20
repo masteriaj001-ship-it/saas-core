@@ -10,6 +10,7 @@ use Database\Factories\UserFactory;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthenticationRecovery;
 use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
+use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
@@ -24,7 +25,7 @@ use Laravel\Sanctum\HasApiTokens;
 use SensitiveParameter;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable implements HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasTenants
+class User extends Authenticatable implements FilamentUser, HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication, HasTenants
 {
     /** @use HasFactory<UserFactory> */
     use BelongsToTenant, HasApiTokens, HasFactory, HasRoles, HasUuids, Notifiable, SoftDeletes;
@@ -73,6 +74,15 @@ class User extends Authenticatable implements HasAppAuthentication, HasAppAuthen
     public function sendPasswordResetNotification($token): void
     {
         $this->notify(new ResetPasswordNotification($token));
+    }
+
+    public function canAccessPanel(Panel $panel): bool
+    {
+        if ($panel->getId() === 'superadmin') {
+            return $this->is_superadmin;
+        }
+
+        return true;
     }
 
     public function getTenants(Panel $panel): Collection
