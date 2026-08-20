@@ -1,6 +1,6 @@
-# ProyectDashboard - SaaS Multitenant Talleres
+# ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.77 | **Status:** active_development | **Updated:** 2026-08-20
+> **Version:** 1.1.78 | **Status:** active_development | **Updated:** 2026-08-20
 
 ## Stack
 
@@ -70,7 +70,7 @@
   - Hardware POS parametrizable en TenantResource (Section Impresión): driver esc_pos/window_print, host, port, canal cajón, abrir cajón tras cobro — persistido en tenants.settings->pos_hardware
   - Modal post-pago en PosPage ('Venta registrada'): botones IMPRIMIR / VER TICKET (invoices.ticket) / Cerrar (Esc) — commit de3ce46
   - 30 tests POS+UI: PosCheckoutTest (8) + PosPageTest (20) + TenantPosSettingsTest (2)
-- **Notes:** M3 POS Kiosko completado y mergeado a main (commits 3efbe70, de3ce46, f196dd2). Validado en navegador: superadmin crea/edita Section Impresión (labels, host/port/canal dinámicos por driver), POS modal post-pago con IMPRIMIR/VER TICKET/Cerrar Esc. Fixes Filament v5 al voletear: Section en Schemas (BudgetResource) y KeyValue import (ItemResource). Suite completa 409 verdes.
+- **Notes:** M3 POS Kiosko completado y mergeado a main (commits 3efbe70, de3ce46, f196dd2). Validado en navegador: superadmin crea/edita Section Impresión (labels, host/port/canal dinámicos por driver), POS modal post-pago con IMPRIMIR/VER TICKET/Cerrar Esc. Fixes Filament v5 al voletear: Section en Schemas (BudgetResource) y KeyValue import (ItemResource). Suite completa 404 verdes (tras single-vertical).
 
 ### work_order_reception
 
@@ -297,9 +297,9 @@
 
 ## Test Suite
 
-- **Total tests:** 409
-- **Passing:** 409
-- **Assertions:** 1003
+- **Total tests:** 404
+- **Passing:** 404
+- **Assertions:** 984
 - **Status:** green
 - **Last run:** 2026-08-20
 
@@ -365,6 +365,7 @@
 - UI POS hardware (commit de3ce46): TenantResource Section Impresión (driver/host/port/canal/cajón, dinámico por driver) + modal post-pago en PosPage (IMPRIMIR/VER TICKET/Cerrar Esc). Validado en navegador via Selenium grid.
 - Fix Filament v5 (2026-08-20): import KeyValue en ItemResource (Class App\Filament\Resources\KeyValue not found) y Section en Schemas\Components para BudgetResource (Class Filament\Forms\Components\Section not found — en v5 Section vive en Filament\Schemas\Components\Section).
 - feature/pos-hardware-ui ff-mergeado a main (f196dd2): 5 commits (3efbe70 M3 kiosko + pagos + ticket, de3ce46 UI hardware + modal, 0fc848a taller closure fase 2, d8b708b infra guard+seeder+down fix, f196dd2 pint). Suite 409/409 verde.
+- Single vertical (commit 5a272cb): consolida el modelo a UN template de 'Operaciones tipo Taller' (4 categorías/4 items/2 activos/3 catálogos). Eliminadas las industrias restaurant/mechanic/construction/clinic de config/industry-defaults.php. Fuera el select de industria de auth/register.blade.php y el Select industry de Onboarding.php. seed($tenant) reemplaza seed($tenant, 'mechanic') en todos los callers. settings.industry queda como campo legacy informativo (0 lecturas). Referencias 'mechanic' conservadas solo donde es rol de empleado. Suite 404/984 verde.
 
 ## Security Status
 
