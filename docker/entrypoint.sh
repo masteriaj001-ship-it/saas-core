@@ -10,12 +10,12 @@ fi
 
 # Railway provides DATABASE_URL, parse it into DB_* for Laravel
 if [ -n "${DATABASE_URL}" ] && [ -z "${DB_HOST}" ]; then
-    # DATABASE_URL format: postgresql://user:password@host:port/database
-    export DB_HOST=$(echo "$DATABASE_URL" | sed -n 's|.*@\([^:]*\):\([0-9]*\)/.*|\1|p')
-    export DB_PORT=$(echo "$DATABASE_URL" | sed -n 's|.*@\([^:]*\):\([0-9]*\)/.*|\2|p')
-    export DB_DATABASE=$(echo "$DATABASE_URL" | sed -n 's|.*/\([^?]*\).*|\1|p')
-    export DB_USERNAME=$(echo "$DATABASE_URL" | sed -n 's|://\([^:]*\):.*|\1|p')
-    export DB_PASSWORD=$(echo "$DATABASE_URL" | sed -n 's|://[^:]*:\([^@]*\)@.*|\1|p')
+    DB_HOST=$(php -r "echo parse_url('$DATABASE_URL', PHP_URL_HOST);")
+    DB_PORT=$(php -r "echo parse_url('$DATABASE_URL', PHP_URL_PORT) ?: '5432';")
+    DB_DATABASE=$(php -r "echo ltrim(parse_url('$DATABASE_URL', PHP_URL_PATH), '/');")
+    DB_USERNAME=$(php -r "echo parse_url('$DATABASE_URL', PHP_URL_USER);")
+    DB_PASSWORD=$(php -r "echo parse_url('$DATABASE_URL', PHP_URL_PASS);")
+    export DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD
 fi
 
 php artisan storage:link >/dev/null 2>&1 || true
