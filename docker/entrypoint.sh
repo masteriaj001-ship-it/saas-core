@@ -20,6 +20,8 @@ fi
 
 php artisan storage:link >/dev/null 2>&1 || true
 
+php artisan livewire:publish --assets --force 2>/dev/null || true
+
 php artisan package:discover --ansi || true
 
 php artisan migrate --force
