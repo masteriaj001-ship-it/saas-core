@@ -24,7 +24,7 @@ php artisan package:discover --ansi || true
 
 php artisan migrate --force
 
-php artisan livewire:publish --assets --force 2>/dev/null || true
+php artisan livewire:publish --assets 2>/dev/null || true
 
 php artisan config:cache
 php artisan view:cache
