@@ -37,7 +37,6 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->darkMode(true, isForced: true)
             ->login()
-            ->locale('es')
             ->profile()
             ->passwordReset()
             ->revealablePasswords()
