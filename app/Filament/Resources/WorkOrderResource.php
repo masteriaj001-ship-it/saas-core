@@ -77,7 +77,10 @@ class WorkOrderResource extends Resource
                                 ->label(__('Teléfono')),
                         ])
                         ->createOptionUsing(function (array $data): ?string {
-                            return Contact::query()->tenant()->create($data)?->id;
+                            return Contact::query()->tenant()->create([
+                                ...$data,
+                                'contact_type' => 'client',
+                            ])?->id;
                         })
                         ->getSearchResultsUsing(function (string $search): array {
                             return Contact::query()
@@ -113,7 +116,10 @@ class WorkOrderResource extends Resource
                                 ->label(__('Modelo')),
                         ])
                         ->createOptionUsing(function (array $data): ?string {
-                            return Asset::query()->tenant()->create($data)?->id;
+                            return Asset::query()->tenant()->create([
+                                ...$data,
+                                'asset_type' => 'vehicle',
+                            ])?->id;
                         })
                         ->getSearchResultsUsing(function (string $search): array {
                             return Asset::query()
