@@ -8,7 +8,7 @@ use App\Filament\Resources\WorkOrderResource;
 use App\Filament\Resources\WorkOrderResource\Pages\EditWorkOrder;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Services\WorkOrderCodeGenerator;
 use App\Services\TenantManager;
@@ -25,7 +25,7 @@ class WorkOrderWizardTest extends TestCase
 
     private User $user;
 
-    private Asset $asset;
+    private ClientVehicle $clientVehicle;
 
     protected function setUp(): void
     {
@@ -33,7 +33,7 @@ class WorkOrderWizardTest extends TestCase
 
         $this->tenant = Tenant::factory()->create();
         $this->user = User::factory()->for($this->tenant)->create();
-        $this->asset = Asset::factory()->for($this->tenant)->create();
+        $this->clientVehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $this->actingAs($this->user);
         app(TenantManager::class)->setTenantContext($this->tenant->id);
@@ -46,7 +46,7 @@ class WorkOrderWizardTest extends TestCase
         $this->expectException(QueryException::class);
 
         WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0001',
             'status' => 'received',
         ]);
@@ -57,7 +57,7 @@ class WorkOrderWizardTest extends TestCase
         $generator = app(WorkOrderCodeGenerator::class);
 
         $workOrder = WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => $generator->next(),
             'title' => 'Mantenimiento preventivo',
             'status' => 'received',

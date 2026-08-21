@@ -7,7 +7,7 @@ namespace Tests\Feature\Talleres;
 use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -21,7 +21,7 @@ class WorkOrderPhase3Test extends TestCase
 
     private User $user;
 
-    private Asset $asset;
+    private ClientVehicle $clientVehicle;
 
     protected function setUp(): void
     {
@@ -29,7 +29,7 @@ class WorkOrderPhase3Test extends TestCase
 
         $this->tenant = Tenant::factory()->create();
         $this->user = User::factory()->for($this->tenant)->create();
-        $this->asset = Asset::factory()->for($this->tenant)->create();
+        $this->clientVehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $this->actingAs($this->user);
         app(TenantManager::class)->setTenantContext($this->tenant->id);
@@ -38,7 +38,7 @@ class WorkOrderPhase3Test extends TestCase
     public function test_work_order_accepts_inspection_fields(): void
     {
         $workOrder = WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0001',
             'title' => 'Mantenimiento',
             'status' => 'received',
@@ -58,14 +58,14 @@ class WorkOrderPhase3Test extends TestCase
     public function test_work_order_code_unique_per_tenant(): void
     {
         WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0001',
             'title' => 'First WO',
             'status' => 'received',
         ]);
 
         WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0002',
             'title' => 'Second WO',
             'status' => 'received',

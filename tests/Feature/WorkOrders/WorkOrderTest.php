@@ -8,7 +8,7 @@ use App\Enums\WorkOrderStatusEnum;
 use App\Models\Item;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Models\WorkOrderItem;
 use App\Services\TenantManager;
@@ -23,7 +23,7 @@ class WorkOrderTest extends TestCase
 
     private User $user;
 
-    private Asset $asset;
+    private ClientVehicle $clientVehicle;
 
     private Item $item;
 
@@ -33,7 +33,7 @@ class WorkOrderTest extends TestCase
 
         $this->tenant = Tenant::factory()->create();
         $this->user = User::factory()->for($this->tenant)->create();
-        $this->asset = Asset::factory()->for($this->tenant)->create();
+        $this->clientVehicle = ClientVehicle::factory()->for($this->tenant)->create();
         $this->item = Item::factory()->for($this->tenant)->create();
 
         $this->actingAs($this->user);
@@ -43,7 +43,7 @@ class WorkOrderTest extends TestCase
     public function test_can_create_work_order(): void
     {
         $workOrder = WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'title' => 'Mantenimiento preventivo',
             'code' => 'WO-0001',
             'status' => 'draft',
@@ -58,7 +58,7 @@ class WorkOrderTest extends TestCase
     public function test_can_add_items_to_work_order(): void
     {
         $workOrder = WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'title' => 'Reparación motor',
             'code' => 'WO-0002',
             'status' => 'in_progress',
@@ -82,7 +82,7 @@ class WorkOrderTest extends TestCase
     public function test_status_transitions_work(): void
     {
         $workOrder = WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'title' => 'Test estados',
             'code' => 'WO-0003',
             'status' => 'draft',

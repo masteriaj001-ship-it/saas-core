@@ -6,7 +6,7 @@ namespace App\Modules\Talleres\Actions;
 
 use App\Enums\WorkOrderStatusEnum;
 use App\Models\Contact;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Services\WorkOrderCodeGenerator;
 use App\Services\TenantManager;
@@ -27,16 +27,16 @@ final class CreateWorkOrderReceptionAction
 
             $contact = $this->resolveContact($data, $tenantId);
 
-            $asset = $this->resolveAsset($data, $tenantId);
+            $clientVehicle = $this->resolveClientVehicle($data, $tenantId);
 
             $code = $this->codeGenerator->next();
 
             return WorkOrder::create([
                 'tenant_id' => $tenantId,
                 'contact_id' => $contact?->id,
-                'asset_id' => $asset?->id,
+                'client_vehicle_id' => $clientVehicle?->id,
                 'code' => $code,
-                'title' => $data['title'] ?? sprintf('Recepción: %s', $asset?->name ?? 'Sin vehículo'),
+                'title' => $data['title'] ?? sprintf('Recepción: %s', $clientVehicle?->plate ?? 'Sin vehículo'),
                 'status' => WorkOrderStatusEnum::Received,
                 'priority' => $data['priority'] ?? 'medium',
                 'mileage_km' => $data['mileage_km'] ?? null,
@@ -98,25 +98,24 @@ final class CreateWorkOrderReceptionAction
         ]);
     }
 
-    private function resolveAsset(array $data, string $tenantId): ?Asset
+    private function resolveClientVehicle(array $data, string $tenantId): ?ClientVehicle
     {
-        if (isset($data['asset_id'])) {
-            return Asset::query()
+        if (isset($data['client_vehicle_id'])) {
+            return ClientVehicle::query()
                 ->tenant()
-                ->where('id', $data['asset_id'])
+                ->where('id', $data['client_vehicle_id'])
                 ->first();
         }
 
-        $plate = $data['asset_plate'] ?? null;
-        $name = $data['asset_name'] ?? null;
-        $brand = $data['asset_brand'] ?? null;
-        $model = $data['asset_model'] ?? null;
+        $plate = $data['vehicle_plate'] ?? null;
+        $brand = $data['vehicle_brand'] ?? null;
+        $model = $data['vehicle_model'] ?? null;
 
-        if (! $plate && ! $name) {
+        if (! $plate) {
             return null;
         }
 
-        $query = Asset::query()->tenant()->where('tenant_id', $tenantId);
+        $query = ClientVehicle::query()->tenant()->where('tenant_id', $tenantId);
 
         if ($plate) {
             $query->where('plate', $plate);
@@ -127,17 +126,11 @@ final class CreateWorkOrderReceptionAction
             return $existing;
         }
 
-        if (! $name && ! $plate) {
-            return null;
-        }
-
-        return Asset::create([
+        return ClientVehicle::create([
             'tenant_id' => $tenantId,
-            'name' => $name ?? ($plate ? "Vehículo {$plate}" : 'Sin nombre'),
             'plate' => $plate,
             'brand' => $brand,
             'model' => $model,
-            'asset_type' => 'vehicle',
         ]);
     }
 }

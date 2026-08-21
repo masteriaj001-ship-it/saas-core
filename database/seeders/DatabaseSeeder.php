@@ -14,6 +14,7 @@ use App\Modules\Inventario\Enums\MovementTypeEnum;
 use App\Modules\Inventario\Models\StockMovement;
 use App\Modules\Inventario\Models\Warehouse;
 use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Models\WorkOrderItem;
 use App\Services\TenantManager;
@@ -67,6 +68,7 @@ class DatabaseSeeder extends Seeder
         $this->seedAssets();
         $this->seedItems();
         $this->seedContacts();
+        $this->seedClientVehicles();
         $this->seedWorkOrders();
         $this->seedTransactions();
 
@@ -83,6 +85,7 @@ class DatabaseSeeder extends Seeder
         Transaction::query()->forceDelete();
         WorkOrderItem::query()->forceDelete();
         WorkOrder::query()->forceDelete();
+        ClientVehicle::query()->forceDelete();
         Item::query()->forceDelete();
         Asset::query()->forceDelete();
         Contact::query()->forceDelete();
@@ -107,13 +110,41 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Dell Latitude 5540',            'code' => 'ASSET-005', 'asset_type' => 'computers', 'status' => 'active',      'acquired_at' => '2023-06-20'],
             ['name' => 'HP EliteDesk 800 G9',           'code' => 'ASSET-006', 'asset_type' => 'computers', 'status' => 'active',      'acquired_at' => '2023-09-15'],
             ['name' => 'Lenovo ThinkPad X1 Carbon',     'code' => 'ASSET-007', 'asset_type' => 'computers', 'status' => 'maintenance', 'acquired_at' => '2022-11-30'],
-            ['name' => 'Toyota Hilux 2024',             'code' => 'ASSET-008', 'asset_type' => 'vehicles',  'status' => 'active',      'acquired_at' => '2024-03-01'],
-            ['name' => 'Chevrolet NKR 2022',             'code' => 'ASSET-009', 'asset_type' => 'vehicles',  'status' => 'disposed',    'acquired_at' => '2022-07-15'],
-            ['name' => 'Moto Suzuki V-Strom 650',       'code' => 'ASSET-010', 'asset_type' => 'vehicles',  'status' => 'active',      'acquired_at' => '2023-05-10'],
         ];
 
         foreach ($assets as $data) {
             Asset::create($data);
+        }
+    }
+
+    private function seedClientVehicles(): void
+    {
+        $clients = Contact::where('contact_type', 'client')->get();
+
+        $vehicles = [
+            ['plate' => 'ABC-123', 'brand' => 'Toyota',  'model' => 'Hilux',    'year' => 2024, 'color' => 'Blanco',  'fuel_type' => 'diesel',    'vehicle_type' => 'pickup_truck',  'current_mileage' => 15000, 'owner_idx' => 0],
+            ['plate' => 'DEF-456', 'brand' => 'Chevrolet', 'model' => 'NKR',     'year' => 2022, 'color' => 'Gris',    'fuel_type' => 'diesel',    'vehicle_type' => 'truck',   'current_mileage' => 45000, 'owner_idx' => 1],
+            ['plate' => 'GHI-789', 'brand' => 'Suzuki',  'model' => 'V-Strom',  'year' => 2023, 'color' => 'Negro',   'fuel_type' => 'gasoline',  'vehicle_type' => 'motorcycle', 'current_mileage' => 8000, 'owner_idx' => 2],
+            ['plate' => 'JKL-012', 'brand' => 'Toyota',  'model' => 'Corolla',  'year' => 2021, 'color' => 'Azul',    'fuel_type' => 'gasoline',  'vehicle_type' => 'sedan',   'current_mileage' => 32000, 'owner_idx' => 3],
+            ['plate' => 'MNO-345', 'brand' => 'Mazda',   'model' => 'CX-5',     'year' => 2023, 'color' => 'Rojo',    'fuel_type' => 'gasoline',  'vehicle_type' => 'suv',     'current_mileage' => 12000, 'owner_idx' => 4],
+        ];
+
+        foreach ($vehicles as $data) {
+            $ownerIdx = $data['owner_idx'] ?? 0;
+            $owner = $clients[$ownerIdx] ?? $clients[0];
+
+            ClientVehicle::create([
+                'tenant_id' => Tenant::first()->id,
+                'owner_contact_id' => $owner->id,
+                'plate' => $data['plate'],
+                'brand' => $data['brand'],
+                'model' => $data['model'],
+                'year' => $data['year'],
+                'color' => $data['color'],
+                'fuel_type' => $data['fuel_type'],
+                'vehicle_type' => $data['vehicle_type'],
+                'current_mileage' => $data['current_mileage'],
+            ]);
         }
     }
 
@@ -191,37 +222,36 @@ class DatabaseSeeder extends Seeder
 
     private function seedWorkOrders(): void
     {
-        $assets = Asset::all();
+        $vehicles = ClientVehicle::all();
         $clients = Contact::where('contact_type', 'client')->get();
         $items = Item::all();
 
         $workOrders = [
-            ['title' => 'Cambio de aceite y filtros',            'description' => 'Cambio de aceite 10W40 y filtro de aceite. Revisión general.',                        'status' => 'completed',   'priority' => 'normal',  'asset_idx' => 0, 'contact_idx' => 0, 'item_indices' => [[0, 1], [7, 4]]],
-            ['title' => 'Revisión de frenos delanteros',         'description' => 'Inspección y cambio de pastillas de freno delanteras.',                                 'status' => 'completed',   'priority' => 'high',    'asset_idx' => 0, 'contact_idx' => 1, 'item_indices' => [[2, 1]]],
-            ['title' => 'Mantenimiento correctivo elevador',     'description' => 'Fuga de aceite hidráulico en elevador 2T. Reparación urgente.',                          'status' => 'completed',   'priority' => 'urgent',  'asset_idx' => 3, 'contact_idx' => 2, 'item_indices' => [[13, 1], [23, 5]]],
-            ['title' => 'Diagnóstico eléctrico vehículo',       'description' => 'Vehículo no enciende. Diagnóstico completo del sistema eléctrico.',                       'status' => 'completed',   'priority' => 'high',    'asset_idx' => 1, 'contact_idx' => 3, 'item_indices' => [[18, 1]]],
-            ['title' => 'Alineación y balanceo completo',        'description' => 'Alineación y balanceo de las 4 llantas. Cliente reporta vibraciones.',                  'status' => 'completed',   'priority' => 'normal',  'asset_idx' => 0, 'contact_idx' => 4, 'item_indices' => [[19, 1]]],
-            ['title' => 'Cambio de correa de distribución',      'description' => 'Reemplazo de correa de distribución y tensor. Mantenimiento preventivo 60,000km.',        'status' => 'in_progress', 'priority' => 'high',    'asset_idx' => 1, 'contact_idx' => 1, 'item_indices' => [[3, 1], [0, 1], [7, 3]]],
-            ['title' => 'Reparación de suspensión delantera',   'description' => 'Cambio de amortiguadores delanteros y rotulación.',                                       'status' => 'in_progress', 'priority' => 'normal',  'asset_idx' => 0, 'contact_idx' => 0, 'item_indices' => [[4, 2]]],
-            ['title' => 'Revisión general moto',                'description' => 'Puesta a punto de moto Suzuki GN 125. Cambio de bujía y aceite.',                         'status' => 'in_progress', 'priority' => 'normal',  'asset_idx' => 2, 'contact_idx' => 5, 'item_indices' => [[1, 1], [7, 2]]],
-            ['title' => 'Cambio de llantas',                     'description' => 'Montaje y balanceo de 2 llantas 205/55 R16.',                                             'status' => 'in_progress', 'priority' => 'normal',  'asset_idx' => 0, 'contact_idx' => 6, 'item_indices' => [[6, 2]]],
-            ['title' => 'Reparación de compresor',              'description' => 'Compresor de aire 200L no presuriza. Revisión de válvulas y sellos.',                     'status' => 'in_progress', 'priority' => 'high',    'asset_idx' => 4, 'contact_idx' => 6, 'item_indices' => [[14, 1]]],
-            ['title' => 'Instalación de scanner automotriz',    'description' => 'Configuración y calibración del scanner Launch en taller.',                               'status' => 'in_progress', 'priority' => 'low',     'asset_idx' => 7, 'contact_idx' => 7, 'item_indices' => []],
-            ['title' => 'Servicio de pintura puerta derecha',   'description' => 'Reparación de abolladura y pintura de puerta derecha.',                                    'status' => 'in_progress', 'priority' => 'normal',  'asset_idx' => 1, 'contact_idx' => 2, 'item_indices' => [[24, 1], [16, 2]]],
-            ['title' => 'Mantenimiento preventivo torno CNC',   'description' => 'Lubricación general y calibración de ejes del torno CNC.',                                'status' => 'in_progress', 'priority' => 'normal',  'asset_idx' => 5, 'contact_idx' => 4, 'item_indices' => []],
-            ['title' => 'Cambio de batería',                    'description' => 'Vehículo no arranca en frío. Diagnosis: batería descargada. Reemplazo.',                   'status' => 'in_progress', 'priority' => 'urgent',  'asset_idx' => 1, 'contact_idx' => 3, 'item_indices' => [[5, 1]]],
-            ['title' => 'Revisión de líquidos general',         'description' => 'Revisión y cambio de refrigerante y líquido de frenos.',                                   'status' => 'in_progress', 'priority' => 'normal',  'asset_idx' => 0, 'contact_idx' => 5, 'item_indices' => [[8, 3], [9, 2]]],
-            ['title' => 'Cambio de embrague',                   'description' => 'Kit de embrague completo para Toyota Hilux.',                                             'status' => 'draft',       'priority' => 'normal',  'asset_idx' => 0, 'contact_idx' => 0, 'item_indices' => []],
-            ['title' => 'Reparación de soldadura',              'description' => 'Soldadura de soporte trasero en camión Chevrolet.',                                       'status' => 'draft',       'priority' => 'low',     'asset_idx' => 1, 'contact_idx' => 7, 'item_indices' => [[23, 2]]],
-            ['title' => 'Diagnóstico de motor',                'description' => 'Cliente reporta ruido extraño en motor. Scanner y comprobación mecánica.',                  'status' => 'draft',       'priority' => 'high',    'asset_idx' => 0, 'contact_idx' => 6, 'item_indices' => [[18, 1]]],
-            ['title' => 'Mantenimiento correctivo moto',        'description' => 'Freno trasero no responde correctamente. Revisión y ajuste.',                              'status' => 'draft',       'priority' => 'normal',  'asset_idx' => 2, 'contact_idx' => 1, 'item_indices' => [[2, 1]]],
-            ['title' => 'Revisión general post-venta',          'description' => 'Revisión completa después de reparación mayor. Garantía de 30 días.',                      'status' => 'draft',       'priority' => 'low',     'asset_idx' => 1, 'contact_idx' => 3, 'item_indices' => []],
+            ['title' => 'Cambio de aceite y filtros',            'description' => 'Cambio de aceite 10W40 y filtro de aceite. Revisión general.',                        'status' => 'completed',   'priority' => 'normal',  'vehicle_idx' => 0, 'contact_idx' => 0, 'item_indices' => [[0, 1], [7, 4]]],
+            ['title' => 'Revisión de frenos delanteros',         'description' => 'Inspección y cambio de pastillas de freno delanteras.',                                 'status' => 'completed',   'priority' => 'high',    'vehicle_idx' => 0, 'contact_idx' => 1, 'item_indices' => [[2, 1]]],
+            ['title' => 'Mantenimiento correctivo elevador',     'description' => 'Fuga de aceite hidráulico en elevador 2T. Reparación urgente.',                          'status' => 'completed',   'priority' => 'urgent',  'vehicle_idx' => 1, 'contact_idx' => 2, 'item_indices' => [[13, 1], [23, 5]]],
+            ['title' => 'Diagnóstico eléctrico vehículo',       'description' => 'Vehículo no enciende. Diagnóstico completo del sistema eléctrico.',                       'status' => 'completed',   'priority' => 'high',    'vehicle_idx' => 1, 'contact_idx' => 3, 'item_indices' => [[18, 1]]],
+            ['title' => 'Alineación y balanceo completo',        'description' => 'Alineación y balanceo de las 4 llantas. Cliente reporta vibraciones.',                  'status' => 'completed',   'priority' => 'normal',  'vehicle_idx' => 0, 'contact_idx' => 4, 'item_indices' => [[19, 1]]],
+            ['title' => 'Cambio de correa de distribución',      'description' => 'Reemplazo de correa de distribución y tensor. Mantenimiento preventivo 60,000km.',        'status' => 'in_progress', 'priority' => 'high',    'vehicle_idx' => 1, 'contact_idx' => 1, 'item_indices' => [[3, 1], [0, 1], [7, 3]]],
+            ['title' => 'Reparación de suspensión delantera',   'description' => 'Cambio de amortiguadores delanteros y rotulación.',                                       'status' => 'in_progress', 'priority' => 'normal',  'vehicle_idx' => 0, 'contact_idx' => 0, 'item_indices' => [[4, 2]]],
+            ['title' => 'Revisión general moto',                'description' => 'Puesta a punto de moto Suzuki GN 125. Cambio de bujía y aceite.',                         'status' => 'in_progress', 'priority' => 'normal',  'vehicle_idx' => 2, 'contact_idx' => 5, 'item_indices' => [[1, 1], [7, 2]]],
+            ['title' => 'Cambio de llantas',                     'description' => 'Montaje y balanceo de 2 llantas 205/55 R16.',                                             'status' => 'in_progress', 'priority' => 'normal',  'vehicle_idx' => 0, 'contact_idx' => 6, 'item_indices' => [[6, 2]]],
+            ['title' => 'Reparación de compresor',              'description' => 'Compresor de aire 200L no presuriza. Revisión de válvulas y sellos.',                     'status' => 'in_progress', 'priority' => 'high',    'vehicle_idx' => 3, 'contact_idx' => 6, 'item_indices' => [[14, 1]]],
+            ['title' => 'Instalación de scanner automotriz',    'description' => 'Configuración y calibración del scanner Launch en taller.',                               'status' => 'in_progress', 'priority' => 'low',     'vehicle_idx' => 4, 'contact_idx' => 7, 'item_indices' => []],
+            ['title' => 'Servicio de pintura puerta derecha',   'description' => 'Reparación de abolladura y pintura de puerta derecha.',                                    'status' => 'in_progress', 'priority' => 'normal',  'vehicle_idx' => 1, 'contact_idx' => 2, 'item_indices' => [[24, 1], [16, 2]]],
+            ['title' => 'Cambio de batería',                    'description' => 'Vehículo no arranca en frío. Diagnosis: batería descargada. Reemplazo.',                   'status' => 'in_progress', 'priority' => 'urgent',  'vehicle_idx' => 1, 'contact_idx' => 3, 'item_indices' => [[5, 1]]],
+            ['title' => 'Revisión de líquidos general',         'description' => 'Revisión y cambio de refrigerante y líquido de frenos.',                                   'status' => 'in_progress', 'priority' => 'normal',  'vehicle_idx' => 0, 'contact_idx' => 5, 'item_indices' => [[8, 3], [9, 2]]],
+            ['title' => 'Cambio de embrague',                   'description' => 'Kit de embrague completo para Toyota Hilux.',                                             'status' => 'draft',       'priority' => 'normal',  'vehicle_idx' => 0, 'contact_idx' => 0, 'item_indices' => []],
+            ['title' => 'Reparación de soldadura',              'description' => 'Soldadura de soporte trasero en camión Chevrolet.',                                       'status' => 'draft',       'priority' => 'low',     'vehicle_idx' => 1, 'contact_idx' => 7, 'item_indices' => [[23, 2]]],
+            ['title' => 'Diagnóstico de motor',                'description' => 'Cliente reporta ruido extraño en motor. Scanner y comprobación mecánica.',                  'status' => 'draft',       'priority' => 'high',    'vehicle_idx' => 0, 'contact_idx' => 6, 'item_indices' => [[18, 1]]],
+            ['title' => 'Mantenimiento correctivo moto',        'description' => 'Freno trasero no responde correctamente. Revisión y ajuste.',                              'status' => 'draft',       'priority' => 'normal',  'vehicle_idx' => 2, 'contact_idx' => 1, 'item_indices' => [[2, 1]]],
+            ['title' => 'Revisión general post-venta',          'description' => 'Revisión completa después de reparación mayor. Garantía de 30 días.',                      'status' => 'draft',       'priority' => 'low',     'vehicle_idx' => 1, 'contact_idx' => 3, 'item_indices' => []],
         ];
 
         $woPrefix = 'WO-';
 
         foreach ($workOrders as $i => $wo) {
-            $asset = $assets[$wo['asset_idx']] ?? $assets[0];
+            $vehicle = $vehicles[$wo['vehicle_idx']] ?? $vehicles[0];
             $contact = $clients[$wo['contact_idx']] ?? $clients[0];
 
             $num = $i + 1;
@@ -239,7 +269,7 @@ class DatabaseSeeder extends Seeder
 
             /** @var WorkOrder $workOrder */
             $workOrder = WorkOrder::create([
-                'asset_id' => $asset->id,
+                'client_vehicle_id' => $vehicle->id,
                 'contact_id' => $contact->id,
                 'code' => $code,
                 'title' => $wo['title'],

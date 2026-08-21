@@ -10,7 +10,7 @@ use App\Models\Contact;
 use App\Models\Item;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\ServiceCatalog;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
@@ -28,7 +28,7 @@ class WorkOrderTallerTest extends TestCase
 
     private User $user;
 
-    private Asset $asset;
+    private ClientVehicle $clientVehicle;
 
     protected function setUp(): void
     {
@@ -36,7 +36,7 @@ class WorkOrderTallerTest extends TestCase
 
         $this->tenant = Tenant::factory()->create();
         $this->user = User::factory()->for($this->tenant)->create();
-        $this->asset = Asset::factory()->for($this->tenant)->create();
+        $this->clientVehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $this->actingAs($this->user);
         app(TenantManager::class)->setTenantContext($this->tenant->id);
@@ -50,7 +50,7 @@ class WorkOrderTallerTest extends TestCase
     {
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0001',
             'title' => 'Cambio de aceite',
             'service_description' => 'Cambio de aceite y filtros',
@@ -80,23 +80,22 @@ class WorkOrderTallerTest extends TestCase
         ]);
     }
 
-    public function test_can_create_asset_inline_from_work_order_form(): void
+    public function test_can_create_client_vehicle_inline_from_work_order_form(): void
     {
-        // Simula el callback createOptionUsing del Select asset_id
-        $asset = Asset::create([
-            'name' => 'Inline Vehicle',
+        // Simula el callback createOptionUsing del Select client_vehicle_id
+        $clientVehicle = ClientVehicle::create([
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
             'plate' => 'XYZ-987',
             'vehicle_type' => VehicleTypeEnum::Sedan,
-            'asset_type' => 'vehicle',
-            'status' => 'active',
         ]);
 
-        $this->assertDatabaseHas('assets', [
-            'id' => $asset->id,
-            'name' => 'Inline Vehicle',
+        $this->assertDatabaseHas('client_vehicles', [
+            'id' => $clientVehicle->id,
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
             'plate' => 'XYZ-987',
-            'asset_type' => 'vehicle',
-            'status' => 'active',
+            'vehicle_type' => VehicleTypeEnum::Sedan->value,
         ]);
     }
 
@@ -113,7 +112,7 @@ class WorkOrderTallerTest extends TestCase
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0002',
             'title' => 'Mantenimiento general',
             'status' => 'draft',
@@ -171,7 +170,7 @@ class WorkOrderTallerTest extends TestCase
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0003',
             'title' => 'WorkOrder with invalid item',
             'status' => 'draft',

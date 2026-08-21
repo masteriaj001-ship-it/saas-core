@@ -20,8 +20,8 @@ class LatestWorkOrdersTable extends BaseTableWidget
             ->heading(__('Últimas Órdenes de Trabajo'))
             ->query(
                 WorkOrder::query()
-                    ->select(['id', 'code', 'title', 'asset_id', 'status', 'priority', 'created_at'])
-                    ->with('asset:id,name')
+                    ->select(['id', 'code', 'title', 'client_vehicle_id', 'status', 'priority', 'created_at'])
+                    ->with('clientVehicle:id,plate,brand,model')
                     ->latest()
                     ->limit(5)
             )
@@ -34,8 +34,8 @@ class LatestWorkOrdersTable extends BaseTableWidget
                     ->label(__('Título'))
                     ->limit(30)
                     ->searchable(),
-                TextColumn::make('asset.name')
-                    ->label(__('Activo'))
+                TextColumn::make('clientVehicle.plate')
+                    ->label(__('Placa'))
                     ->searchable(),
                 TextColumn::make('status')
                     ->label(__('Estado'))

@@ -6,7 +6,7 @@ namespace App\Modules\Budget\Services;
 
 use App\Models\Contact;
 use App\Modules\Budget\Models\Budget;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Services\WorkOrderCodeGenerator;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +22,7 @@ class BudgetConversionService
         return DB::transaction(function () use ($budget) {
             $contact = $this->resolveContact($budget);
 
-            $asset = Asset::create([
+            $clientVehicle = ClientVehicle::create([
                 'tenant_id' => $budget->tenant_id,
                 'owner_contact_id' => $contact->id,
                 'brand' => $budget->vehicle_data['make'] ?? null,
@@ -30,15 +30,13 @@ class BudgetConversionService
                 'plate' => $budget->vehicle_data['plate'] ?? null,
                 'year' => $budget->vehicle_data['year'] ?? null,
                 'color' => $budget->vehicle_data['color'] ?? null,
-                'name' => $this->buildAssetName($budget),
-                'asset_type' => 'vehicle',
             ]);
 
             $workOrder = WorkOrder::create([
                 'tenant_id' => $budget->tenant_id,
                 'code' => $this->codeGenerator->next(),
                 'contact_id' => $contact->id,
-                'asset_id' => $asset->id,
+                'client_vehicle_id' => $clientVehicle->id,
                 'status' => 'received',
                 'title' => "OT desde {$budget->code}",
                 'service_description' => $budget->notes,
@@ -95,16 +93,5 @@ class BudgetConversionService
             'phone' => $budget->contact_phone,
             'email' => $budget->contact_email,
         ]);
-    }
-
-    private function buildAssetName(Budget $budget): string
-    {
-        $parts = array_filter([
-            $budget->vehicle_data['make'] ?? null,
-            $budget->vehicle_data['model'] ?? null,
-            $budget->vehicle_data['plate'] ?? null,
-        ]);
-
-        return implode(' ', $parts) ?: 'Vehículo sin datos';
     }
 }

@@ -27,21 +27,6 @@ class AssetFactory extends Factory
         ];
     }
 
-    public function vehicle(): static
-    {
-        return $this->state(fn (array $attrs) => [
-            'asset_type' => 'vehicle',
-            'brand' => fake()->randomElement(['Toyota', 'Honda', 'Nissan', 'Ford', 'Chevrolet', 'Mazda']),
-            'model' => fake()->word(),
-            'year' => fake()->numberBetween(2000, (int) now()->format('Y')),
-            'plate' => strtoupper(fake()->bothify('???-####')),
-            'vin' => strtoupper(fake()->bothify('1HG?????????????')),
-            'fuel_type' => fake()->randomElement(['gasoline', 'diesel', 'hybrid']),
-            'current_mileage' => fake()->numberBetween(0, 200000),
-            'color' => fake()->safeColorName(),
-        ]);
-    }
-
     public function equipment(): static
     {
         return $this->state(fn (array $attrs) => [

@@ -15,7 +15,7 @@ use App\Filament\Resources\WorkOrderResource\RelationManagers\MediaRelationManag
 use App\Models\Contact;
 use App\Models\Item;
 use App\Models\Location;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\ServiceCatalog;
 use App\Modules\Talleres\Models\WorkOrder;
 use Filament\Actions\BulkActionGroup;
@@ -100,54 +100,62 @@ class WorkOrderResource extends Resource
                                 ->where('id', $value)
                                 ->value('name') ?? __('(sin nombre)');
                         }),
-                    Select::make('asset_id')
+                    Select::make('client_vehicle_id')
                         ->label('Vehículo')
                         ->searchable()
+                        ->live()
                         ->createOptionForm([
-                            TextInput::make('name')
-                                ->label(__('Nombre'))
-                                ->required()
-                                ->maxLength(255),
                             TextInput::make('plate')
-                                ->label(__('Placa')),
+                                ->label(__('Placa'))
+                                ->required()
+                                ->maxLength(20),
                             TextInput::make('brand')
                                 ->label(__('Marca')),
                             TextInput::make('model')
                                 ->label(__('Modelo')),
+                            TextInput::make('year')
+                                ->label(__('Año'))
+                                ->numeric(),
                         ])
-                        ->createOptionUsing(function (array $data): ?string {
-                            return Asset::query()->tenant()->create([
+                        ->createOptionUsing(function (array $data, Get $get): ?string {
+                            return ClientVehicle::query()->tenant()->create([
                                 ...$data,
-                                'asset_type' => 'vehicle',
+                                'owner_contact_id' => $get('contact_id'),
                             ])?->id;
                         })
-                        ->getSearchResultsUsing(function (string $search): array {
-                            return Asset::query()
+                        ->getSearchResultsUsing(function (string $search, Get $get): array {
+                            $query = ClientVehicle::query()
                                 ->tenant()
                                 ->where(function ($q) use ($search): void {
-                                    $q->where('name', 'ilike', "%{$search}%")
-                                        ->orWhere('plate', 'ilike', "%{$search}%")
+                                    $q->where('plate', 'ilike', "%{$search}%")
                                         ->orWhere('brand', 'ilike', "%{$search}%")
                                         ->orWhere('model', 'ilike', "%{$search}%");
-                                })
+                                });
+
+                            $contactId = $get('contact_id');
+                            if ($contactId) {
+                                $query->where('owner_contact_id', $contactId);
+                            }
+
+                            return $query
                                 ->limit(15)
                                 ->get()
-                                ->mapWithKeys(fn (Asset $asset) => [
-                                    $asset->id => static::formatAssetLabel($asset),
+                                ->mapWithKeys(fn (ClientVehicle $vehicle) => [
+                                    $vehicle->id => static::formatClientVehicleLabel($vehicle),
                                 ])
                                 ->toArray();
                         })
                         ->getOptionLabelUsing(function ($value): string {
-                            $asset = Asset::query()
+                            $vehicle = ClientVehicle::query()
                                 ->tenant()
                                 ->where('id', $value)
                                 ->first();
 
-                            if (! $asset) {
+                            if (! $vehicle) {
                                 return __('(sin nombre)');
                             }
 
-                            return static::formatAssetLabel($asset);
+                            return static::formatClientVehicleLabel($vehicle);
                         }),
                     Select::make('location_id')
                         ->label('Ubicación')
@@ -627,20 +635,20 @@ class WorkOrderResource extends Resource
         return parent::getEloquentQuery()->whereNull('deleted_at');
     }
 
-    public static function formatAssetLabel(Asset $asset): string
+    public static function formatClientVehicleLabel(ClientVehicle $vehicle): string
     {
         $parts = array_filter([
-            $asset->brand,
-            $asset->model,
-            $asset->year ? (string) $asset->year : null,
+            $vehicle->brand,
+            $vehicle->model,
+            $vehicle->year ? (string) $vehicle->year : null,
         ]);
 
         $vehicleInfo = ! empty($parts)
             ? implode(' ', $parts)
-            : $asset->name;
+            : $vehicle->plate;
 
-        return $asset->plate
-            ? "{$vehicleInfo} — {$asset->plate}"
+        return $vehicle->plate
+            ? "{$vehicleInfo} — {$vehicle->plate}"
             : $vehicleInfo;
     }
 }

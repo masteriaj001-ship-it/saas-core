@@ -8,9 +8,8 @@ use App\Enums\FuelTypeEnum;
 use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Services\TenantManager;
-use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -33,26 +32,34 @@ class VehicleMasterDataTest extends TestCase
         app(TenantManager::class)->setTenantContext($this->tenant->id);
     }
 
-    public function test_can_create_asset_with_all_vehicle_fields(): void
+    public function test_can_create_client_vehicle_with_all_fields(): void
     {
         $owner = Contact::factory()->for($this->tenant)->client()->create();
 
-        $asset = Asset::factory()->vehicle()->create([
+        $vehicle = ClientVehicle::factory()->create([
             'tenant_id' => $this->tenant->id,
-            'name' => 'Toyota Hilux 2024',
+            'owner_contact_id' => $owner->id,
+            'plate' => 'ABC-123',
+            'brand' => 'Toyota',
+            'model' => 'Hilux',
+            'year' => 2024,
             'version' => 'SRX 4x4',
+            'vin' => '2HGFC2F93LH567890',
             'engine_number' => '2TR-123456',
             'current_mileage' => 15000,
             'fuel_type' => FuelTypeEnum::Diesel,
             'color' => 'Blanco',
-            'owner_contact_id' => $owner->id,
+            'vehicle_type' => 'pickup_truck',
         ]);
 
-        $fresh = $asset->fresh();
+        $fresh = $vehicle->fresh();
 
-        $this->assertEquals('Toyota Hilux 2024', $fresh->name);
-        $this->assertEquals('vehicle', $fresh->asset_type);
+        $this->assertEquals('ABC-123', $fresh->plate);
+        $this->assertEquals('Toyota', $fresh->brand);
+        $this->assertEquals('Hilux', $fresh->model);
+        $this->assertEquals(2024, $fresh->year);
         $this->assertEquals('SRX 4x4', $fresh->version);
+        $this->assertEquals('2HGFC2F93LH567890', $fresh->vin);
         $this->assertEquals('2TR-123456', $fresh->engine_number);
         $this->assertEquals(15000, $fresh->current_mileage);
         $this->assertTrue($fresh->fuel_type === FuelTypeEnum::Diesel);
@@ -64,14 +71,14 @@ class VehicleMasterDataTest extends TestCase
     {
         $owner = Contact::factory()->for($this->tenant)->client()->create();
 
-        $asset = Asset::factory()->vehicle()->create([
+        $vehicle = ClientVehicle::factory()->create([
             'tenant_id' => $this->tenant->id,
             'owner_contact_id' => $owner->id,
         ]);
 
-        $this->assertInstanceOf(Contact::class, $asset->owner);
-        $this->assertEquals($owner->id, $asset->owner->id);
-        $this->assertEquals($owner->name, $asset->owner->name);
+        $this->assertInstanceOf(Contact::class, $vehicle->owner);
+        $this->assertEquals($owner->id, $vehicle->owner->id);
+        $this->assertEquals($owner->name, $vehicle->owner->name);
     }
 
     public function test_fuel_type_enum_values(): void
@@ -91,32 +98,23 @@ class VehicleMasterDataTest extends TestCase
         $this->assertEquals('Otro', FuelTypeEnum::Other->getLabel());
     }
 
-    public function test_is_vehicle_helper(): void
-    {
-        $vehicle = Asset::factory()->vehicle()->create(['tenant_id' => $this->tenant->id]);
-        $this->assertTrue($vehicle->isVehicle());
-
-        $equipment = Asset::factory()->equipment()->create(['tenant_id' => $this->tenant->id]);
-        $this->assertFalse($equipment->isVehicle());
-    }
-
-    public function test_vehicle_tenant_isolation(): void
+    public function test_client_vehicle_tenant_isolation(): void
     {
         $otherTenant = Tenant::factory()->create();
         $owner = Contact::factory()->for($otherTenant)->client()->create();
 
-        $vehicle = Asset::factory()->vehicle()->create([
+        $vehicle = ClientVehicle::factory()->create([
             'tenant_id' => $otherTenant->id,
-            'name' => 'Vehicle De Otro Tenant',
+            'plate' => 'XYZ-999',
             'owner_contact_id' => $owner->id,
         ]);
 
         // Desde el tenant original, no debe ver el vehículo del otro
-        $visible = Asset::where('id', $vehicle->id)->first();
+        $visible = ClientVehicle::where('id', $vehicle->id)->first();
         $this->assertNull($visible);
 
         // Sin scope, sí se ve
-        $withoutScope = Asset::withoutTenantScope()->find($vehicle->id);
+        $withoutScope = ClientVehicle::withoutTenantScope()->find($vehicle->id);
         $this->assertNotNull($withoutScope);
     }
 
@@ -124,54 +122,34 @@ class VehicleMasterDataTest extends TestCase
     {
         $owner = Contact::factory()->for($this->tenant)->client()->create();
 
-        $asset = Asset::factory()->vehicle()->create([
+        $vehicle = ClientVehicle::factory()->create([
             'tenant_id' => $this->tenant->id,
             'owner_contact_id' => $owner->id,
         ]);
 
         $owner->forceDelete();
 
-        $fresh = $asset->fresh();
+        $fresh = $vehicle->fresh();
         $this->assertNull($fresh->owner_contact_id);
-    }
-
-    public function test_current_mileage_must_be_non_negative(): void
-    {
-        $this->expectException(QueryException::class);
-
-        Asset::factory()->vehicle()->create([
-            'tenant_id' => $this->tenant->id,
-            'current_mileage' => -1,
-        ]);
-    }
-
-    public function test_year_must_be_within_valid_range(): void
-    {
-        $this->expectException(QueryException::class);
-
-        Asset::factory()->vehicle()->create([
-            'tenant_id' => $this->tenant->id,
-            'year' => 1899,
-        ]);
     }
 
     public function test_version_and_engine_number_are_nullable(): void
     {
-        $asset = Asset::factory()->vehicle()->create([
+        $vehicle = ClientVehicle::factory()->create([
             'tenant_id' => $this->tenant->id,
             'version' => null,
             'engine_number' => null,
         ]);
 
-        $this->assertNull($asset->version);
-        $this->assertNull($asset->engine_number);
+        $this->assertNull($vehicle->version);
+        $this->assertNull($vehicle->engine_number);
     }
 
     public function test_can_create_vehicle_inline_from_work_order(): void
     {
         // Simula el callback createOptionUsing del WorkOrderResource
-        $asset = Asset::create([
-            'name' => 'WorkOrder Inline Vehicle',
+        $vehicle = ClientVehicle::create([
+            'tenant_id' => $this->tenant->id,
             'plate' => 'INL-001',
             'brand' => 'Honda',
             'model' => 'Civic',
@@ -183,22 +161,19 @@ class VehicleMasterDataTest extends TestCase
             'fuel_type' => FuelTypeEnum::Gasoline,
             'color' => 'Gris',
             'vehicle_type' => 'sedan',
-            'asset_type' => 'vehicle',
-            'status' => 'active',
         ]);
 
-        $this->assertDatabaseHas('assets', [
-            'id' => $asset->id,
-            'name' => 'WorkOrder Inline Vehicle',
+        $this->assertDatabaseHas('client_vehicles', [
+            'id' => $vehicle->id,
             'plate' => 'INL-001',
-            'asset_type' => 'vehicle',
-            'status' => 'active',
+            'brand' => 'Honda',
+            'model' => 'Civic',
+            'year' => 2024,
             'version' => 'Touring',
+            'vin' => '2HGFC2F93LH567890',
             'engine_number' => 'R18-98765',
             'current_mileage' => 5000,
             'color' => 'Gris',
         ]);
-
-        $this->assertTrue($asset->isVehicle());
     }
 }

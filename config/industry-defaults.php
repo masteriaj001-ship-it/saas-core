@@ -14,8 +14,8 @@ return [
                 ['name' => 'Lubricante sintético',    'item_type' => 'product', 'price' => 250,  'sku' => 'LUB-001'],
             ],
             'assets' => [
-                ['name' => 'Vehículo de Prueba (Sedán)',    'asset_type' => 'vehicle',  'status' => 'active'],
                 ['name' => 'Equipo de Diagnóstico Escáner', 'asset_type' => 'equipment', 'status' => 'active'],
+                ['name' => 'Elevador Hidráulico 2T',       'asset_type' => 'equipment', 'status' => 'active'],
             ],
             'service_catalogs' => [
                 [

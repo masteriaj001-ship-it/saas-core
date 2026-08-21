@@ -10,7 +10,7 @@ use App\Models\Item;
 use App\Models\Location;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\ServiceCatalog;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
@@ -45,12 +45,12 @@ class WorkOrderFlowTest extends TestCase
     public function test_can_create_work_order(): void
     {
         $contact = Contact::factory()->for($this->tenant)->client()->create();
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-TEST-001',
             'title' => 'Mantenimiento preventivo',
             'status' => 'draft',
@@ -66,13 +66,13 @@ class WorkOrderFlowTest extends TestCase
     public function test_can_add_part_item_to_work_order(): void
     {
         $contact = Contact::factory()->for($this->tenant)->client()->create();
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
         $item = Item::factory()->spare()->for($this->tenant)->create(['price' => 50000]);
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-TEST-002',
             'title' => 'Reparación frenos',
             'status' => 'draft',
@@ -97,7 +97,7 @@ class WorkOrderFlowTest extends TestCase
     public function test_can_add_service_from_catalog(): void
     {
         $contact = Contact::factory()->for($this->tenant)->client()->create();
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
         $service = ServiceCatalog::create([
             'tenant_id' => $this->tenant->id,
             'name' => 'Revisión de frenos',
@@ -109,7 +109,7 @@ class WorkOrderFlowTest extends TestCase
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-TEST-003',
             'title' => 'Cambio de frenos',
             'status' => 'draft',
@@ -134,12 +134,12 @@ class WorkOrderFlowTest extends TestCase
     public function test_can_add_labor_item(): void
     {
         $contact = Contact::factory()->for($this->tenant)->client()->create();
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-TEST-004',
             'title' => 'Servicio general',
             'status' => 'draft',
@@ -177,7 +177,7 @@ class WorkOrderFlowTest extends TestCase
     public function test_multiple_item_types_on_same_work_order(): void
     {
         $contact = Contact::factory()->for($this->tenant)->client()->create();
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
         $part = Item::factory()->spare()->for($this->tenant)->create(['price' => 120000]);
         $service = ServiceCatalog::create([
             'tenant_id' => $this->tenant->id,
@@ -189,7 +189,7 @@ class WorkOrderFlowTest extends TestCase
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-TEST-005',
             'title' => 'Servicio completo',
             'status' => 'draft',
@@ -220,7 +220,7 @@ class WorkOrderFlowTest extends TestCase
 
         $totalParts = $workOrder->items()->where('type', 'part')->sum('unit_price');
         $totalServices = $workOrder->items()->where('type', 'service')->sum('unit_price');
-        $totalLabor = $workOrder->items()->where('type', 'labor')->sum(fn ($i) => $i->unit_price * $i->quantity);
+        $totalLabor = $workOrder->items()->where('type', 'labor')->get()->reduce(fn ($carry, $i) => $carry + ($i->unit_price * $i->quantity), 0);
 
         $this->assertEquals(120000, $totalParts);
         $this->assertEquals(50000, $totalServices);
@@ -230,12 +230,12 @@ class WorkOrderFlowTest extends TestCase
     public function test_work_order_status_transitions(): void
     {
         $contact = Contact::factory()->for($this->tenant)->client()->create();
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-TEST-006',
             'title' => 'Test estados',
             'status' => 'draft',
@@ -251,13 +251,13 @@ class WorkOrderFlowTest extends TestCase
     public function test_work_order_with_location(): void
     {
         $contact = Contact::factory()->for($this->tenant)->client()->create();
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
         $location = Location::factory()->for($this->tenant)->create();
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'location_id' => $location->id,
             'code' => 'WO-TEST-007',
             'title' => 'Con ubicación',

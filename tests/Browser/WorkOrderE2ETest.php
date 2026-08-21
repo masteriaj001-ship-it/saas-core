@@ -7,7 +7,7 @@ namespace Tests\Browser;
 use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\ServiceCatalog;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Models\WorkOrderItem;
@@ -31,8 +31,9 @@ class WorkOrderE2ETest extends DuskTestCase
             'password' => Hash::make('password'),
         ]);
 
-        Asset::factory()->for($tenant)->create([
-            'name' => 'Toyota Corolla',
+        ClientVehicle::factory()->for($tenant)->create([
+            'brand' => 'Toyota',
+            'model' => 'Corolla',
             'plate' => 'ABC-123',
         ]);
 
@@ -62,13 +63,13 @@ class WorkOrderE2ETest extends DuskTestCase
             'password' => Hash::make('password'),
         ]);
 
-        $asset = Asset::factory()->for($tenant)->create();
+        $clientVehicle = ClientVehicle::factory()->for($tenant)->create();
 
         $contact = Contact::factory()->for($tenant)->client()->create();
 
         $workOrder = WorkOrder::factory()->create([
             'tenant_id' => $tenant->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $clientVehicle->id,
             'contact_id' => $contact->id,
             'title' => 'Cambio de frenos',
             'status' => 'received',
@@ -95,13 +96,13 @@ class WorkOrderE2ETest extends DuskTestCase
             'password' => Hash::make('password'),
         ]);
 
-        $asset = Asset::factory()->for($tenant)->create();
+        $clientVehicle = ClientVehicle::factory()->for($tenant)->create();
 
         $contact = Contact::factory()->for($tenant)->client()->create();
 
         $workOrder = WorkOrder::factory()->create([
             'tenant_id' => $tenant->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $clientVehicle->id,
             'contact_id' => $contact->id,
             'title' => 'WO con servicio',
             'status' => 'received',

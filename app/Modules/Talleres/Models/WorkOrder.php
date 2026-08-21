@@ -28,6 +28,7 @@ class WorkOrder extends TenantModel
 
     protected $fillable = [
         'asset_id',
+        'client_vehicle_id',
         'contact_id',
         'location_id',
         'code',
@@ -95,6 +96,11 @@ class WorkOrder extends TenantModel
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
+    }
+
+    public function clientVehicle(): BelongsTo
+    {
+        return $this->belongsTo(ClientVehicle::class, 'client_vehicle_id');
     }
 
     public function contact(): BelongsTo

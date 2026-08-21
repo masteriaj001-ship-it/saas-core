@@ -10,7 +10,7 @@ use App\Enums\WorkOrderStatusEnum;
 use App\Models\Contact;
 use App\Models\Organization;
 use App\Models\Tenant;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Models\WorkOrderChecklistItem;
 use App\Modules\Talleres\Models\WorkOrderMedia;
@@ -43,13 +43,13 @@ final class WorkOrderClosurePhase2Test extends TestCase
 
         app(TenantManager::class)->setTenantContext($this->tenant->id);
 
-        $asset = Asset::factory()->create();
+        $clientVehicle = ClientVehicle::factory()->create();
         $contact = Contact::factory()->create();
 
         $this->workOrder = new WorkOrder;
         $this->workOrder->forceFill([
             'tenant_id' => $this->tenant->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $clientVehicle->id,
             'contact_id' => $contact->id,
             'code' => 'CLOSURE-P2-001',
             'title' => 'Phase 2 closure',

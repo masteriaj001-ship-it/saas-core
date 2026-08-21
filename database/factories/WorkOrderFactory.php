@@ -9,7 +9,7 @@ use App\Models\Contact;
 use App\Models\ContactRole;
 use App\Models\Location;
 use App\Models\Tenant;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -21,7 +21,7 @@ class WorkOrderFactory extends Factory
     {
         return [
             'tenant_id' => Tenant::factory(),
-            'asset_id' => Asset::factory(),
+            'client_vehicle_id' => ClientVehicle::factory(),
             'contact_id' => Contact::factory()->client(),
             'code' => fake()->unique()->bothify('WO-####'),
             'title' => fake()->sentence(4),

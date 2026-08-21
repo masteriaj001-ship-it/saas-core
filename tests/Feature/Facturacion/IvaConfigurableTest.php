@@ -9,7 +9,7 @@ use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Facturacion\Actions\GenerateInvoiceFromWorkOrderAction;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
@@ -27,7 +27,7 @@ class IvaConfigurableTest extends TestCase
 
     private Contact $contact;
 
-    private Asset $asset;
+    private ClientVehicle $clientVehicle;
 
     protected function setUp(): void
     {
@@ -36,7 +36,7 @@ class IvaConfigurableTest extends TestCase
         $this->tenant = Tenant::factory()->create();
         $this->user = User::factory()->for($this->tenant)->create();
         $this->contact = Contact::factory()->for($this->tenant)->client()->create();
-        $this->asset = Asset::factory()->for($this->tenant)->create();
+        $this->clientVehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $this->actingAs($this->user);
         app(TenantManager::class)->setTenantContext($this->tenant->id);
@@ -54,7 +54,7 @@ class IvaConfigurableTest extends TestCase
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'contact_id' => $this->contact->id,
             'code' => 'WO-0005',
             'title' => 'Sin IVA',
@@ -88,7 +88,7 @@ class IvaConfigurableTest extends TestCase
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'contact_id' => $this->contact->id,
             'code' => 'WO-0006',
             'title' => 'Con IVA',

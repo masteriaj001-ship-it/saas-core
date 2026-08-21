@@ -8,7 +8,7 @@ use App\Enums\WorkOrderStatusEnum;
 use App\Models\Contact;
 use App\Models\Organization;
 use App\Models\Tenant;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\SmsCode;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
@@ -36,13 +36,13 @@ final class WorkOrderClosureTest extends TestCase
 
         app(TenantManager::class)->setTenantContext($this->tenant->id);
 
-        $asset = Asset::factory()->create();
+        $clientVehicle = ClientVehicle::factory()->create();
         $contact = Contact::factory()->create();
 
         $this->workOrder = new WorkOrder;
         $this->workOrder->forceFill([
             'tenant_id' => $this->tenant->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $clientVehicle->id,
             'contact_id' => $contact->id,
             'code' => 'CLOSURE-TEST-001',
             'title' => 'Test closure',
@@ -180,7 +180,7 @@ final class WorkOrderClosureTest extends TestCase
         $legacyOrder = new WorkOrder;
         $legacyOrder->forceFill([
             'tenant_id' => $this->tenant->id,
-            'asset_id' => $this->workOrder->asset_id,
+            'client_vehicle_id' => $this->workOrder->client_vehicle_id,
             'contact_id' => $this->workOrder->contact_id,
             'code' => 'LEGACY-001',
             'title' => 'Legacy order',

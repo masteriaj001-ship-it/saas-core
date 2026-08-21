@@ -7,7 +7,6 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\AssetResource\Pages\CreateAsset;
 use App\Filament\Resources\AssetResource\Pages\EditAsset;
 use App\Filament\Resources\AssetResource\Pages\ListAssets;
-use App\Filament\Schemas\VehicleFormSchema;
 use App\Modules\Talleres\Models\Asset;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -35,12 +34,12 @@ class AssetResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('Vehículo');
+        return __('Activo');
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Vehículos');
+        return __('Activos');
     }
 
     public static function getNavigationLabel(): string
@@ -99,7 +98,6 @@ class AssetResource extends Resource
                         DatePicker::make('acquired_at')
                             ->label(__('Fecha de adquisición')),
                     ]),
-                ...VehicleFormSchema::make(),
                 Section::make(__('Metadatos'))
                     ->schema([
                         KeyValue::make('metadata')
@@ -119,40 +117,6 @@ class AssetResource extends Resource
                     ->label(__('Nombre'))
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('plate')
-                    ->label(__('Placa'))
-                    ->searchable(),
-                TextColumn::make('vin')
-                    ->label(__('VIN'))
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make('owner.name')
-                    ->label(__('Propietario'))
-                    ->searchable()
-                    ->toggleable(),
-                TextColumn::make('brand')
-                    ->label(__('Marca'))
-                    ->searchable(),
-                TextColumn::make('model')
-                    ->label(__('Modelo'))
-                    ->searchable(),
-                TextColumn::make('year')
-                    ->label(__('Año'))
-                    ->sortable(),
-                TextColumn::make('version')
-                    ->label(__('Versión'))
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('current_mileage')
-                    ->label(__('Kilometraje'))
-                    ->numeric()
-                    ->sortable()
-                    ->toggleable(),
-                TextColumn::make('fuel_type')
-                    ->label(__('Combustible'))
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('color')
-                    ->label(__('Color'))
-                    ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('code')
                     ->label(__('Código'))
                     ->searchable(),
@@ -160,7 +124,6 @@ class AssetResource extends Resource
                     ->label(__('Tipo'))
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
-                        'vehicle' => 'warning',
                         'equipment' => 'info',
                         'phones' => 'info',
                         'computers' => 'success',
@@ -168,7 +131,6 @@ class AssetResource extends Resource
                         default => 'gray',
                     })
                     ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'vehicle' => __('Vehículos'),
                         'equipment' => __('Equipamiento / Maquinaria'),
                         'phones' => __('Celulares'),
                         'computers' => __('Cómputo'),
@@ -197,15 +159,6 @@ class AssetResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('asset_type')
-                    ->label(__('Tipo'))
-                    ->options([
-                        'vehicle' => __('Vehículos'),
-                        'equipment' => __('Equipamiento / Maquinaria'),
-                        'phones' => __('Celulares'),
-                        'computers' => __('Cómputo'),
-                        'space' => __('Espacio / Infraestructura'),
-                    ]),
                 SelectFilter::make('status')
                     ->label(__('Estado'))
                     ->options([

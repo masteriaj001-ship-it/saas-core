@@ -7,7 +7,7 @@ namespace Tests\Feature\QA;
 use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
@@ -120,12 +120,12 @@ class ContactFlowTest extends TestCase
             'contact_type' => 'client',
         ]);
 
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $workOrder = WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-CT-001',
             'title' => 'Servicio con contacto',
             'status' => 'draft',
@@ -143,12 +143,12 @@ class ContactFlowTest extends TestCase
             'contact_type' => 'client',
         ]);
 
-        $asset = Asset::factory()->vehicle()->for($this->tenant)->create();
+        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-CT-002',
             'title' => 'Primera visita',
             'status' => 'completed',
@@ -157,7 +157,7 @@ class ContactFlowTest extends TestCase
         WorkOrder::create([
             'tenant_id' => $this->tenant->id,
             'contact_id' => $contact->id,
-            'asset_id' => $asset->id,
+            'client_vehicle_id' => $vehicle->id,
             'code' => 'WO-CT-003',
             'title' => 'Segunda visita',
             'status' => 'draft',

@@ -6,7 +6,7 @@ namespace Tests\Feature;
 
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Services\WorkOrderCodeGenerator;
 use App\Services\TenantManager;
@@ -21,7 +21,7 @@ class WorkOrderCodeGeneratorTest extends TestCase
 
     private User $user;
 
-    private Asset $asset;
+    private ClientVehicle $clientVehicle;
 
     protected function setUp(): void
     {
@@ -29,7 +29,7 @@ class WorkOrderCodeGeneratorTest extends TestCase
 
         $this->tenant = Tenant::factory()->create();
         $this->user = User::factory()->for($this->tenant)->create();
-        $this->asset = Asset::factory()->for($this->tenant)->create();
+        $this->clientVehicle = ClientVehicle::factory()->for($this->tenant)->create();
 
         $this->actingAs($this->user);
         app(TenantManager::class)->setTenantContext($this->tenant->id);
@@ -51,7 +51,7 @@ class WorkOrderCodeGeneratorTest extends TestCase
         $this->assertSame('WO-0001', $generator->next());
 
         WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0001',
             'title' => 'First WO',
             'status' => 'draft',
@@ -60,7 +60,7 @@ class WorkOrderCodeGeneratorTest extends TestCase
         $this->assertSame('WO-0002', $generator->next());
 
         WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0002',
             'title' => 'Second WO',
             'status' => 'draft',
@@ -72,7 +72,7 @@ class WorkOrderCodeGeneratorTest extends TestCase
     public function test_generates_code_after_last_existing(): void
     {
         WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0042',
             'title' => 'Existing WO',
             'status' => 'draft',
@@ -86,7 +86,7 @@ class WorkOrderCodeGeneratorTest extends TestCase
     public function test_considers_soft_deleted_records(): void
     {
         $workOrder = WorkOrder::create([
-            'asset_id' => $this->asset->id,
+            'client_vehicle_id' => $this->clientVehicle->id,
             'code' => 'WO-0010',
             'title' => 'To be deleted',
             'status' => 'draft',

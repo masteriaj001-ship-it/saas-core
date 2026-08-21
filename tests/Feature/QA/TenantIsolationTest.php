@@ -8,7 +8,7 @@ use App\Models\Contact;
 use App\Models\Item;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\ServiceCatalog;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
@@ -77,12 +77,12 @@ class TenantIsolationTest extends TestCase
 
     public function test_work_orders_are_isolated_between_tenants(): void
     {
-        $assetA = Asset::factory()->vehicle()->for($this->tenantA)->create();
-        $assetB = Asset::factory()->vehicle()->for($this->tenantB)->create();
+        $vehicleA = ClientVehicle::factory()->for($this->tenantA)->create();
+        $vehicleB = ClientVehicle::factory()->for($this->tenantB)->create();
 
         WorkOrder::create([
             'tenant_id' => $this->tenantA->id,
-            'asset_id' => $assetA->id,
+            'client_vehicle_id' => $vehicleA->id,
             'code' => 'WO-A-001',
             'title' => 'Work Order A',
             'status' => 'draft',
@@ -90,7 +90,7 @@ class TenantIsolationTest extends TestCase
 
         WorkOrder::create([
             'tenant_id' => $this->tenantB->id,
-            'asset_id' => $assetB->id,
+            'client_vehicle_id' => $vehicleB->id,
             'code' => 'WO-B-001',
             'title' => 'Work Order B',
             'status' => 'draft',
@@ -105,18 +105,18 @@ class TenantIsolationTest extends TestCase
         $this->assertEquals('WO-A-001', $workOrders->first()->code);
     }
 
-    public function test_assets_are_isolated_between_tenants(): void
+    public function test_client_vehicles_are_isolated_between_tenants(): void
     {
-        Asset::factory()->vehicle()->for($this->tenantA)->create(['plate' => 'AAA-111']);
-        Asset::factory()->vehicle()->for($this->tenantB)->create(['plate' => 'BBB-222']);
+        ClientVehicle::factory()->for($this->tenantA)->create(['plate' => 'AAA-111']);
+        ClientVehicle::factory()->for($this->tenantB)->create(['plate' => 'BBB-222']);
 
         $this->actingAs($this->userA);
         app(TenantManager::class)->setTenantContext($this->tenantA->id);
 
-        $assets = Asset::query()->tenant()->get();
+        $vehicles = ClientVehicle::query()->tenant()->get();
 
-        $this->assertCount(1, $assets);
-        $this->assertEquals('AAA-111', $assets->first()->plate);
+        $this->assertCount(1, $vehicles);
+        $this->assertEquals('AAA-111', $vehicles->first()->plate);
     }
 
     public function test_service_catalog_isolated_between_tenants(): void

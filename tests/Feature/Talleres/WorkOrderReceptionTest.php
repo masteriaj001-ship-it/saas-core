@@ -9,7 +9,7 @@ use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Talleres\Actions\CreateWorkOrderReceptionAction;
-use App\Modules\Talleres\Models\Asset;
+use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -38,14 +38,14 @@ class WorkOrderReceptionTest extends TestCase
         $this->action = app(CreateWorkOrderReceptionAction::class);
     }
 
-    public function test_creates_contact_asset_and_work_order_in_transaction(): void
+    public function test_creates_contact_client_vehicle_and_work_order_in_transaction(): void
     {
         $workOrder = $this->action->execute([
             'contact_name' => 'Juan Pérez',
             'contact_phone' => '3001234567',
-            'asset_plate' => 'ABC-123',
-            'asset_brand' => 'Toyota',
-            'asset_model' => 'Corolla',
+            'vehicle_plate' => 'ABC-123',
+            'vehicle_brand' => 'Toyota',
+            'vehicle_model' => 'Corolla',
             'mileage_km' => 45000,
             'battery_level' => '12.4V',
             'aesthetic_notes' => 'Rayón en puerta izquierda',
@@ -54,8 +54,8 @@ class WorkOrderReceptionTest extends TestCase
         $this->assertInstanceOf(WorkOrder::class, $workOrder);
         $this->assertNotNull($workOrder->contact);
         $this->assertEquals('Juan Pérez', $workOrder->contact->name);
-        $this->assertNotNull($workOrder->asset);
-        $this->assertEquals('ABC-123', $workOrder->asset->plate);
+        $this->assertNotNull($workOrder->clientVehicle);
+        $this->assertEquals('ABC-123', $workOrder->clientVehicle->plate);
         $this->assertEquals(45000, $workOrder->mileage_km);
         $this->assertTrue($workOrder->status === WorkOrderStatusEnum::Received);
         $this->assertStringStartsWith('WO-', $workOrder->code);
@@ -73,31 +73,32 @@ class WorkOrderReceptionTest extends TestCase
         $this->action->execute([
             'contact_name' => 'Juan Pérez',
             'contact_phone' => '3001234567',
-            'asset_name' => 'Vehículo Test',
+            'vehicle_plate' => 'XYZ-999',
         ]);
 
         $this->assertEquals(1, Contact::count());
         $this->assertEquals('Original Name', Contact::first()->name);
     }
 
-    public function test_reuses_existing_asset_when_plate_matches(): void
+    public function test_reuses_existing_client_vehicle_when_plate_matches(): void
     {
-        $existing = Asset::create([
+        $existing = ClientVehicle::create([
             'tenant_id' => $this->tenant->id,
-            'name' => 'Toyota Original',
             'plate' => 'ABC-123',
-            'asset_type' => 'vehicle',
+            'brand' => 'Toyota',
+            'model' => 'Original',
         ]);
 
         $this->action->execute([
             'contact_name' => 'Test',
             'contact_phone' => '3001111111',
-            'asset_plate' => 'ABC-123',
-            'asset_name' => 'Toyota Corolla',
+            'vehicle_plate' => 'ABC-123',
+            'vehicle_brand' => 'Toyota',
+            'vehicle_model' => 'Corolla',
         ]);
 
-        $this->assertEquals(1, Asset::count());
-        $this->assertEquals('Toyota Original', Asset::first()->name);
+        $this->assertEquals(1, ClientVehicle::count());
+        $this->assertEquals('Original', ClientVehicle::first()->model);
     }
 
     public function test_tenant_isolation_does_not_find_contacts_from_other_tenant(): void
@@ -118,7 +119,7 @@ class WorkOrderReceptionTest extends TestCase
         $workOrder = $this->action->execute([
             'contact_name' => 'Nuevo Cliente',
             'contact_phone' => '3001234567',
-            'asset_name' => 'Vehículo Test',
+            'vehicle_plate' => 'NEW-001',
         ]);
 
         $this->assertNotNull($workOrder->contact);
@@ -138,7 +139,7 @@ class WorkOrderReceptionTest extends TestCase
 
         $workOrder = $this->action->execute([
             'contact_id' => $contact->id,
-            'asset_name' => 'Vehículo Test',
+            'vehicle_plate' => 'TEST-001',
         ]);
 
         $this->assertEquals($contact->id, $workOrder->contact_id);
