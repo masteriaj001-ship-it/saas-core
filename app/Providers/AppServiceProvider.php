@@ -34,6 +34,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        $this->loadTranslationsFrom(resource_path('lang/vendor/filament-panels'), 'filament-panels');
+        $this->loadTranslationsFrom(resource_path('lang/vendor/filament-forms'), 'filament-forms');
+        $this->loadTranslationsFrom(resource_path('lang/vendor/filament-tables'), 'filament-tables');
+        $this->loadTranslationsFrom(resource_path('lang/vendor/filament-widgets'), 'filament-widgets');
+        $this->loadTranslationsFrom(resource_path('lang/vendor/filament-notifications'), 'filament-notifications');
+        $this->loadTranslationsFrom(resource_path('lang/vendor/filament-actions'), 'filament-actions');
+
         RateLimiter::for('register', function (Request $request) {
             return Limit::perHour(10)->by($request->ip());
         });
