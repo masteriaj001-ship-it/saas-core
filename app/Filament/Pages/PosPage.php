@@ -60,7 +60,10 @@ class PosPage extends Page
     public function getItemsProperty()
     {
         $query = Item::query()
-            ->where('stock', '>', 0)
+            ->where(function ($q) {
+                $q->where('item_type', 'service')
+                    ->orWhere('stock', '>', 0);
+            })
             ->orderBy('name');
 
         if ($this->search !== '') {
@@ -79,7 +82,10 @@ class PosPage extends Page
 
     public function getCategoriesProperty(): array
     {
-        $types = Item::where('stock', '>', 0)
+        $types = Item::where(function ($q) {
+                $q->where('item_type', 'service')
+                    ->orWhere('stock', '>', 0);
+            })
             ->select('item_type', DB::raw('count(*) as total'))
             ->groupBy('item_type')
             ->pluck('total', 'item_type')
@@ -108,7 +114,7 @@ class PosPage extends Page
     {
         $item = Item::findOrFail($itemId);
 
-        if (! $item->hasStock(1)) {
+        if ($item->item_type !== 'service' && ! $item->hasStock(1)) {
             Notification::make()
                 ->title(__('Sin stock disponible'))
                 ->body(__('El artículo :name no tiene stock suficiente.', ['name' => $item->name]))
@@ -175,7 +181,7 @@ class PosPage extends Page
         }
 
         $item = Item::find($this->cart[$index]['item_id']);
-        if ($item && ! $item->hasStock($quantity)) {
+        if ($item && $item->item_type !== 'service' && ! $item->hasStock($quantity)) {
             Notification::make()
                 ->title(__('Stock insuficiente'))
                 ->body(__('Solo hay :stock unidades disponibles.', ['stock' => $item->stock]))
