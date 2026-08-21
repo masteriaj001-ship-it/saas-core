@@ -34,6 +34,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        app()->setLocale('es');
+
         $this->loadTranslationsFrom(base_path('lang/vendor/filament-panels'), 'filament-panels');
         $this->loadTranslationsFrom(base_path('lang/vendor/filament-forms'), 'filament-forms');
         $this->loadTranslationsFrom(base_path('lang/vendor/filament-tables'), 'filament-tables');
