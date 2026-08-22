@@ -75,6 +75,13 @@ Select::make('contact_id')
                                 ->maxLength(255),
                             TextInput::make('phone')
                                 ->label(__('Teléfono')),
+                            TextInput::make('email')
+                                ->label(__('Email'))
+                                ->email()
+                                ->maxLength(255),
+                            TextInput::make('document_number')
+                                ->label(__('Número de documento'))
+                                ->maxLength(50),
                         ])
                         ->createOptionUsing(function (array $data): ?string {
                             return Contact::query()->tenant()->create([
