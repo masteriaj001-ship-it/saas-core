@@ -358,7 +358,7 @@
     "assertions": 1067,
     "status": "green",
     "last_run": "2026-08-22",
-    "note": "Suite 44/46 ClientVehicle tests passing + WorkOrder refactor. 5 pre-existing failures: ExampleTest (302 redirect), ContactFlowTest/ServiceCatalogTest (tenant scoping), WorkOrderPhase3Test (contact duplicate), WorkOrderQuoteApprovalTest (approval_at null). 4 errors: TenantIsolationTest setup issues. ClientVehicle refactor completado."
+    "note": "Suite completa 456/465 passing (98%). 5 fallos pre-existentes: ExampleTest (302 redirect), ContactFlowTest/ServiceCatalogTest (tenant scoping), WorkOrderPhase3Test (contact duplicate por firstOrCreate), WorkOrderQuoteApprovalTest (approval_at null). 4 errores: TenantIsolationTest (contexto de tenant). ClientVehicles + WorkOrder refactor completados."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
