@@ -352,13 +352,13 @@
     }
   },
   "test_suite": {
-    "total_tests": 404,
-    "passing": 404,
+    "total_tests": 408,
+    "passing": 406,
     "skipped": 0,
-    "assertions": 984,
+    "assertions": 1000,
     "status": "green",
-    "last_run": "2026-08-20",
-    "note": "Suite completa verde tras single-vertical (commit 5a272cb): se eliminaron industryProvider (5 casos) + 2 tests de Onboarding (select/prepopulate) y se adaptó el resto al template único. ActivityLogAppScopeTest es flaky en corrida completa (pasa aislado 5/5), no relacionado con cambios recientes. Guardrails de DB (AppServiceProvider::guardDestructiveDatabaseCommands) bloquean migrate:fresh/refresh/rollback/db:wipe/db:seed fuera de allowlist."
+    "last_run": "2026-08-21",
+    "note": "Suite 44/46 ClientVehicle tests pasando. 2 fallos pre-existentes: TenantIsolationTest (tenant context) y ContactFlowTest (contact scoping). ClientVehicle refactor completado."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -424,7 +424,8 @@
     "UI POS hardware (commit de3ce46): TenantResource Section Impresión (driver/host/port/canal/cajón, dinámico por driver) + modal post-pago en PosPage (IMPRIMIR/VER TICKET/Cerrar Esc). Validado en navegador via Selenium grid.",
     "Fix Filament v5 (2026-08-20): import KeyValue en ItemResource (Class App\\Filament\\Resources\\KeyValue not found) y Section en Schemas\\Components para BudgetResource (Class Filament\\Forms\\Components\\Section not found — en v5 Section vive en Filament\\Schemas\\Components\\Section).",
     "feature/pos-hardware-ui ff-mergeado a main (f196dd2): 5 commits (3efbe70 M3 kiosko + pagos + ticket, de3ce46 UI hardware + modal, 0fc848a taller closure fase 2, d8b708b infra guard+seeder+down fix, f196dd2 pint). Suite 409/409 verde.",
-    "Single vertical (commit 5a272cb): consolida el modelo a UN template de 'Operaciones tipo Taller' (4 categorías/4 items/2 activos/3 catálogos). Eliminadas las industrias restaurant/mechanic/construction/clinic de config/industry-defaults.php. Fuera el select de industria de auth/register.blade.php y el Select industry de Onboarding.php. seed($tenant) reemplaza seed($tenant, 'mechanic') en todos los callers. settings.industry queda como campo legacy informativo (0 lecturas). Referencias 'mechanic' conservadas solo donde es rol de empleado. Suite 404/984 verde."
+    "Single vertical (commit 5a272cb): consolida el modelo a UN template de 'Operaciones tipo Taller' (4 categorías/4 items/2 activos/3 catálogos). Eliminadas las industrias restaurant/mechanic/construction/clinic de config/industry-defaults.php. Fuera el select de industria de auth/register.blade.php y el Select industry de Onboarding.php. seed($tenant) reemplaza seed($tenant, 'mechanic') en todos los callers. settings.industry queda como campo legacy informativo (0 lecturas). Referencias 'mechanic' conservadas solo donde es rol de empleado. Suite 404/984 verde.",
+    "Client Vehicles Separation (commit 0d10e3b): separación de vehículos de clientes (client_vehicles) de activos del taller (assets). Tabla client_vehicles con RLS, vehicle_mileage_logs para historial, ClientVehicleResource Filament CRUD, WorkOrderResource filtrado por contacto, creación inline con owner_contact_id automático. Migración de datos de assets vehicle → client_vehicles. Eliminación de columnas de vehículo de assets. 15 tests migrados + 1 nuevo."
   ],
   "security_status": {
     "mfa_superadmin": "implemented",
