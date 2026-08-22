@@ -46,22 +46,21 @@ class WorkOrderTallerTest extends TestCase
         $this->seed(RolePermissionSeeder::class);
     }
 
-    public function test_admin_can_create_work_order_with_service_description(): void
-    {
-        $workOrder = WorkOrder::create([
-            'tenant_id' => $this->tenant->id,
-            'client_vehicle_id' => $this->clientVehicle->id,
-            'code' => 'WO-0001',
-            'title' => 'Cambio de aceite',
-            'service_description' => 'Cambio de aceite y filtros',
-            'status' => 'draft',
-        ]);
-
-        $this->assertDatabaseHas('work_orders', [
-            'id' => $workOrder->id,
-            'service_description' => 'Cambio de aceite y filtros',
-        ]);
-    }
+public function test_admin_can_create_work_order_with_service_description(): void
+{
+ $workOrder = WorkOrder::create([
+ 'tenant_id' => $this->tenant->id,
+ 'client_vehicle_id' => $this->clientVehicle->id,
+ 'code' => 'WO-0001',
+ 'title' => 'Cambio de aceite',
+ 'client_report' => 'Cambio de aceite y filtros',
+ 'status' => 'draft',
+ ]);
+ $this->assertDatabaseHas('work_orders', [
+ 'id' => $workOrder->id,
+ 'client_report' => 'Cambio de aceite y filtros',
+ ]);
+}
 
     public function test_can_create_contact_inline_from_work_order_form(): void
     {

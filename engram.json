@@ -351,14 +351,14 @@
       "notes": "Dashboard financiero tenant-scoped. 4 widgets auto-discovered en Dashboard. TopItems usa StatsOverviewWidget (no TableWidget) para evitar GROUP BY con UUID en PostgreSQL."
     }
   },
-  "test_suite": {
-    "total_tests": 408,
-    "passing": 406,
+"test_suite": {
+    "total_tests": 465,
+    "passing": 456,
     "skipped": 0,
-    "assertions": 1000,
+    "assertions": 1067,
     "status": "green",
-    "last_run": "2026-08-21",
-    "note": "Suite 44/46 ClientVehicle tests pasando. 2 fallos pre-existentes: TenantIsolationTest (tenant context) y ContactFlowTest (contact scoping). ClientVehicle refactor completado."
+    "last_run": "2026-08-22",
+    "note": "Suite 44/46 ClientVehicle tests passing + WorkOrder refactor. 5 pre-existing failures: ExampleTest (302 redirect), ContactFlowTest/ServiceCatalogTest (tenant scoping), WorkOrderPhase3Test (contact duplicate), WorkOrderQuoteApprovalTest (approval_at null). 4 errors: TenantIsolationTest setup issues. ClientVehicle refactor completado."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,

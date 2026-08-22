@@ -25,12 +25,12 @@ class WorkOrderFactory extends Factory
             'contact_id' => Contact::factory()->client(),
             'code' => fake()->unique()->bothify('WO-####'),
             'title' => fake()->sentence(4),
-            'description' => fake()->paragraph(),
+            'internal_notes' => fake()->paragraph(),
+            'client_report' => fake()->paragraph(),
             'status' => fake()->randomElement(WorkOrderStatusEnum::cases())->value,
             'priority' => fake()->randomElement(['low', 'normal', 'high', 'urgent']),
             'mechanic_id' => null,
             'advisor_id' => null,
-            'reception_notes' => null,
             'fuel_level' => null,
             'diagnosis_summary' => null,
             'approval_channel' => null,
@@ -38,6 +38,9 @@ class WorkOrderFactory extends Factory
             'qc_passed' => null,
             'qc_notes' => null,
             'delivery_at' => null,
+            'mileage_km' => fake()->numberBetween(0, 500000),
+            'battery_level' => fake()->randomElement(['E', '1/4', '1/2', '3/4', 'F']),
+            'aesthetic_notes' => null,
         ];
     }
 

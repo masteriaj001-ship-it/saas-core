@@ -65,7 +65,7 @@ class WorkOrderResource extends Resource
                 ->columnSpan(2)
                 ->columns(2)
                 ->schema([
-                    Select::make('contact_id')
+Select::make('contact_id')
                         ->label('Cliente')
                         ->searchable()
                         ->createOptionForm([
@@ -157,12 +157,40 @@ class WorkOrderResource extends Resource
 
                             return static::formatClientVehicleLabel($vehicle);
                         }),
-                    Select::make('location_id')
-                        ->label('Ubicación')
+                    Select::make('mechanic_id')
+                        ->label(__('Mecánico'))
                         ->searchable()
-                        ->relationship('location', 'name')
+                        ->getSearchResultsUsing(function (string $search): array {
+                            return Contact::query()
+                                ->tenant()
+                                ->where('contact_type', 'employee')
+                                ->whereHas('roles', fn ($q) => $q->where('role_code', 'mechanic'))
+                                ->where('name', 'ilike', "%{$search}%")
+                                ->limit(15)
+                                ->pluck('name', 'id')
+                                ->toArray();
+                        })
                         ->getOptionLabelUsing(function ($value): string {
-                            return Location::query()
+                            return Contact::query()
+                                ->tenant()
+                                ->where('id', $value)
+                                ->value('name') ?? __('(sin nombre)');
+                        }),
+                    Select::make('advisor_id')
+                        ->label(__('Asesor'))
+                        ->searchable()
+                        ->getSearchResultsUsing(function (string $search): array {
+                            return Contact::query()
+                                ->tenant()
+                                ->where('contact_type', 'employee')
+                                ->whereHas('roles', fn ($q) => $q->where('role_code', 'service_advisor'))
+                                ->where('name', 'ilike', "%{$search}%")
+                                ->limit(15)
+                                ->pluck('name', 'id')
+                                ->toArray();
+                        })
+                        ->getOptionLabelUsing(function ($value): string {
+                            return Contact::query()
                                 ->tenant()
                                 ->where('id', $value)
                                 ->value('name') ?? __('(sin nombre)');
@@ -277,10 +305,10 @@ class WorkOrderResource extends Resource
                         ->label(__('Título'))
                         ->required()
                         ->maxLength(255),
-                    Textarea::make('service_description')
+                    Textarea::make('client_report')
                         ->label(__('Descripción del servicio'))
                         ->rows(4),
-                    Textarea::make('description')
+                    Textarea::make('internal_notes')
                         ->label(__('Notas internas'))
                         ->rows(3),
                 ]),
@@ -305,6 +333,12 @@ class WorkOrderResource extends Resource
                         ->label(__('Fecha de aprobación')),
                     DatePicker::make('started_at')
                         ->label(__('Fecha programada')),
+                    DateTimePicker::make('estimated_completion_at')
+                        ->label(__('Fecha estimada de finalización')),
+                    DateTimePicker::make('actual_started_at')
+                        ->label(__('Fecha de inicio real')),
+                    DateTimePicker::make('actual_completed_at')
+                        ->label(__('Fecha de finalización real')),
                 ]),
             Section::make(__('Insumos / Repuestos'))
                 ->columnSpan(2)
@@ -499,8 +533,8 @@ class WorkOrderResource extends Resource
                         ->visible(fn (Get $get): bool => $get('qc_passed') === false),
                     DateTimePicker::make('delivery_at')
                         ->label(__('Fecha de entrega')),
-                    DatePicker::make('completed_at')
-                        ->label(__('Fecha de finalización')),
+                    DateTimePicker::make('actual_completed_at')
+                        ->label(__('Fecha de finalización real')),
                 ]),
             Section::make(__('Resumen financiero'))
                 ->columnSpan(2)
@@ -542,13 +576,14 @@ class WorkOrderResource extends Resource
                     ->label(__('Título'))
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('service_description')
+                TextColumn::make('client_report')
                     ->label(__('Servicio'))
                     ->limit(50)
                     ->toggleable(),
-                TextColumn::make('asset.name')
-                    ->label(__('Activo'))
-                    ->searchable(),
+                TextColumn::make('clientVehicle')
+                    ->label(__('Vehículo'))
+                    ->searchable()
+                    ->getStateUsing(fn (WorkOrder $record): string => $record->clientVehicle?->plate ?? formatClientVehicleLabel($record->clientVehicle)),
                 TextColumn::make('mechanic.name')
                     ->label(__('Mecánico'))
                     ->searchable()
