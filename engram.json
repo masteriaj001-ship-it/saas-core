@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
-  "version": "1.1.82",
-  "last_updated": "2026-08-20",
+  "version": "1.1.83",
+  "last_updated": "2026-08-21",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
@@ -40,6 +40,7 @@
       "provider": "App\\Providers\\Filament\\AdminPanelProvider",
       "resources_tenant": [
         "App\\Filament\\Resources\\AssetResource (navigationSort: 1)",
+        "App\\Filament\\Resources\\ClientVehicleResource (navigationSort: 2)",
         "App\\Filament\\Resources\\WorkOrderResource (navigationSort: 4)",
         "App\\Filament\\Resources\\ContactResource",
         "App\\Filament\\Resources\\TransactionResource",
@@ -101,14 +102,37 @@
     },
     "work_order_reception": {
       "status": "implemented",
-      "last_check": "2026-06-17",
+      "last_check": "2026-08-21",
       "features": [
-        "CreateWorkOrderReceptionAction con normalización Contact/Asset/WorkOrder",
+        "CreateWorkOrderReceptionAction con normalización Contact/ClientVehicle/WorkOrder",
         "createOptionForm en Select de Cliente y Vehículo (modal de creación rápida)",
         "Campos de inspección: kilometraje, batería, notas estéticas",
         "5 tests PHPUnit (creación, reuso, aislamiento, ID existente)"
       ],
-      "notes": "Hybrid (C) — operador ve campos planos, Action normaliza en background. asset_id NOT NULL en schema (siempre requiere vehículo)."
+      "notes": "Hybrid (C) — operador ve campos planos, Action normaliza en background. client_vehicle_id FK en work_orders. asset_id nullable para activos propios del taller."
+    },
+    "client_vehicles": {
+      "status": "implemented",
+      "last_check": "2026-08-21",
+      "features": [
+        "Tabla client_vehicles con RLS (owner_contact_id, plate, brand, model, year, vin, etc.)",
+        "Tabla vehicle_mileage_logs para historial de kilometraje",
+        "client_vehicle_id FK nullable en work_orders",
+        "Migración de datos de assets vehicle → client_vehicles",
+        "Eliminación de columnas de vehículo de assets (plate, vin, brand, model, etc.)",
+        "ClientVehicleResource con CRUD completo (Filament)",
+        "WorkOrderResource: selección de vehículo filtrada por contacto",
+        "WorkOrderResource: creación inline asigna owner_contact_id automáticamente",
+        "ClientVehicleFactory con estados sedan/suv/pickup/motorcycle",
+        "VehicleMileageLogFactory",
+        "Asset limpiado: eliminados isVehicle(), owner(), campos de vehículo",
+        "15 tests migrados + 1 nuevo (44/46 pasan, 2 fallos pre-existentes)"
+      ],
+      "tables": [
+        "client_vehicles (UUID PK, tenant_id, owner_contact_id, plate, brand, model, year, vin, etc.)",
+        "vehicle_mileage_logs (UUID PK, tenant_id, client_vehicle_id, work_order_id, mileage, recorded_at)"
+      ],
+      "notes": "Separación de activos del taller de vehículos de clientes. commit 0d10e3b. asset_id se mantiene nullable en work_orders para activos propios del taller."
     },
     "taller_locations": {
       "status": "implemented",

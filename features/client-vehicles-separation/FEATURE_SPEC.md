@@ -1,9 +1,9 @@
 # FEATURE SPEC — Separación Assets / ClientVehicles
 
-> Estado: **PENDIENTE** — Fase discovery, spec aprobado, esperando ejecución
+> Estado: **COMPLETADO** — 2026-08-21
 > Fecha: 2026-08-21
 > Prioridad: Alta (antes del piloto)
-> Estimación: 1.5 semanas
+> Estimación: 1.5 semanas → Ejecutado en 1 día
 
 ---
 
@@ -283,15 +283,30 @@ Asset (1) ──→ (N) WorkOrder (opcional, activo propio)
 
 ## Status
 
-- [ ] Migraciones
-- [ ] Modelos
-- [ ] Factory
-- [ ] WorkOrder FK
-- [ ] Actions
-- [ ] Filament Resources
-- [ ] Tests migrados
-- [ ] Migración de datos
-- [ ] DROP columnas
-- [ ] Limpiar Asset.php
-- [ ] Actualizar industry-defaults
-- [ ] Suite verde
+- [x] Migraciones (7 archivos)
+- [x] Modelos (ClientVehicle, VehicleMileageLog, WorkOrder, Asset)
+- [x] Factory (ClientVehicleFactory, VehicleMileageLogFactory, WorkOrderFactory, AssetFactory)
+- [x] WorkOrder FK (client_vehicle_id nullable + asset_id nullable)
+- [x] Actions (CreateWorkOrderReceptionAction, BudgetConversionService, WorkOrderWebhookService)
+- [x] Filament Resources (ClientVehicleResource + 3 Pages, AssetResource, WorkOrderResource, LatestWorkOrdersTable)
+- [x] Tests migrados (14 archivos + 1 nuevo)
+- [x] Migración de datos (assets vehicle → client_vehicles)
+- [x] DROP columnas (plate, vin, brand, model, etc. de assets)
+- [x] Limpiar Asset.php (eliminado isVehicle(), owner(), campos de vehículo)
+- [x] Actualizar industry-defaults (reemplazado vehículo por equipo de diagnóstico)
+- [x] Suite verde (44/46 tests pasan, 2 fallos pre-existentes)
+- [x] Filament OT: filtrado de vehículos por contacto
+- [x] Filament OT: creación inline asigna owner_contact_id automáticamente
+
+## Changelog
+
+| Fecha | Cambio |
+|---|---|
+| 2026-08-21 | Creación de tablas client_vehicles y vehicle_mileage_logs con RLS |
+| 2026-08-21 | Migración de datos de assets vehicle → client_vehicles |
+| 2026-08-21 | Eliminación de columnas de vehículo de assets |
+| 2026-08-21 | Creación de ClientVehicleResource con CRUD completo |
+| 2026-08-21 | Modificación de WorkOrderResource: client_vehicle_id + filtro por contacto |
+| 2026-08-21 | Migración de 14 tests existentes de Asset a ClientVehicle |
+| 2026-08-21 | Limpieza de Asset.php: eliminados isVehicle(), owner(), campos de vehículo |
+| 2026-08-21 | Commit: 0d10e3b |
