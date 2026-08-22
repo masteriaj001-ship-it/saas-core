@@ -16,15 +16,15 @@
     .pos-categories { width: 192px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; flex-shrink: 0; }
     .pos-categories .cat-header { padding: 12px; border-bottom: 1px solid #1f2937; font-size: 11px; font-weight: 600; color: #9ca3af; text-transform: uppercase; letter-spacing: 0.05em; }
     .pos-categories .cat-list { flex: 1; overflow-y: auto; padding: 8px; }
-    .pos-cat-btn { width: 100%; text-align: left; padding: 10px 12px; border-radius: 8px; font-size: 14px; font-weight: 500; border: 1px solid transparent; cursor: pointer; background: transparent; color: #d1d5db; transition: all 0.15s; }
+    .pos-cat-btn { width: 100%; text-align: left; padding: 8px 10px; border-radius: 6px; font-size: 12px; font-weight: 500; border: 1px solid transparent; cursor: pointer; background: transparent; color: #d1d5db; transition: all 0.15s; }
     .pos-cat-btn:hover { background: #1f2937; }
     .pos-cat-btn.active { background: rgba(245,158,11,0.2); color: #f59e0b; border-color: rgba(245,158,11,0.3); }
     .pos-catalog { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-    .pos-catalog-header { padding: 16px; border-bottom: 1px solid #1f2937; flex-shrink: 0; display: flex; justify-content: space-between; }
-    .pos-catalog-header h2 { font-size: 14px; font-weight: 600; color: #9ca3af; }
-    .pos-catalog-header span { font-size: 12px; color: #6b7280; }
-    .pos-items { flex: 1; overflow-y: auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; align-content: start; }
-    .pos-item { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.15s; text-align: left; }
+    .pos-catalog-header { padding: 12px; border-bottom: 1px solid #1f2937; flex-shrink: 0; display: flex; justify-content: space-between; }
+    .pos-catalog-header h2 { font-size: 13px; font-weight: 600; color: #9ca3af; }
+    .pos-catalog-header span { font-size: 11px; color: #6b7280; }
+    .pos-items { flex: 1; overflow-y: auto; padding: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; align-content: start; }
+    .pos-item { background: #111827; border: 1px solid #1f2937; border-radius: 8px; padding: 12px; cursor: pointer; transition: all 0.15s; text-align: left; }
     .pos-item:hover { border-color: rgba(245,158,11,0.5); background: #1f2937; }
     .pos-item .item-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
     .pos-item .sku { font-size: 10px; padding: 2px 6px; background: #1f2937; border: 1px solid #374151; border-radius: 4px; color: #9ca3af; }
@@ -72,7 +72,7 @@
     .pos-cash-input .prefix { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); font-size: 24px; font-weight: 700; color: #9ca3af; }
     .pos-cash-input input { width: 100%; padding: 16px 16px 16px 40px; background: #1f2937; border: 1px solid #374151; border-radius: 12px; font-size: 30px; font-weight: 700; color: #fff; text-align: right; outline: none; }
     .pos-cash-input input:focus { border-color: #f59e0b; }
-    .pos-quick-amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px; }
+    .pos-quick-amounts { display: grid; grid-template-columns: repeat(auto-fill, minmax(40px, 1fr)); gap: 6px; margin-top: 8px; }
     .pos-quick-btn { padding: 8px; border-radius: 8px; font-size: 12px; font-weight: 600; background: #1f2937; color: #d1d5db; border: none; cursor: pointer; }
     .pos-quick-btn:hover { background: #374151; }
     .pos-change { margin-top: 16px; padding: 12px; background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); border-radius: 12px; text-align: center; }
@@ -101,14 +101,14 @@
 </style>
 
 <div
-    class="pos-kiosk"
-    x-data="posKiosk()"
-    x-on:keydown.f2.window.prevent="$wire.setPaymentMethod('cash'); $wire.openPayment()"
-    x-on:keydown.f4.window.prevent="$wire.setPaymentMethod('card'); $wire.openPayment()"
-    x-on:keydown.f5.window.prevent="$wire.toggleHistory()"
-    x-on:keydown.f10.window.prevent="$wire.checkout()"
-    x-on:keydown.escape.window="if($wire.showPaymentModal) $wire.set('showPaymentModal', false)"
->
+        class="pos-kiosk"
+        x-data="posKiosk()"
+        x-on:keydown.f2.window.prevent="$wire.setPaymentMethod('cash'); $wire.openPayment()"
+        x-on:keydown.f4.window.prevent="$wire.setPaymentMethod('card'); $wire.openPayment()"
+        x-on:keydown.f5.window.prevent="$wire.toggleHistory()"
+        x-on:keydown.f10.window.prevent="$wire.checkout()"
+        x-on:keydown.escape.window="if($wire.showPaymentModal) $wire.set('showPaymentModal', false)"
+        style="font-size: 16px; --iphone-nav-bar-height: 44px;">
     <div class="pos-topbar">
         <div style="display:flex;align-items:center;gap:12px;">
             <h1>PUNTO DE VENTA</h1>
