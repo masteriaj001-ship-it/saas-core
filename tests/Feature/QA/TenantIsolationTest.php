@@ -40,13 +40,14 @@ class TenantIsolationTest extends TestCase
 
     public function test_contacts_are_isolated_between_tenants(): void
     {
-        Contact::create([
+        app(TenantManager::class)->setTenantContext($this->tenantA->id);
+        Contact::forceCreate([
             'tenant_id' => $this->tenantA->id,
             'name' => 'Client A',
             'contact_type' => 'client',
         ]);
 
-        Contact::create([
+        Contact::forceCreate([
             'tenant_id' => $this->tenantB->id,
             'name' => 'Client B',
             'contact_type' => 'client',
@@ -77,10 +78,11 @@ class TenantIsolationTest extends TestCase
 
     public function test_work_orders_are_isolated_between_tenants(): void
     {
+        app(TenantManager::class)->setTenantContext($this->tenantA->id);
         $vehicleA = ClientVehicle::factory()->for($this->tenantA)->create();
         $vehicleB = ClientVehicle::factory()->for($this->tenantB)->create();
 
-        WorkOrder::create([
+        WorkOrder::forceCreate([
             'tenant_id' => $this->tenantA->id,
             'client_vehicle_id' => $vehicleA->id,
             'code' => 'WO-A-001',
@@ -88,7 +90,7 @@ class TenantIsolationTest extends TestCase
             'status' => 'draft',
         ]);
 
-        WorkOrder::create([
+        WorkOrder::forceCreate([
             'tenant_id' => $this->tenantB->id,
             'client_vehicle_id' => $vehicleB->id,
             'code' => 'WO-B-001',
@@ -121,14 +123,15 @@ class TenantIsolationTest extends TestCase
 
     public function test_service_catalog_isolated_between_tenants(): void
     {
-        ServiceCatalog::create([
+        app(TenantManager::class)->setTenantContext($this->tenantA->id);
+        ServiceCatalog::forceCreate([
             'tenant_id' => $this->tenantA->id,
             'name' => 'Service A',
             'base_price' => 10000,
             'is_active' => true,
         ]);
 
-        ServiceCatalog::create([
+        ServiceCatalog::forceCreate([
             'tenant_id' => $this->tenantB->id,
             'name' => 'Service B',
             'base_price' => 20000,
@@ -146,13 +149,14 @@ class TenantIsolationTest extends TestCase
 
     public function test_user_cannot_see_other_tenant_data_via_query(): void
     {
-        Contact::create([
+        app(TenantManager::class)->setTenantContext($this->tenantA->id);
+        Contact::forceCreate([
             'tenant_id' => $this->tenantA->id,
             'name' => 'Private Contact A',
             'contact_type' => 'client',
         ]);
 
-        Contact::create([
+        Contact::forceCreate([
             'tenant_id' => $this->tenantB->id,
             'name' => 'Private Contact B',
             'contact_type' => 'client',

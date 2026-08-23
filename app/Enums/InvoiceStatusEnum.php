@@ -12,6 +12,7 @@ enum InvoiceStatusEnum: string implements HasColor, HasLabel
     case Draft = 'draft';
     case Issued = 'issued';
     case Paid = 'paid';
+    case Confirmed = 'confirmed';
     case Cancelled = 'cancelled';
 
     public function getLabel(): string

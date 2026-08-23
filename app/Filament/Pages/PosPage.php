@@ -83,9 +83,9 @@ class PosPage extends Page
     public function getCategoriesProperty(): array
     {
         $types = Item::where(function ($q) {
-                $q->where('item_type', 'service')
-                    ->orWhere('stock', '>', 0);
-            })
+            $q->where('item_type', 'service')
+                ->orWhere('stock', '>', 0);
+        })
             ->select('item_type', DB::raw('count(*) as total'))
             ->groupBy('item_type')
             ->pluck('total', 'item_type')

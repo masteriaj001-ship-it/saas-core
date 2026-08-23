@@ -21,11 +21,13 @@ return new class extends Migration
             $table->integer('sequence');
             $table->string('document_number', 30);
             $table->string('status', 20)->default('draft');
+            $table->string('payment_method', 20)->default('cash');
             $table->timestampTz('issued_at')->nullable();
             $table->timestampTz('due_at')->nullable();
             $table->decimal('subtotal', 12, 2)->default(0);
             $table->decimal('discount_total', 12, 2)->default(0);
             $table->decimal('tax_total', 12, 2)->default(0);
+            $table->decimal('total', 12, 2)->default(0);
             $table->decimal('grand_total', 12, 2)->default(0);
             $table->text('notes')->nullable();
             $table->softDeletes();

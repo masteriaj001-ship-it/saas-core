@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Modules\Caja\Models;
 
-use App\Enums\WorkOrderStatusEnum;
-use App\Modules\Talleres\Models\WorkOrder;
-use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Caja\Exceptions\TurnoCerradoException;
+use App\Services\TenantManager;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Database\Model as BaseModel;
 
-class CashShift extends BaseModel
+class CashShift extends Model
 {
-    use \App\Modules\Talleres\Traits\BelongsToTenant;
+    use \App\Models\Concerns\BelongsToTenant, HasUuids;
 
     protected $fillable = [
         'tenant_id',
@@ -32,18 +32,22 @@ class CashShift extends BaseModel
         'metadata',
     ];
 
-    protected $casts = [
-        'tenant_id' => 'uuid',
-        'opened_by' => 'uuid',
-        'closed_by' => 'uuid',
-        'opened_at' => 'datetime',
-        'closed_at' => 'datetime',
-        'initial_amount' => 'decimal:2',
-        'expected_cash' => 'decimal:2',
-        'actual_cash' => 'decimal:2',
-        'difference' => 'decimal:2',
-        'metadata' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'id' => 'string',
+            'tenant_id' => 'string',
+            'opened_by' => 'string',
+            'closed_by' => 'string',
+            'opened_at' => 'datetime',
+            'closed_at' => 'datetime',
+            'initial_amount' => 'decimal:2',
+            'expected_cash' => 'decimal:2',
+            'actual_cash' => 'decimal:2',
+            'difference' => 'decimal:2',
+            'metadata' => 'array',
+        ];
+    }
 
     protected $guarded = [];
 
@@ -73,7 +77,7 @@ class CashShift extends BaseModel
 
         static::creating(function ($shift) {
             if (! $shift->tenant_id) {
-                $shift->tenant_id = fn () => Tenant::getCurrent()?->id;
+                $shift->tenant_id = app(TenantManager::class)->getCurrentTenantId();
             }
         });
     }
@@ -85,37 +89,39 @@ class CashShift extends BaseModel
 
     public function scopeTenantQuery($query): void
     {
-        $query->where('tenant_id', fn () => Tenant::current()?->id);
+        $query->where('tenant_id', app(TenantManager::class)->getCurrentTenantId());
     }
 
-    public function totalSales(): \Illuminate\Database\Eloquent\Casts\DecimalCast
+    public function totalSales(): float
     {
-        return $this->cashMovements()
+        return (float) $this->cashMovements()
             ->where('type', 'sale')
             ->sum('amount');
     }
 
-    public function totalExpenses(): \Illuminate\Database\Eloquent\Casts\DecimalCast
+    public function totalExpenses(): float
     {
-        return $this->cashMovements()
+        return (float) $this->cashMovements()
             ->where('type', 'expense')
             ->sum('amount');
     }
 
-    public function totalCash(): \Illuminate\Database\Eloquent\Casts\DecimalCast
+    public function totalCash(): float
     {
-        return $this->cashMovements()
+        return (float) $this->cashMovements()
             ->where('type', 'income')
             ->sum('amount');
     }
 
-    public function netAmount(): \Illuminate\Database\Eloquent\Casts\DecimalCast
+    public function netAmount(): float
     {
         return $this->totalSales() - $this->totalExpenses();
     }
 
     public function close(User $user, float $actualCash, ?string $notes = null): bool
     {
+        $this->refresh();
+
         if ($this->status !== 'open') {
             return false;
         }
@@ -133,5 +139,29 @@ class CashShift extends BaseModel
     public static function canOpen(): bool
     {
         return ! static::open()->tenantQuery()->exists();
+    }
+
+    public static function openShift(User $user, float $initialAmount): static
+    {
+        if (! static::canOpen()) {
+            throw new TurnoCerradoException(
+                'Ya existe un turno abierto para este tenant.'
+            );
+        }
+
+        return static::create([
+            'opened_by' => $user->id,
+            'initial_amount' => $initialAmount,
+            'expected_cash' => $initialAmount,
+            'status' => 'open',
+            'opened_at' => now(),
+        ]);
+    }
+
+    public function reopen(): never
+    {
+        throw new TurnoCerradoException(
+            'Un turno cerrado no puede reabrirse.'
+        );
     }
 }

@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Caja;
 
+use App\Models\Tenant;
+use App\Models\User;
+use App\Modules\Caja\Exceptions\TurnoCerradoException;
 use App\Modules\Caja\Models\CashShift;
 use App\Modules\Caja\Services\CashMovementService;
 use App\Modules\Facturacion\Models\Invoice;
-use App\Models\Tenant;
-use App\Models\User;
+use App\Modules\Talleres\Models\WorkOrder;
+use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -24,7 +27,7 @@ class CajaIntegrationTest extends TestCase
         $this->user = User::factory()->for($this->tenant)->create();
 
         $this->actingAs($this->user);
-        app(\App\Services\TenantManager::class)->setTenantContext($this->tenant->id);
+        app(TenantManager::class)->setTenantContext($this->tenant->id);
     }
 
     public function test_factura_confirmada_crea_movimiento_automatico(): void
@@ -34,7 +37,7 @@ class CajaIntegrationTest extends TestCase
             'total' => 25000,
             'payment_method' => 'cash',
             'status' => 'confirmed',
-            'work_order_id' => \App\Modules\Talleres\Models\WorkOrder::factory()->create()->id,
+            'work_order_id' => WorkOrder::factory()->create()->id,
         ]);
 
         $shift = CashShift::openShift($user, 100000);

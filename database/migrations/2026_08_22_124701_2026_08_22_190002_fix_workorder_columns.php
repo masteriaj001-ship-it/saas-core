@@ -19,25 +19,25 @@ return new class extends Migration
             if (Schema::hasColumn('work_orders', 'description')) {
                 $table->renameColumn('description', 'internal_notes');
             }
-            
+
             // Drop reception_notes
             if (Schema::hasColumn('work_orders', 'reception_notes')) {
                 $table->dropColumn('reception_notes');
             }
-            
+
             // Add new timestamp columns
-            if (!Schema::hasColumn('work_orders', 'estimated_completion_at')) {
+            if (! Schema::hasColumn('work_orders', 'estimated_completion_at')) {
                 $table->datetime('estimated_completion_at')->nullable()->after('mileage_km');
             }
-            if (!Schema::hasColumn('work_orders', 'actual_started_at')) {
+            if (! Schema::hasColumn('work_orders', 'actual_started_at')) {
                 $table->datetime('actual_started_at')->nullable()->after('estimated_completion_at');
             }
-            if (!Schema::hasColumn('work_orders', 'actual_completed_at')) {
+            if (! Schema::hasColumn('work_orders', 'actual_completed_at')) {
                 $table->datetime('actual_completed_at')->nullable()->after('actual_started_at');
             }
-            
+
             // Add location_id if missing (spec says "Sin uso, multi-sede es roadmap")
-            if (!Schema::hasColumn('work_orders', 'location_id')) {
+            if (! Schema::hasColumn('work_orders', 'location_id')) {
                 $table->unsignedBigInteger('location_id')->nullable()->after('advisor_id');
             }
         });
@@ -53,7 +53,7 @@ return new class extends Migration
             if (Schema::hasColumn('work_orders', 'internal_notes')) {
                 $table->renameColumn('internal_notes', 'description');
             }
-            
+
             // Reverse new columns
             if (Schema::hasColumn('work_orders', 'estimated_completion_at')) {
                 $table->dropColumn('estimated_completion_at');
@@ -64,14 +64,14 @@ return new class extends Migration
             if (Schema::hasColumn('work_orders', 'actual_completed_at')) {
                 $table->dropColumn('actual_completed_at');
             }
-            
+
             // Reverse location_id
             if (Schema::hasColumn('work_orders', 'location_id')) {
                 $table->dropColumn('location_id');
             }
-            
+
             // Reverse reception_notes
-            if (!Schema::hasColumn('work_orders', 'reception_notes')) {
+            if (! Schema::hasColumn('work_orders', 'reception_notes')) {
                 $table->text('reception_notes')->nullable()->after('advisor_id');
             }
         });

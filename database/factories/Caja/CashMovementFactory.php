@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Database\Factories\Caja;
 
+use App\Models\User;
 use App\Modules\Caja\Models\CashMovement;
+use App\Modules\Caja\Models\CashShift;
+use App\Modules\Facturacion\Models\Invoice;
+use App\Modules\Talleres\Models\Tenant;
 use App\Modules\Talleres\Models\WorkOrder;
-use Database\Factories\Caja\CashShiftFactory;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use Illuminate\Support\Str;
 
 class CashMovementFactory extends Factory
 {
@@ -20,13 +22,13 @@ class CashMovementFactory extends Factory
         $methods = ['cash', 'card', 'transfer', 'nequi', 'daviplata', 'other'];
 
         return [
-            'tenant_id' => \App\Modules\Talleres\Models\Tenant::factory(),
-            'shift_id' => \App\Modules\Caja\Models\CashShift::factory(),
+            'tenant_id' => Tenant::factory(),
+            'shift_id' => CashShift::factory(),
             'type' => $types[array_rand($types)],
             'payment_method' => $methods[array_rand($methods)],
             'amount' => random_int(1000, 1000000) / 100,
             'description' => fake()->sentence(3),
-            'created_by' => \App\Models\User::factory(),
+            'created_by' => User::factory(),
         ];
     }
 
@@ -35,7 +37,7 @@ class CashMovementFactory extends Factory
         return $this->state(function (array $attrs): array {
             return [
                 'type' => 'sale',
-                'payment_method' => array_rand(['cash', 'card', 'transfer']) . '_method',
+                'payment_method' => array_rand(['cash', 'card', 'transfer']).'_method',
             ];
         });
     }
@@ -81,7 +83,8 @@ class CashMovementFactory extends Factory
     {
         return $this->state(function (array $attrs): array {
             return [
-                'invoice_id' => \App\Modules\Facturacion\Models\Invoice::factory(),
+                'invoice_id' => Invoice::factory(),
             ];
         });
     }
+}

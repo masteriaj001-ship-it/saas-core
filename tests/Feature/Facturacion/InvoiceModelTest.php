@@ -125,11 +125,12 @@ class InvoiceModelTest extends TestCase
     {
         $cases = InvoiceStatusEnum::cases();
 
-        $this->assertCount(4, $cases);
+        $this->assertCount(5, $cases);
 
         $this->assertTrue(InvoiceStatusEnum::tryFrom('draft') instanceof InvoiceStatusEnum);
         $this->assertTrue(InvoiceStatusEnum::tryFrom('issued') instanceof InvoiceStatusEnum);
         $this->assertTrue(InvoiceStatusEnum::tryFrom('paid') instanceof InvoiceStatusEnum);
+        $this->assertTrue(InvoiceStatusEnum::tryFrom('confirmed') instanceof InvoiceStatusEnum);
         $this->assertTrue(InvoiceStatusEnum::tryFrom('cancelled') instanceof InvoiceStatusEnum);
         $this->assertNull(InvoiceStatusEnum::tryFrom('invalid'));
     }

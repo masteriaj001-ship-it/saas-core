@@ -4,17 +4,17 @@ declare(strict_types=1);
 
 namespace App\Modules\Caja\Models;
 
-use App\Modules\Talleres\Models\WorkOrder;
-use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Facturacion\Models\Invoice;
+use App\Modules\Talleres\Models\WorkOrder;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Foundation\Database\Model as BaseModel;
 
-class CashMovement extends BaseModel
+class CashMovement extends Model
 {
-    use \App\Modules\Talleres\Traits\BelongsToTenant;
+    use \App\Models\Concerns\BelongsToTenant, HasUuids;
 
     protected $fillable = [
         'tenant_id',
@@ -29,16 +29,18 @@ class CashMovement extends BaseModel
         'metadata',
     ];
 
-    protected $casts = [
-        'tenant_id' => 'uuid',
-        'shift_id' => 'uuid',
-        'work_order_id' => 'uuid',
-        'invoice_id' => 'uuid',
-        'type' => 'string',
-        'payment_method' => 'string',
-        'amount' => 'decimal:2',
-        'metadata' => 'array',
-    ];
+    protected function casts(): array
+    {
+        return [
+            'id' => 'string',
+            'tenant_id' => 'string',
+            'shift_id' => 'string',
+            'work_order_id' => 'string',
+            'invoice_id' => 'string',
+            'amount' => 'decimal:2',
+            'metadata' => 'array',
+        ];
+    }
 
     protected $guarded = [];
 
@@ -59,7 +61,7 @@ class CashMovement extends BaseModel
 
     public function invoice(): BelongsTo
     {
-        return $this->belongsTo(\App\Modules\Facturacion\Models\Invoice::class, 'invoice_id');
+        return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 
     public function creator(): BelongsTo
@@ -81,3 +83,4 @@ class CashMovement extends BaseModel
     {
         $query->where('shift_id', $shiftId);
     }
+}

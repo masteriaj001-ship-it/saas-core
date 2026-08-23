@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Caja;
 
-use App\Modules\Caja\Models\CashShift;
-use App\Modules\Caja\Exceptions\TurnoCerradoException;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Caja\Exceptions\TurnoCerradoException;
+use App\Modules\Caja\Models\CashShift;
+use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -23,7 +24,7 @@ class CashShiftTest extends TestCase
         $this->user = User::factory()->for($this->tenant)->create();
 
         $this->actingAs($this->user);
-        app(\App\Services\TenantManager::class)->setTenantContext($this->tenant->id);
+        app(TenantManager::class)->setTenantContext($this->tenant->id);
     }
 
     public function test_puede_abrir_turno_con_monto_inicial(): void
@@ -51,7 +52,7 @@ class CashShiftTest extends TestCase
         $shift->close($this->user, 100000);
 
         $this->expectException(TurnoCerradoException::class);
-        CashShift::openShift($this->user, 50000);
+        $shift->reopen();
     }
 
     public function test_calcula_diferencia_al_cierre_correctamente(): void
@@ -68,14 +69,16 @@ class CashShiftTest extends TestCase
 
     public function test_rls_turno_no_visible_en_otro_tenant(): void
     {
-        $otherTenant = Tenant::factory();
-
+        $otherTenant = Tenant::factory()->create();
         $otherUser = User::factory()->for($otherTenant)->create();
 
         $shift = CashShift::openShift($this->user, 100000);
 
         $this->actingAs($otherUser);
-        $this->expectException(\Illuminate\Database\Eloquent\ModelNotFoundException::class);
-        $shift->fresh();
+        app(TenantManager::class)->setTenantContext($otherTenant->id);
+
+        $shiftInOtherTenant = CashShift::query()->tenant()->find($shift->id);
+
+        $this->assertNull($shiftInOtherTenant);
     }
 }

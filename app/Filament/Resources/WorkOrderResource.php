@@ -14,7 +14,6 @@ use App\Filament\Resources\WorkOrderResource\RelationManagers\ItemsRelationManag
 use App\Filament\Resources\WorkOrderResource\RelationManagers\MediaRelationManager;
 use App\Models\Contact;
 use App\Models\Item;
-use App\Models\Location;
 use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\ServiceCatalog;
 use App\Modules\Talleres\Models\WorkOrder;
@@ -65,7 +64,7 @@ class WorkOrderResource extends Resource
                 ->columnSpan(2)
                 ->columns(2)
                 ->schema([
-Select::make('contact_id')
+                    Select::make('contact_id')
                         ->label('Cliente')
                         ->searchable()
                         ->createOptionForm([
