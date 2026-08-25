@@ -12,7 +12,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\NumberInput;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -58,16 +57,19 @@ class PlanResource extends Resource
                             ->label(__('Etiqueta visible'))
                             ->required()
                             ->maxLength(100),
-                        NumberInput::make('price_cop')
+                        TextInput::make('price_cop')
                             ->label(__('Precio COP'))
+                            ->numeric()
                             ->default(0)
                             ->minValue(0),
-                        NumberInput::make('max_users')
+                        TextInput::make('max_users')
                             ->label(__('Máximo usuarios'))
+                            ->numeric()
                             ->placeholder('Sin límite')
                             ->minValue(1),
-                        NumberInput::make('max_work_orders')
+                        TextInput::make('max_work_orders')
                             ->label(__('Máximo OTs/mes'))
+                            ->numeric()
                             ->placeholder('Sin límite')
                             ->minValue(1),
                         TagsInput::make('features')
