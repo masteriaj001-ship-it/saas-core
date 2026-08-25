@@ -60,7 +60,7 @@ class SuperadminPanelProvider extends PanelProvider
                     AppAuthentication::make(),
                     EmailAuthentication::make(),
                 ],
-                isRequired: true,
+                isRequired: false,
             )
             ->authMiddleware([
                 Authenticate::class,
