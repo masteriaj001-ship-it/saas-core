@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.79 | **Status:** active_development | **Updated:** 2026-08-20
+> **Version:** 1.1.84 | **Status:** active_development | **Updated:** 2026-08-25
 
 ## Stack
 
@@ -297,11 +297,11 @@
 
 ## Test Suite
 
-- **Total tests:** 404
-- **Passing:** 404
-- **Assertions:** 984
+- **Total tests:** 474
+- **Passing:** 474
+- **Assertions:** 1091
 - **Status:** green
-- **Last run:** 2026-08-20
+- **Last run:** 2026-08-25
 
 ## Deployment
 
