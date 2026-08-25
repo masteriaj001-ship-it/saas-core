@@ -12,8 +12,8 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\NumberInput;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
@@ -70,8 +70,9 @@ class PlanResource extends Resource
                             ->label(__('Máximo OTs/mes'))
                             ->placeholder('Sin límite')
                             ->minValue(1),
-                        KeyValue::make('features')
-                            ->label(__('Características')),
+                        TagsInput::make('features')
+                            ->label(__('Características'))
+                            ->placeholder(__('Agregar feature')),
                         Toggle::make('is_active')
                             ->label(__('Activo'))
                             ->default(true),
