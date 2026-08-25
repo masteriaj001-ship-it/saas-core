@@ -171,10 +171,14 @@ class TenantResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('subscription.plan.name')
+                SelectFilter::make('plan_filter')
                     ->label(__('Plan'))
                     ->options(fn (): array => Plan::pluck('label', 'name')->toArray())
                     ->query(function (Builder $query, array $data): Builder {
+                        if (empty($data['value'])) {
+                            return $query;
+                        }
+
                         return $query->whereHas('subscription.plan', function ($q) use ($data) {
                             $q->where('plans.name', $data['value']);
                         });
