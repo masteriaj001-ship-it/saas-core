@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
-  "version": "1.1.83",
-  "last_updated": "2026-08-21",
+  "version": "1.1.84",
+  "last_updated": "2026-08-22",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
@@ -94,6 +94,7 @@
         "Ticket térmico 80mm (ticket-pos.blade.php, window.print) + ruta invoices.ticket (protección cross-tenant 403)",
         "PosPage Filament kiosko full-screen: 3 paneles (categorías/catálogo/ticket), dark mode amber",
         "PosPage: búsqueda, filtro por item_type, carrito, pago modal (efectivo/tarjeta/transferencia), cálculo de cambio, atajos F2/F4/F5/F10, historial de ventas",
+        "PosPage: servicios se muestran sin importar stock (item_type=service sin restricción de stock)",
         "Hardware POS parametrizable en TenantResource (Section Impresión): driver esc_pos/window_print, host, port, canal cajón, abrir cajón tras cobro — persistido en tenants.settings->pos_hardware",
         "Modal post-pago en PosPage ('Venta registrada'): botones IMPRIMIR / VER TICKET (invoices.ticket) / Cerrar (Esc) — commit de3ce46",
         "30 tests POS+UI: PosCheckoutTest (8) + PosPageTest (20) + TenantPosSettingsTest (2)"
@@ -102,14 +103,17 @@
     },
     "work_order_reception": {
       "status": "implemented",
-      "last_check": "2026-08-21",
+      "last_check": "2026-08-22",
       "features": [
         "CreateWorkOrderReceptionAction con normalización Contact/ClientVehicle/WorkOrder",
         "createOptionForm en Select de Cliente y Vehículo (modal de creación rápida)",
+        "createOptionUsing incluye contact_type=client (asset_type eliminado, reemplazado por client_vehicle_id)",
         "Campos de inspección: kilometraje, batería, notas estéticas",
+        "Redirect a lista después de crear WO (getRedirectUrl → index)",
+        "Notificación en español: 'Orden de trabajo creada'",
         "5 tests PHPUnit (creación, reuso, aislamiento, ID existente)"
       ],
-      "notes": "Hybrid (C) — operador ve campos planos, Action normaliza en background. client_vehicle_id FK en work_orders. asset_id nullable para activos propios del taller."
+      "notes": "Hybrid (C) — operador ve campos planos, Action normaliza en background. client_vehicle_id FK en work_orders. asset_id nullable para activos propios del taller. asset_type removido del createOptionUsing (2026-08-22)."
     },
     "client_vehicles": {
       "status": "implemented",
@@ -358,7 +362,13 @@
     "assertions": 1067,
     "status": "green",
     "last_run": "2026-08-22",
-    "note": "Suite 456/465 passing (98%). 5 fallos pre-existentes: ExampleTest (302 redirect), ContactFlowTest/ServiceCatalogTest (tenant scoping), WorkOrderPhase3Test (contact duplicate por firstOrCreate), WorkOrderQuoteApprovalTest (approval_at null). 4 errores: TenantIsolationTest (contexto de tenant). Contact form: add document_number+email fields. ClientVehicles + WorkOrder refactor + POS mobile fixes completados."
+    "qa_suite": {
+      "total_tests": 61,
+      "files": 6,
+      "status": "syntax_valid",
+      "note": "QA tests created 2026-08-22. Syntax validated. Require Sail to run (no local DB)."
+    },
+    "note": "Suite completa 456/465 passing (98%). 5 fallos pre-existentes: ExampleTest (302 redirect), ContactFlowTest/ServiceCatalogTest (tenant scoping), WorkOrderPhase3Test (contact duplicate por firstOrCreate), WorkOrderQuoteApprovalTest (approval_at null). 4 errores: TenantIsolationTest (contexto de tenant). ClientVehicles + WorkOrder refactor completados."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -423,10 +433,24 @@
     "Hardware POS parametrizable: PrinterSettingsResolver + EscPosService (TCP 9100, GS @ init, ESC p pulses cajon, corte) + TicketRenderer + PosPrintController endpoint POST /pos/print con proteccion cross-tenant 403. Drivers esc_pos (A) y window_print (B). Settings via tenants.settings->pos_hardware. Commit ca79997 en feature/pos-hardware. 10 tests nuevos.",
     "UI POS hardware (commit de3ce46): TenantResource Section Impresión (driver/host/port/canal/cajón, dinámico por driver) + modal post-pago en PosPage (IMPRIMIR/VER TICKET/Cerrar Esc). Validado en navegador via Selenium grid.",
     "Fix POS mobile (2026-08-22): improved mobile responsiveness - grid minmax 140px (antes 200px), compact padding en items/categorías, styles consistentes con Tailwind. 21/21 tests passing.",
+    "Fix WorkOrder createOptionUsing (2026-08-22): contact_type=client added to Contact inline create. asset_type removed (replaced by client_vehicle_id).",
+    "Fix WorkOrder redirect (2026-08-22): CreateWorkOrder redirects to list page after creation.",
+    "Spanish UI (2026-08-22): Login, sidebar, buttons all in Spanish via setLocale('es') + 51+ published translation files.",
+    "Collapsible sidebar (2026-08-22): AdminPanelProvider uses sidebarCollapsibleOnDesktop() + maxContentWidth(Width::Full).",
+    "FilamentInfoWidget removed (2026-08-22): Public repo/docs widget eliminated from AdminPanel.",
+    "QA test suite (2026-08-22): 61 automated tests + 80+ manual test steps in QA_CHECKLIST.md.",
     "Fix Filament v5 (2026-08-20): import KeyValue en ItemResource (Class App\\Filament\\Resources\\KeyValue not found) y Section en Schemas\\Components para BudgetResource (Class Filament\\Forms\\Components\\Section not found — en v5 Section vive en Filament\\Schemas\\Components\\Section).",
     "feature/pos-hardware-ui ff-mergeado a main (f196dd2): 5 commits (3efbe70 M3 kiosko + pagos + ticket, de3ce46 UI hardware + modal, 0fc848a taller closure fase 2, d8b708b infra guard+seeder+down fix, f196dd2 pint). Suite 409/409 verde.",
     "Single vertical (commit 5a272cb): consolida el modelo a UN template de 'Operaciones tipo Taller' (4 categorías/4 items/2 activos/3 catálogos). Eliminadas las industrias restaurant/mechanic/construction/clinic de config/industry-defaults.php. Fuera el select de industria de auth/register.blade.php y el Select industry de Onboarding.php. seed($tenant) reemplaza seed($tenant, 'mechanic') en todos los callers. settings.industry queda como campo legacy informativo (0 lecturas). Referencias 'mechanic' conservadas solo donde es rol de empleado. Suite 404/984 verde.",
-    "Client Vehicles Separation (commit 0d10e3b): separación de vehículos de clientes (client_vehicles) de activos del taller (assets). Tabla client_vehicles con RLS, vehicle_mileage_logs para historial, ClientVehicleResource Filament CRUD, WorkOrderResource filtrado por contacto, creación inline con owner_contact_id automático. Migración de datos de assets vehicle → client_vehicles. Eliminación de columnas de vehículo de assets. 15 tests migrados + 1 nuevo."
+    "Client Vehicles Separation (commit 0d10e3b): separación de vehículos de clientes (client_vehicles) de activos del taller (assets). Tabla client_vehicles con RLS, vehicle_mileage_logs para historial, ClientVehicleResource Filament CRUD, WorkOrderResource filtrado por contacto, creación inline con owner_contact_id automático. Migración de datos de assets vehicle → client_vehicles. Eliminación de columnas de vehículo de assets. 15 tests migrados + 1 nuevo.",
+    "Fix POS services without stock (commit 4bf2f4c): PosPage now shows services (item_type=service) regardless of stock level. addItem() and updateQuantity() skip stock check for services. Categories filter also includes services with stock=0.",
+    "Fix WorkOrder inline create (commit 8f3bc26): createOptionUsing now includes contact_type=client in Contact select. asset_type removed (replaced by client_vehicle_id).",
+    "Fix WorkOrder redirect (commit 8660d77): CreateWorkOrder now redirects to list page (index) instead of edit page after creation.",
+    "Spanish translations (commits 00cbe63-522d345): AppServiceProvider forces setLocale('es'), loads 6 Filament translation namespaces. 51+ translation files published in lang/vendor/filament-panels/es/. Login, sidebar, buttons all in Spanish.",
+    "Collapsible sidebar (commit b17b86f): AdminPanelProvider uses sidebarCollapsibleOnDesktop() + maxContentWidth(Width::Full) for full-width content when sidebar collapsed.",
+    "FilamentInfoWidget removed (commit 6d84776): Public repo/docs widget eliminated from AdminPanel (kept only in Superadmin).",
+    "Duplicate items cleanup (2026-08-22): 8 items with same name but different SKUs cleaned from database via ROW_NUMBER window function in Railway console.",
+    "QA test suite (commit 7491100): 61 automated tests across 6 files (PosFlowTest, WorkOrderFlowTest, ServiceCatalogTest, ContactFlowTest, ItemStockTest, TenantIsolationTest) + QA_CHECKLIST.md with 80+ manual test steps."
   ],
   "security_status": {
     "mfa_superadmin": "implemented",
@@ -459,8 +483,9 @@
   "audit_schedule": {
     "next_audit": "2026-09-01",
     "frequency": "quarterly",
-    "last_audit": "2026-06-17",
-    "last_audit_type": "rls_security"
+    "last_audit": "2026-08-22",
+    "last_audit_type": "code_vs_docs_congruence",
+    "last_audit_result": "98% congruent — 1 discrepancy found (asset_type in WorkOrderResource createOptionUsing, now corrected)"
   },
   "agents": {
     "cursor": {
