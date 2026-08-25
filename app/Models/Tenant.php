@@ -6,12 +6,14 @@ namespace App\Models;
 
 use App\Enums\InvoiceDocumentTypeEnum;
 use App\Models\Concerns\Auditable;
+use App\Modules\Plataforma\Models\Subscription;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Tenant extends Model
@@ -22,7 +24,6 @@ class Tenant extends Model
         'organization_id',
         'name',
         'slug',
-        'plan',
         'is_active',
         'settings',
         'onboarding_completed',
@@ -49,6 +50,16 @@ class Tenant extends Model
     public function modules(): HasMany
     {
         return $this->hasMany(TenantModule::class);
+    }
+
+    public function subscription(): HasOne
+    {
+        return $this->hasOne(Subscription::class);
+    }
+
+    public function getPlanNameAttribute(): string
+    {
+        return $this->subscription?->plan?->name ?? 'free';
     }
 
     public function hasModule(string $moduleSlug): bool

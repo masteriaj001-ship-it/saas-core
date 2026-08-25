@@ -8,6 +8,7 @@ use App\Filament\Superadmin\Resources\TenantResource\Pages\CreateTenant;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;
+use Database\Seeders\PlanSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,6 +36,8 @@ class CreateTenantWithAdminTest extends TestCase
         app(TenantManager::class)->setTenantContext($seedTenant->id);
         $this->seed(RolePermissionSeeder::class);
         app(TenantManager::class)->clearTenantContext();
+
+        $this->seed(PlanSeeder::class);
     }
 
     public function test_superadmin_can_create_tenant_with_admin_user(): void
@@ -43,7 +46,6 @@ class CreateTenantWithAdminTest extends TestCase
             ->fillForm([
                 'name' => 'Taller Test',
                 'slug' => 'taller-test',
-                'plan' => 'basic',
                 'is_active' => true,
                 'admin_name' => 'Admin User',
                 'admin_email' => 'admin@test.com',
@@ -56,7 +58,6 @@ class CreateTenantWithAdminTest extends TestCase
         $this->assertDatabaseHas('tenants', [
             'name' => 'Taller Test',
             'slug' => 'taller-test',
-            'plan' => 'basic',
         ]);
 
         $tenant = Tenant::where('slug', 'taller-test')->first();
@@ -77,7 +78,6 @@ class CreateTenantWithAdminTest extends TestCase
             ->fillForm([
                 'name' => 'Taller Login',
                 'slug' => 'taller-login',
-                'plan' => 'basic',
                 'is_active' => true,
                 'admin_name' => 'Admin Login',
                 'admin_email' => 'admin@login.com',
@@ -108,7 +108,6 @@ class CreateTenantWithAdminTest extends TestCase
             ->fillForm([
                 'name' => 'Taller Atomic 1',
                 'slug' => 'taller-atomic-1',
-                'plan' => 'basic',
                 'is_active' => true,
                 'admin_name' => 'Atomic Admin',
                 'admin_email' => 'atomic@test.com',
@@ -123,7 +122,6 @@ class CreateTenantWithAdminTest extends TestCase
             ->fillForm([
                 'name' => 'Taller Atomic 2',
                 'slug' => 'taller-atomic-2',
-                'plan' => 'basic',
                 'is_active' => true,
                 'admin_name' => 'Atomic Admin 2',
                 'admin_email' => 'atomic@test.com',

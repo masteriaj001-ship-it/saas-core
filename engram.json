@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
-  "version": "1.1.85",
+  "version": "1.1.86",
   "last_updated": "2026-08-25",
   "vertical": "operaciones",
   "status": "active_development",
@@ -221,7 +221,7 @@
       "features": [
         "User model implementa HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication",
         "two_factor_secret encryptado via Crypt, two_factor_recovery_codes JSON",
-        "SuperadminPanelProvider: multiFactorAuthentication(isRequired: true)",
+        "SuperadminPanelProvider: multiFactorAuthentication(isRequired: false)",
         "AdminPanelProvider: multiFactorAuthentication(isRequired: false)",
         "5 tests (secret storage, recovery codes, TOTP verification, holder name, confirmation)"
       ],
@@ -376,13 +376,37 @@
         "14 tests FinancialDashboardTest (stats, chart, top items, payment methods, tenant isolation)"
       ],
       "notes": "Dashboard financiero tenant-scoped. 4 widgets auto-discovered en Dashboard. TopItems usa StatsOverviewWidget (no TableWidget) para evitar GROUP BY con UUID en PostgreSQL."
+    },
+    "superadmin_panel_plans": {
+      "status": "implemented",
+      "last_check": "2026-08-25",
+      "features": [
+        "5 migrations: plans, subscriptions, subscription_logs, impersonation_logs, drop_plan_column",
+        "PlanSeeder: free/pro/enterprise",
+        "4 models: Plan, Subscription, SubscriptionLog, ImpersonationLog",
+        "Tenant: removed plan from fillable, subscription() HasOne, getPlanNameAttribute accessor",
+        "SubscriptionService: changePlan, getActivePlan, isExpired, isSuspended, isActive",
+        "ChangePlanAction: transaccional con validación de plan existente",
+        "PlanLimitExceededException, TenantSuspendedException",
+        "WorkOrderLimitObserver, UserLimitObserver: enforce plan limits",
+        "CheckExpiredSubscriptions artisan command (hourly schedule)",
+        "ImpersonationService: database + session flag",
+        "StartImpersonationAction, StopImpersonationAction",
+        "ImpersonationBanner middleware",
+        "SuperAdminDashboard: stats, plan distribution chart, recent activity, churn risk",
+        "PlanResource CRUD, UserResource list, ViewTenant page",
+        "TenantResource: impersonate action, planName accessor, subscription filter",
+        "24 tests (SubscriptionTest, PlanManagementTest, PlanLimitsTest, ImpersonationTest, SuperAdminDashboardTest)",
+        "SuperadminPanelProvider: FilamentInfoWidget removed, MFA optional"
+      ],
+      "notes": "FASE 1-6 completadas. 5 migraciones incluyen drop_plan_column para migrar tenant.plan a subscription-centric. TenantFactory auto-creates subscription via afterCreating hook. 498 tests total."
     }
   },
 "test_suite": {
-    "total_tests": 474,
-    "passing": 474,
+    "total_tests": 498,
+    "passing": 498,
     "skipped": 0,
-    "assertions": 1091,
+    "assertions": 1138,
     "status": "green",
     "last_run": "2026-08-25",
     "qa_suite": {
@@ -390,7 +414,7 @@
       "files": 6,
       "status": "passing"
     },
-    "note": "Suite completa 474/474 passing (100%). 0 failures. 5 pre-existing failures resolved: ExampleTest (redirect), ContactFlowTest/ServiceCatalogTest (DB::table for tenant scoping), WorkOrderPhase3Test (DB::table for duplicate check), WorkOrderQuoteApprovalTest (approval_at fillable). 1091 assertions."
+    "note": "Suite completa 498/498 passing (100%). 0 failures. 1138 assertions. Superadmin panel plans/impersonation module completado (24 tests nuevos)."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -420,6 +444,7 @@
     "Location management",
     "ServiceCatalog",
     "Superadmin panel global",
+    "Superadmin panel plans and impersonation",
     "Onboarding flow",
     "Tenant suspension",
     "Wizard de creación",

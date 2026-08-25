@@ -6,6 +6,8 @@ namespace App\Modules\Talleres\Actions;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Plataforma\Models\Plan;
+use App\Modules\Plataforma\Models\Subscription;
 use App\Modules\Talleres\Exceptions\TenantRegistrationException;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
@@ -33,10 +35,20 @@ final class RegisterTenantAction
             $tenant = Tenant::create([
                 'name' => $data['business_name'],
                 'slug' => $slug,
-                'plan' => $data['plan'] ?? 'free',
                 'is_active' => true,
                 'settings' => $settings,
             ]);
+
+            $freePlan = Plan::where('name', 'free')->first();
+
+            if ($freePlan) {
+                Subscription::create([
+                    'tenant_id' => $tenant->id,
+                    'plan_id' => $freePlan->id,
+                    'started_at' => now(),
+                    'status' => 'active',
+                ]);
+            }
 
             $this->tenantManager->setTenantContext($tenant->id);
 

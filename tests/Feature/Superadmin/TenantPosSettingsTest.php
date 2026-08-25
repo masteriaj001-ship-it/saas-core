@@ -9,6 +9,7 @@ use App\Filament\Superadmin\Resources\TenantResource\Pages\EditTenant;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;
+use Database\Seeders\PlanSeeder;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -34,6 +35,8 @@ class TenantPosSettingsTest extends TestCase
         app(TenantManager::class)->setTenantContext($seedTenant->id);
         $this->seed(RolePermissionSeeder::class);
         app(TenantManager::class)->clearTenantContext();
+
+        $this->seed(PlanSeeder::class);
     }
 
     public function test_create_tenant_persists_pos_hardware_settings(): void
@@ -42,7 +45,6 @@ class TenantPosSettingsTest extends TestCase
             ->fillForm([
                 'name' => 'Taller POS',
                 'slug' => 'taller-pos',
-                'plan' => 'basic',
                 'is_active' => true,
                 'settings.pos_hardware.printer_driver' => 'esc_pos',
                 'settings.pos_hardware.printer_host' => '192.168.1.50',

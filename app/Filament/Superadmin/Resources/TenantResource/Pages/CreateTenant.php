@@ -7,6 +7,8 @@ namespace App\Filament\Superadmin\Resources\TenantResource\Pages;
 use App\Filament\Superadmin\Resources\TenantResource;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Plataforma\Models\Plan;
+use App\Modules\Plataforma\Models\Subscription;
 use App\Services\TenantManager;
 use App\Services\TenantTemplateSeeder;
 use Database\Seeders\RolePermissionSeeder;
@@ -26,10 +28,20 @@ class CreateTenant extends CreateRecord
             $tenant = Tenant::create([
                 'name' => $data['name'],
                 'slug' => $data['slug'],
-                'plan' => $data['plan'],
                 'is_active' => $data['is_active'],
                 'settings' => $data['settings'] ?? [],
             ]);
+
+            $freePlan = Plan::where('name', 'free')->first();
+
+            if ($freePlan) {
+                Subscription::create([
+                    'tenant_id' => $tenant->id,
+                    'plan_id' => $freePlan->id,
+                    'started_at' => now(),
+                    'status' => 'active',
+                ]);
+            }
 
             app(TenantManager::class)->setTenantContext($tenant->id);
 

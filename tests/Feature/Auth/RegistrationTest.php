@@ -232,6 +232,6 @@ class RegistrationTest extends TestCase
         $tenant = Tenant::find($user->tenant_id);
 
         $this->assertTrue($tenant->is_active);
-        $this->assertEquals('free', $tenant->plan);
+        $this->assertEquals('free', $tenant->planName);
     }
 }

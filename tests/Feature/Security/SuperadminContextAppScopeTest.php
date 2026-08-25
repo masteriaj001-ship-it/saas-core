@@ -18,6 +18,7 @@ use App\Http\Middleware\SetTenantContext;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\TenantManager;
+use Database\Seeders\PlanSeeder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -47,6 +48,8 @@ final class SuperadminContextAppScopeTest extends TestCase
             'is_superadmin' => true,
             'tenant_id' => null,
         ]);
+
+        $this->seed(PlanSeeder::class);
     }
 
     protected function tearDown(): void
@@ -158,7 +161,6 @@ final class SuperadminContextAppScopeTest extends TestCase
             'admin_password_confirmation' => 'SecurePass1!',
             'name' => 'New Tenant',
             'slug' => 'new-tenant',
-            'plan' => 'free',
             'is_active' => true,
         ];
 

@@ -4,6 +4,7 @@ namespace App\Providers\Filament;
 
 use App\Filament\Pages\Caja\CajaPage;
 use App\Http\Middleware\EnsureOnboardingIsCompleted;
+use App\Http\Middleware\ImpersonationBanner;
 use App\Http\Middleware\SetTenantContext;
 use App\Http\Middleware\VerifyTenantStatus;
 use App\Models\Tenant;
@@ -70,6 +71,7 @@ class AdminPanelProvider extends PanelProvider
                 SubstituteBindings::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
+                ImpersonationBanner::class,
             ])
             ->tenantMiddleware([
                 SetTenantContext::class,

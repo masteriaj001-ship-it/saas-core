@@ -40,7 +40,6 @@ class DatabaseSeeder extends Seeder
         $tenant = Tenant::create([
             'name' => 'Taller Mecánica Demo',
             'slug' => 'demo-taller',
-            'plan' => 'pro',
             'is_active' => true,
             'settings' => [
                 'timezone' => 'America/Bogota',

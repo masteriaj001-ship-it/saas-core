@@ -1,7 +1,7 @@
 # PROJECT STATE — ProyectDashboard
 
 > Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
-> Última actualización: 2026-06-07 (BUG HUNT 403 — 3 ROOT CAUSES RESUELTAS, 174 TESTS, 497 ASSERTIONS)
+> Última actualización: 2026-08-25 (SUPERADMIN PANEL — PLANS, SUBSCRIPTIONS, IMPERSONATION. 498 TESTS, 1138 ASSERTIONS)
 
 ---
 
@@ -9,13 +9,13 @@
 
 SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 31 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` (sin clearTenantContext en finally) + trait `BelongsToTenant` con global scope.
 
-**Fase actual:** VERTICAL TALLERES — COMPLETO. Módulo Facturación — CREADO (invoices + invoice_items). Panel admin (`/admin/{slug}`) con 8 Resources + Dashboard widgets + bloqueo de tenants suspendidos. Panel superadmin (`/superadmin`) con 3 Resources globales. **Bug 403 en Livewire getSearchResultsUsing resuelto**: 3 causas raíz eliminadas (ContactPolicy faltante, clearTenantContext prematuro en SetTenantContext, PreventRequestForgery en middleware stack del panel). **174 tests, 497 assertions — 0 regresiones.**
+**Fase actual:** VERTICAL TALLERES — COMPLETO. Módulo Facturación — CREADO (invoices + invoice_items). Panel admin (`/admin/{slug}`) con 8 Resources + Dashboard widgets + bloqueo de tenants suspendidos. Panel superadmin (`/superadmin`) con plans/subscriptions, impersonation, plan limits, dashboard widgets. **498 tests, 1138 assertions — 0 regresiones.**
 
 ---
 
 ## 2. Estado Actual
 
-### Migraciones ejecutadas (31/31)
+### Migraciones ejecutadas (36/36)
 
 | Orden | Archivo | Tabla | RLS |
 |---|---|---|---|---|---|---|---|
@@ -185,9 +185,34 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 
 | Recurso | Páginas | Query |
 |---|---|---|
-| `TenantResource` | List / Create / Edit / Delete | Global (sin scope) — name, slug, plan (badge), is_active (toggle), filtros plan/estado. **Create incluye admin Section** (admin_name, admin_email, admin_password, admin_password_confirmation) con **handleRecordCreation transaccional** que crea Tenant → setTenantContext → RolePermissionSeeder → User owner → TenantTemplateSeeder |
+| `TenantResource` | List / Create / Edit / Delete | Global (sin scope) — name, slug, planName, is_active (toggle), filtros plan/estado, **impersonate action**. Create incluye admin Section con handleRecordCreation transaccional |
+| `PlanResource` | List / Create / Edit | Global — CRUD para planes (free/pro/enterprise) con price, limits, features |
+| `UserResource` | List (read-only) | Global — todos los usuarios con tenant.name, is_superadmin badge |
 | `GlobalAssetResource` | List (read-only) | `withoutGlobalScope('tenant')` — todos los activos de la BD con columna tenant.name |
 | `GlobalWorkOrderResource` | List (read-only) | `withoutGlobalScope('tenant')` — todas las WOs de la BD con columna tenant.name |
+
+### Filament Pages (Superadmin Panel)
+
+| Página | Ruta | Propósito |
+|---|---|---|
+| `SuperAdminDashboard` | `/superadmin` | Dashboard con 4 widgets: TenantStats, PlanDistribution (doughnut chart), RecentActivity, ChurnRisk |
+| `ViewTenant` | `/superadmin/tenants/{record}` | Vista detallada del tenant con info, plan, acciones |
+
+### Superadmin Panel — Plans & Subscriptions
+
+| Componente | Descripción |
+|---|---|
+| `Plan` model | free/pro/enterprise con max_users, max_work_orders_monthly, price, features JSON |
+| `Subscription` model | tenant_id (unique), plan_id, status (active/expired/suspended), starts_at, expires_at |
+| `SubscriptionLog` model | audit trail de cambios de plan |
+| `ImpersonationLog` model | audit trail de impersonation (superadmin_id, tenant_id, impersonated_at) |
+| `SubscriptionService` | changePlan(), getActivePlan(), isExpired(), isSuspended(), isActive() |
+| `ImpersonationService` | start(), stop(), isImpersonating() — session flag |
+| `WorkOrderLimitObserver` |阻止 WorkOrder creation si max_work_orders_monthly exceeded |
+| `UserLimitObserver` |阻止 User creation si max_users exceeded |
+| `CheckExpiredSubscriptions` | artisan command, hourly schedule, suspends expired tenants |
+| `ImpersonationBanner` middleware | Shows yellow banner during impersonation |
+| Routes | `/superadmin/impersonate/{tenant}`, `/superadmin/stop-impersonating` |
 
 ### Filament Pages (Admin Panel)
 
@@ -205,7 +230,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `WorkOrderStatusChart` | BarChartWidget | WOs agrupadas por status dinámico desde `WorkOrderStatusEnum::cases()` con colores mapeados |
 | `LatestWorkOrdersTable` | TableWidget | Últimas 5 WOs con código, título, asset, status, fecha |
 
-### Tests (174 tests, 497 assertions)
+### Tests (498 tests, 1138 assertions)
 
 | Test Suite | Archivos | Tests | Propósito |
 |---|---|---|---|---|---|---|---|---|
@@ -218,6 +243,11 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | WorkOrderWizardTest | `tests/Feature/Talleres/` | 4 | Wizard 3 pasos CreateWorkOrder: validación, código, Edit sin wizard, schemas |
 | WorkOrderPhase3Test | `tests/Feature/Talleres/` | 3 | Inspection fields, code unique per tenant, contacto duplicado por teléfono |
 | CreateTenantWithAdminTest | `tests/Feature/Superadmin/` | 3 | Tenant creation with admin user: valid creation, duplicate email rejection, password mismatch |
+| SubscriptionTest | `tests/Feature/SuperAdmin/` | 5 | Subscription CRUD, plan change, expiration, suspension, active plan retrieval |
+| PlanManagementTest | `tests/Feature/SuperAdmin/` | 4 | Plan creation, edit, delete, features JSON, limits enforcement |
+| PlanLimitsTest | `tests/Feature/SuperAdmin/` | 4 | WorkOrderLimitObserver, UserLimitObserver, limits enforcement, exception messages |
+| ImpersonationTest | `tests/Feature/SuperAdmin/` | 5 | Start/stop impersonation, session flag, audit log, banner middleware, unauthorized blocked |
+| SuperAdminDashboardTest | `tests/Feature/SuperAdmin/` | 3 | Dashboard accessible, widgets render, tenant stats |
 | WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 2 | Aislamiento cross-tenant WorkOrders + Assets |
 | TallerOnboardingTest | `tests/Feature/Talleres/` | — | (pendiente — wizard requiere test de integración) |
 | SpatieTenantIsolationTest | `tests/Feature/Security/` | 4 | Roles/permissions aislados entre tenants, global scope filtra, RLS policies existen |

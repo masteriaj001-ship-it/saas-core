@@ -6,6 +6,8 @@ namespace App\Console\Commands;
 
 use App\Models\Tenant;
 use App\Models\User;
+use App\Modules\Plataforma\Models\Plan;
+use App\Modules\Plataforma\Models\Subscription;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Illuminate\Console\Command;
@@ -26,10 +28,20 @@ class CreateTenantCommand extends Command
         $tenant = Tenant::create([
             'name' => $name,
             'slug' => $slug,
-            'plan' => 'basic',
             'is_active' => true,
             'settings' => '{}',
         ]);
+
+        $freePlan = Plan::where('name', 'free')->first();
+
+        if ($freePlan) {
+            Subscription::create([
+                'tenant_id' => $tenant->id,
+                'plan_id' => $freePlan->id,
+                'started_at' => now(),
+                'status' => 'active',
+            ]);
+        }
 
         $this->info("Tenant created: {$tenant->id}");
 

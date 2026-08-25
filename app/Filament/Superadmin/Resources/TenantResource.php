@@ -7,11 +7,15 @@ namespace App\Filament\Superadmin\Resources;
 use App\Filament\Superadmin\Resources\TenantResource\Pages\CreateTenant;
 use App\Filament\Superadmin\Resources\TenantResource\Pages\EditTenant;
 use App\Filament\Superadmin\Resources\TenantResource\Pages\ListTenants;
+use App\Filament\Superadmin\Resources\TenantResource\Pages\ViewTenant;
 use App\Models\Tenant;
+use App\Modules\Plataforma\Models\Plan;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -60,15 +64,6 @@ class TenantResource extends Resource
                             ->maxLength(255)
                             ->unique(ignoreRecord: true)
                             ->rules(['alpha_dash']),
-                        Select::make('plan')
-                            ->label(__('Plan'))
-                            ->required()
-                            ->default('basic')
-                            ->options([
-                                'basic' => __('Basic'),
-                                'premium' => __('Premium'),
-                                'enterprise' => __('Enterprise'),
-                            ]),
                         Toggle::make('is_active')
                             ->label(__('Activo'))
                             ->default(true),
@@ -164,7 +159,7 @@ class TenantResource extends Resource
                     ->label(__('Slug'))
                     ->searchable()
                     ->copyable(),
-                TextColumn::make('plan')
+                TextColumn::make('planName')
                     ->label(__('Plan'))
                     ->badge(),
                 IconColumn::make('is_active')
@@ -176,13 +171,14 @@ class TenantResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                SelectFilter::make('plan')
+                SelectFilter::make('subscription.plan.name')
                     ->label(__('Plan'))
-                    ->options([
-                        'basic' => __('Basic'),
-                        'premium' => __('Premium'),
-                        'enterprise' => __('Enterprise'),
-                    ]),
+                    ->options(fn (): array => Plan::pluck('label', 'name')->toArray())
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->whereHas('subscription.plan', function ($q) use ($data) {
+                            $q->where('plans.name', $data['value']);
+                        });
+                    }),
                 SelectFilter::make('is_active')
                     ->label(__('Estado'))
                     ->options([
@@ -191,7 +187,17 @@ class TenantResource extends Resource
                     ]),
             ])
             ->actions([
+                Action::make('impersonate')
+                    ->label(__('Impersonar'))
+                    ->icon('heroicon-o-user-circle')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->modalHeading(__('Impersonar tenant'))
+                    ->modalDescription(fn (Tenant $record): string => __('Vas a entrar como').' '.$record->name.'. '.__('Todas tus acciones quedarán registradas.'))
+                    ->modalSubmitActionLabel(__('Entrar como este taller'))
+                    ->url(fn (Tenant $record): string => route('superadmin.impersonate', $record->id)),
                 EditAction::make(),
+                ViewAction::make(),
                 DeleteAction::make()
                     ->requiresConfirmation()
                     ->modalHeading(__('Confirmar eliminación del taller'))
@@ -221,6 +227,7 @@ class TenantResource extends Resource
             'index' => ListTenants::route('/'),
             'create' => CreateTenant::route('/create'),
             'edit' => EditTenant::route('/{record}/edit'),
+            'view' => ViewTenant::route('/{record}'),
         ];
     }
 }

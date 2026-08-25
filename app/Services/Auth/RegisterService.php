@@ -12,6 +12,8 @@ use App\Models\ModuleCatalog;
 use App\Models\Tenant;
 use App\Models\TenantModule;
 use App\Models\User;
+use App\Modules\Plataforma\Models\Plan;
+use App\Modules\Plataforma\Models\Subscription;
 use App\Modules\Talleres\Models\Asset;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
@@ -35,10 +37,11 @@ class RegisterService
             $tenant = Tenant::create([
                 'name' => $data['business_name'],
                 'slug' => $slug,
-                'plan' => 'free',
                 'is_active' => true,
                 'settings' => [],
             ]);
+
+            $this->createFreeSubscription($tenant);
 
             $this->tenantManager->setTenantContext($tenant->id);
 
@@ -112,6 +115,20 @@ class RegisterService
                 'module_slug' => $moduleSlug,
                 'is_active' => true,
                 'activated_at' => now(),
+            ]);
+        }
+    }
+
+    private function createFreeSubscription(Tenant $tenant): void
+    {
+        $freePlan = Plan::where('name', 'free')->first();
+
+        if ($freePlan) {
+            Subscription::create([
+                'tenant_id' => $tenant->id,
+                'plan_id' => $freePlan->id,
+                'started_at' => now(),
+                'status' => 'active',
             ]);
         }
     }
