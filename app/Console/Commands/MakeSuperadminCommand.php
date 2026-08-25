@@ -26,13 +26,13 @@ class MakeSuperadminCommand extends Command
             return Command::FAILURE;
         }
 
-        $user = User::create([
-            'name' => $name,
-            'email' => $email,
-            'password' => Hash::make($password),
-            'is_superadmin' => true,
-            'tenant_id' => null,
-        ]);
+        $user = new User();
+        $user->name = $name;
+        $user->email = $email;
+        $user->password = Hash::make($password);
+        $user->is_superadmin = true;
+        $user->tenant_id = null;
+        $user->save();
 
         $this->info("Superadmin creado: {$user->email}");
 
