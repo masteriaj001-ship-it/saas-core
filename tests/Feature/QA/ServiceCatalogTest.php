@@ -145,7 +145,7 @@ class ServiceCatalogTest extends TestCase
             'is_active' => true,
         ]);
 
-        DB::table('service_catalogs')->forceCreate([
+        DB::table('service_catalogs')->insert([
             'id' => fake()->uuid(),
             'tenant_id' => $otherTenant->id,
             'name' => 'Service B',

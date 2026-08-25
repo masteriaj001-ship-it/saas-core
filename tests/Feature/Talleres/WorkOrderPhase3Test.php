@@ -86,7 +86,6 @@ class WorkOrderPhase3Test extends TestCase
             'phone' => '555-0100',
             'name' => 'Juan Perez',
             'contact_type' => 'client',
-            'is_active' => true,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

@@ -102,12 +102,11 @@ class ContactFlowTest extends TestCase
             'contact_type' => 'client',
         ]);
 
-        DB::table('contacts')->forceCreate([
+        DB::table('contacts')->insert([
             'id' => fake()->uuid(),
             'tenant_id' => $otherTenant->id,
             'name' => 'Contact B',
             'contact_type' => 'client',
-            'is_active' => true,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
