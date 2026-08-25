@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Database\Factories\Caja;
 
+use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Caja\Models\CashShift;
-use App\Modules\Talleres\Models\Tenant;
-use App\Modules\Talleres\Models\WorkOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CashShiftFactory extends Factory
@@ -36,15 +35,6 @@ class CashShiftFactory extends Factory
                 'difference' => random_int(-50000, 50000) / 100,
                 'status' => 'closed',
                 'notes' => 'Cierre del turno',
-            ];
-        });
-    }
-
-    public function withWorkOrder(): static
-    {
-        return $this->state(function (array $attrs): array {
-            return [
-                'work_order_id' => WorkOrder::factory(),
             ];
         });
     }

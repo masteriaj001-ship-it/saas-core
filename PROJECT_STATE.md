@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.84 | **Status:** active_development | **Updated:** 2026-08-25
+> **Version:** 1.1.85 | **Status:** active_development | **Updated:** 2026-08-25
 
 ## Stack
 
@@ -82,6 +82,22 @@
   - Campos de inspección: kilometraje, batería, notas estéticas
   - 5 tests PHPUnit (creación, reuso, aislamiento, ID existente)
 - **Notes:** Hybrid (C) — operador ve campos planos, Action normaliza en background. asset_id NOT NULL en schema (siempre requiere vehículo).
+
+### caja_turnos
+
+- **Status:** implemented
+- **Last check:** 2026-08-25
+- **Features:**
+  - CashShift model: open/close/canOpen/addExpectedCash/subtractExpectedCash
+  - CashMovement model: type enum (sale/expense/income/refund), payment_method enum
+  - CashMovementService: recordSale, recordRefund, openShift, closeShift
+  - CashShiftResource: lista de turnos con filtros y vista detallada
+  - CajaPage: dashboard interactivo con cards de resumen, registrar gasto, cerrar turno
+  - Desglose por método de pago: efectivo, tarjeta, transferencia
+  - Cálculo automático de diferencia (sobrante/faltante) al cerrar
+  - Movimientos automáticos: sale al confirmar factura, refund al cancelar
+  - 13 tests PHPUnit
+- **Notes:** Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant.
 
 ### taller_locations
 

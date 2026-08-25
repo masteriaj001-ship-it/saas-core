@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Caja\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Facturacion\Models\Invoice;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CashMovement extends Model
 {
-    use \App\Models\Concerns\BelongsToTenant, HasUuids;
+    use BelongsToTenant, HasUuids;
 
     protected $fillable = [
         'tenant_id',
@@ -42,7 +43,12 @@ class CashMovement extends Model
         ];
     }
 
-    protected $guarded = [];
+    protected $guarded = [
+        'id',
+        'tenant_id',
+        'created_at',
+        'updated_at',
+    ];
 
     public function shift(): BelongsTo
     {

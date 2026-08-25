@@ -5,10 +5,13 @@ declare(strict_types=1);
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\CashShiftResource\Pages\ListCashShifts;
+use App\Filament\Resources\CashShiftResource\Pages\ViewCashShift;
 use App\Modules\Caja\Models\CashShift;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -82,22 +85,22 @@ class CashShiftResource extends Resource
                     ->label(__('Cierre'))
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('user.name')
+                TextColumn::make('openedBy.name')
                     ->label(__('Abierto por'))
                     ->sortable(),
                 TextColumn::make('initial_amount')
                     ->label(__('Monto Inicial'))
                     ->numeric(thousandsSeparator: '.')
                     ->sortable(),
-                TextColumn::make('total_sales')
+                TextColumn::make('totalSales')
                     ->label(__('Ventas'))
                     ->numeric(thousandsSeparator: '.')
                     ->sortable(),
-                TextColumn::make('total_expenses')
+                TextColumn::make('totalExpenses')
                     ->label(__('Gastos'))
                     ->numeric(thousandsSeparator: '.')
                     ->sortable(),
-                TextColumn::make('net_amount')
+                TextColumn::make('netAmount')
                     ->label(__('Neto'))
                     ->numeric(thousandsSeparator: '.')
                     ->sortable(),
@@ -114,7 +117,7 @@ class CashShiftResource extends Resource
                     ]),
             ])
             ->actions([
-                // View action would be added here
+                ViewAction::make(),
             ])
             ->bulkActions([]);
     }
@@ -123,6 +126,7 @@ class CashShiftResource extends Resource
     {
         return [
             'index' => ListCashShifts::route('/'),
+            'view' => ViewCashShift::route('/{record}'),
         ];
     }
 }

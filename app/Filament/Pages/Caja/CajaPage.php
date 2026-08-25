@@ -6,12 +6,20 @@ namespace App\Filament\Pages\Caja;
 
 use App\Modules\Caja\Models\CashMovement;
 use App\Modules\Caja\Models\CashShift;
+use App\Modules\Caja\Services\CashMovementService;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Contracts\View\View;
 
-class CajaPage extends Page
+class CajaPage extends Page implements HasForms
 {
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-handler';
+    use InteractsWithForms;
+
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-currency-dollar';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Caja';
 
@@ -23,112 +31,232 @@ class CajaPage extends Page
 
     protected string $view = 'filament.pages.caja';
 
-    public ?CashShift $shift = null;
+    public ?CashShift $currentShift = null;
 
-    public ?CashShift $lastShift = null;
+    public ?array $cards = null;
 
-    public array $filters = [
-        'status' => 'open',
-    ];
+    public array $movements = [];
 
-    public string $filterStatus = 'open';
+    public ?float $initialAmount = null;
+
+    public ?float $actualCash = null;
+
+    public ?string $closeNotes = null;
+
+    public ?float $difference = null;
+
+    public ?string $expenseDescription = null;
+
+    public ?float $expenseAmount = null;
 
     public function mount(): void
     {
-        $this->lastShift = CashShift::where('status', 'closed')
-            ->latest('closed_at')
-            ->first();
+        $this->loadData();
     }
 
-    public function getCardsProperty(): array
+    public function loadData(): void
     {
-        $tenant = Filament::getTenant();
+        $tenant = \Filament::getTenant();
 
-        $currentShift = CashShift::where('tenant_id', $tenant->id)
+        $this->currentShift = CashShift::where('tenant_id', $tenant->id)
             ->where('status', 'open')
             ->first();
 
-        $this->shift = $currentShift;
-
-        if ($currentShift) {
-            $movements = CashMovement::where('cash_shift_id', $currentShift->id)
-                ->latest('created_at')
-                ->get();
-
-            $totalSales = $movements->whereIn('type', ['sale', 'sale_tax', 'service'])->sum('amount');
-            $totalExpenses = CashMovement::where('cash_shift_id', $currentShift->id)
-                ->where('type', 'expense')
-                ->sum('amount');
-
-            return [
-                'turno_abierto' => $currentShift ? true : false,
-                'tiempo_abierto' => $currentShift ? now()->diffForHumans($currentShift->opened_at) : null,
-                'monto_inicial' => $currentShift?->initial_amount ?? 0,
-                'ventas_totales' => number_format($totalSales ?? 0, 2, ',', '.'),
-                'ordenes' => $currentShift?->cashMovements->count() ?? 0,
-                'efectivo' => number_format(
-                    CashMovement::where('cash_shift_id', $currentShift->id)
-                        ->where('payment_method', 'cash')
-                        ->sum('amount') ?? 0, 2, ',', '.'
-                ),
-                'transferencia' => number_format(
-                    CashMovement::where('cash_shift_id', $currentShift->id)
-                        ->where('payment_method', 'transfer')
-                        ->sum('amount') ?? 0, 2, ',', '.'
-                ),
-                'tarjeta' => number_format(
-                    CashMovement::where('cash_shift_id', $currentShift->id)
-                        ->where('payment_method', 'card')
-                        ->sum('amount') ?? 0, 2, ',', '.'
-                ),
-                'gastos' => number_format($totalExpenses ?? 0, 2, ',', '.'),
-                'neto' => number_format(
-                    (($totalSales ?? 0) - ($totalExpenses ?? 0)), 2, ',', '.'
-                ),
+        if ($this->currentShift) {
+            $this->loadShiftData();
+        } else {
+            $this->cards = [
+                'turno_abierto' => false,
             ];
+            $this->movements = [];
+        }
+    }
+
+    public function loadShiftData(): void
+    {
+        if (! $this->currentShift) {
+            return;
         }
 
-        return [
-            'turno_abierto' => false,
-            'tiempo_abierto' => null,
-            'monto_inicial' => 0,
-            'ventas_totales' => '0,00',
-            'ordenes' => 0,
-            'efectivo' => '0,00',
-            'transferencia' => '0,00',
-            'tarjeta' => '0,00',
-            'gastos' => '0,00',
-            'neto' => '0,00',
+        $this->currentShift->load(['openedBy', 'closedBy']);
+
+        $movements = CashMovement::where('shift_id', $this->currentShift->id)
+            ->latest('created_at')
+            ->get();
+
+        $this->movements = $movements->toArray();
+
+        $totalSales = (float) $movements->where('type', 'sale')->sum('amount');
+        $totalExpenses = (float) $movements->where('type', 'expense')->sum('amount');
+        $totalIncome = (float) $movements->where('type', 'income')->sum('amount');
+        $totalRefunds = (float) $movements->where('type', 'refund')->sum('amount');
+
+        $cashSales = (float) $movements->where('type', 'sale')->where('payment_method', 'cash')->sum('amount');
+        $cardSales = (float) $movements->where('type', 'sale')->where('payment_method', 'card')->sum('amount');
+        $transferSales = (float) $movements->where('type', 'sale')->where('payment_method', 'transfer')->sum('amount');
+
+        $this->cards = [
+            'turno_abierto' => true,
+            'tiempo_abierto' => now()->diffForHumans($this->currentShift->opened_at),
+            'abierto_por' => $this->currentShift->openedBy?->name ?? '---',
+            'monto_inicial' => number_format($this->currentShift->initial_amount, 2, ',', '.'),
+            'ventas_totales' => number_format($totalSales, 2, ',', '.'),
+            'gastos' => number_format($totalExpenses, 2, ',', '.'),
+            'efectivo' => number_format($cashSales, 2, ',', '.'),
+            'tarjeta' => number_format($cardSales, 2, ',', '.'),
+            'transferencia' => number_format($transferSales, 2, ',', '.'),
+            'neto' => number_format($totalSales - $totalExpenses, 2, ',', '.'),
+            'movimientos_count' => $movements->count(),
         ];
     }
 
-    public function getTableProperty(): array
+    public function openShift(): void
     {
-        if ($this->shift) {
-            $movements = CashMovement::where('cash_shift_id', $this->shift->id)
-                ->latest('created_at')
-                ->get();
+        $data = $this->form->getState();
 
-            return [
-                'has_shift' => true,
-                'movements' => $movements,
-            ];
+        if ($this->currentShift) {
+            Notification::make()
+                ->title(__('Ya existe un turno abierto'))
+                ->danger()
+                ->send();
+
+            return;
         }
 
-        return ['has_shift' => false];
+        try {
+            $user = auth()->user();
+            CashMovementService::openShift($user, $data['initial_amount']);
+
+            $this->initialAmount = null;
+            $this->loadData();
+
+            Notification::make()
+                ->title(__('Turno abierto correctamente'))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('Error al abrir turno'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
-    public function toggleFilter(string $filter): void
+    public function calculateDifference(): void
     {
-        $this->filterStatus = $filter;
+        if ($this->actualCash !== null && $this->currentShift) {
+            $expected = $this->currentShift->expected_cash ?? $this->currentShift->initial_amount;
+            $this->difference = $this->actualCash - $expected;
+        }
     }
 
-    public function render(): View
+    public function closeShift(): void
     {
-        return view('filament.pages.caja', [
-            'cards' => $this->cardsProperty(),
-            'table' => $this->tableProperty(),
-            'lastShift' => $this->lastShift,
+        if (! $this->currentShift) {
+            return;
+        }
+
+        if ($this->actualCash === null) {
+            Notification::make()
+                ->title(__('Ingresa el efectivo contado'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        try {
+            $user = auth()->user();
+            CashMovementService::closeShift($user, $this->actualCash, $this->closeNotes ?? '');
+
+            $this->actualCash = null;
+            $this->closeNotes = null;
+            $this->difference = null;
+            $this->loadData();
+
+            Notification::make()
+                ->title(__('Turno cerrado correctamente'))
+                ->success()
+                ->send();
+        } catch (\Exception $e) {
+            Notification::make()
+                ->title(__('Error al cerrar turno'))
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    public function recordExpense(): void
+    {
+        if (! $this->currentShift) {
+            return;
+        }
+
+        $data = $this->form->getState();
+
+        if (empty($data['expense_description']) || empty($data['expense_amount']) || $data['expense_amount'] <= 0) {
+            Notification::make()
+                ->title(__('Ingresa descripción y monto válido'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        CashMovement::create([
+            'tenant_id' => $this->currentShift->tenant_id,
+            'shift_id' => $this->currentShift->id,
+            'type' => 'expense',
+            'payment_method' => 'cash',
+            'amount' => $data['expense_amount'],
+            'description' => $data['expense_description'],
+            'created_by' => auth()->id(),
         ]);
+
+        $this->currentShift->subtractExpectedCash($data['expense_amount']);
+
+        $this->expenseDescription = null;
+        $this->expenseAmount = null;
+        $this->loadShiftData();
+
+        Notification::make()
+            ->title(__('Gasto registrado'))
+            ->success()
+            ->send();
+    }
+
+    public function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                TextInput::make('initial_amount')
+                    ->label(__('Monto Inicial'))
+                    ->numeric()
+                    ->required()
+                    ->minValue(0)
+                    ->suffix('$'),
+                TextInput::make('actual_cash')
+                    ->label(__('Efectivo Contado'))
+                    ->numeric()
+                    ->required()
+                    ->minValue(0)
+                    ->suffix('$')
+                    ->live(onBlur: true)
+                    ->afterStateUpdated(fn ($state) => $this->calculateDifference()),
+                Textarea::make('close_notes')
+                    ->label(__('Notas de Cierre'))
+                    ->rows(2),
+                TextInput::make('expense_description')
+                    ->label(__('Descripción del Gasto'))
+                    ->required(),
+                TextInput::make('expense_amount')
+                    ->label(__('Monto del Gasto'))
+                    ->numeric()
+                    ->required()
+                    ->minValue(0)
+                    ->suffix('$'),
+            ]);
     }
 }

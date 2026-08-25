@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
-  "version": "1.1.84",
-  "last_updated": "2026-08-22",
+  "version": "1.1.85",
+  "last_updated": "2026-08-25",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
@@ -137,6 +137,29 @@
         "vehicle_mileage_logs (UUID PK, tenant_id, client_vehicle_id, work_order_id, mileage, recorded_at)"
       ],
       "notes": "Separación de activos del taller de vehículos de clientes. commit 0d10e3b. asset_id se mantiene nullable en work_orders para activos propios del taller."
+    },
+    "caja_turnos": {
+      "status": "implemented",
+      "last_check": "2026-08-25",
+      "features": [
+        "CashShift model: open/close/canOpen/addExpectedCash/subtractExpectedCash",
+        "CashMovement model: type enum (sale/expense/income/refund), payment_method enum",
+        "CashMovementService: recordSale, recordRefund, openShift, closeShift",
+        "CashShiftResource: lista de turnos con filtros y vista detallada",
+        "CajaPage: dashboard interactivo con cards de resumen, registrar gasto, cerrar turno",
+        "Turno abierto = indicador visual + tiempo transcurrido",
+        "Desglose por método de pago: efectivo, tarjeta, transferencia",
+        "Cálculo automático de diferencia (sobrante/faltante) al cerrar",
+        "Movimientos automáticos: sale al confirmar factura, refund al cancelar",
+        "TurnoCerradoException para validaciones",
+        "13 tests PHPUnit (CashShiftTest + CajaIntegrationTest)",
+        "$guarded compliant con R-02 (id, tenant_id, created_at, updated_at)"
+      ],
+      "tables": [
+        "cash_shifts (UUID PK, tenant_id, opened_by, closed_by, opened_at, closed_at, initial_amount, expected_cash, actual_cash, difference, status, notes, metadata)",
+        "cash_movements (UUID PK, tenant_id, shift_id, work_order_id, invoice_id, type, payment_method, amount, description, created_by, metadata)"
+      ],
+      "notes": "Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard."
     },
     "taller_locations": {
       "status": "implemented",

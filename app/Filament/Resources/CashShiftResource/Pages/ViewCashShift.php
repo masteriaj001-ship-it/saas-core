@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Filament\Resources\CashShiftResource\Pages;
 
 use App\Filament\Resources\CashShiftResource;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class ViewCashShift extends ViewRecord
@@ -14,8 +16,6 @@ class ViewCashShift extends ViewRecord
 
     public function infolist(Schema $schema): Schema
     {
-        $record = $this->record;
-
         return $schema
             ->schema([
                 Section::make(__('Datos del Turno'))
@@ -23,21 +23,29 @@ class ViewCashShift extends ViewRecord
                     ->schema([
                         TextEntry::make('opened_at')->label(__('Apertura'))->dateTime(),
                         TextEntry::make('closed_at')->label(__('Cierre'))->dateTime(),
-                        TextEntry::make('user.name')->label(__('Abierto por')),
-                        TextEntry::make('initial_amount')->label(__('Monto Inicial'))->money(),
+                        TextEntry::make('openedBy.name')->label(__('Abierto por')),
+                        TextEntry::make('closedBy.name')->label(__('Cerrado por')),
+                        TextEntry::make('initial_amount')->label(__('Monto Inicial'))->money('COP'),
                     ]),
                 Section::make(__('Resumen'))
                     ->columns(3)
                     ->schema([
-                        TextEntry::make('total_sales')->label(__('Ventas'))->money(),
-                        TextEntry::make('total_expenses')->label(__('Gastos'))->money(),
-                        TextEntry::make('net_amount')->label(__('Neto'))->money(),
+                        TextEntry::make('totalSales')->label(__('Ventas'))->money('COP'),
+                        TextEntry::make('totalExpenses')->label(__('Gastos'))->money('COP'),
+                        TextEntry::make('netAmount')->label(__('Neto'))->money('COP'),
                     ]),
-                Section::make(__('Estadísticas'))
+                Section::make(__('Cierre'))
                     ->columns(3)
                     ->schema([
-                        TextEntry::make('cashMovements_count')->label(__('Movimientos'))->count(),
+                        TextEntry::make('expected_cash')->label(__('Efectivo Esperado'))->money('COP'),
+                        TextEntry::make('actual_cash')->label(__('Efectivo Contado'))->money('COP'),
+                        TextEntry::make('difference')->label(__('Diferencia'))->money('COP'),
+                    ]),
+                Section::make(__('Detalle'))
+                    ->schema([
                         TextEntry::make('status')->label(__('Estado'))->badge(),
+                        TextEntry::make('notes')->label(__('Notas')),
+                        TextEntry::make('cashMovements_count')->label(__('Total Movimientos'))->count(),
                     ]),
             ]);
     }

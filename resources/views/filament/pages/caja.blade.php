@@ -1,140 +1,227 @@
-{{-- CajaPage Dashboard --}}
+<div class="space-y-6">
+    {{-- Header --}}
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ __('Caja / Turno') }}</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                @if($currentShift)
+                    {{ __('Turno abierto hace') }} {{ $cards['tiempo_abierto'] ?? '' }} {{ __('por') }} {{ $cards['abierto_por'] ?? '' }}
+                @else
+                    {{ __('No hay turno activo') }}
+                @endif
+            </p>
+        </div>
+        @if($currentShift)
+            <span class="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                <span class="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></span>
+                {{ __('Abierto') }}
+            </span>
+        @endif
+    </div>
 
-<div class="min-h-screen bg-gray-50">
-    
-    <!-- Turno Activo o Estado -->
-    <div class="p-4 md:p-6 border-b border-gray-200 bg-white">
-        <h2 class="text-xl font-medium text-gray-900">Caja - Turnos</h2>
-        
-        @if($livewire->shifts->count() > 0)
-            <!-- Mostrar turno abierto -->
-            <div class="p-4 rounded-lg bg-green-50 border border-green-200 mb-4">
-                <h3 class="font-semibold text-green-800">Turno Abierto</h3>
-                <p class="text-sm text-green-700">
-                    Abierto hace <span id="time-open">{{ $livewire->shifts->first()->opened_at ? diffForHumans($livewire->shifts->first()->opened_at) : '---' }}</span>
-                    por <span>{{ $livewire->shifts->first()->openedBy->name ?? '---' }}</span>
-                </p>
-                <p class="text-sm text-green-700 mt-1">
-                    Monto inicial: <strong>${{ number_format($livewire->shifts->first()->initial_amount, 2, '.', ',') }}</strong>
-                </p>
-                <p class="text-sm text-green-700 mt-1">
-                    Ventas totales: <strong>${{ number_format($livewire->shifts->first()->totalSales(), 2, '.', ',') }}</strong>
-                </p>
-                <p class="text-sm text-green-700 mt-1">
-                    Gastos totales: <strong>${{ number_format($livewire->shifts->first()->totalExpenses(), 2, '.', ',') }}</strong>
-                </p>
-                <p class="text-sm text-green-700 mt-1">
-                    Efectivo neto: <strong>${{ number_format($livewire->shifts->first()->netAmount(), 2, '.', ',') }}</strong>
-                </p>
+    {{-- No shift open: form to open --}}
+    @if(! $currentShift)
+        <div class="rounded-xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-950/30">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/50">
+                    <x-heroicon-o-currency-dollar class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100">{{ __('Abrir Nuevo Turno') }}</h3>
+                    <p class="text-sm text-blue-700 dark:text-blue-300">{{ __('Ingresa el efectivo inicial en caja') }}</p>
+                </div>
             </div>
-        @else
-            <!-- No hay turno abierto - formulario para abrir -->
-            <div class="p-4 rounded-lg bg-blue-50 border border-blue-200 mb-4">
-                <h3 class="font-semibold text-blue-800">No hay turno activo</h3>
-                <p class="text-sm text-blue-700 mb-4">Ingresa el monto inicial para comenzar el turno</p>
-                
-                <form wire:submit.prevent="openShift">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm text-gray-700 mb-1">Monto inicial</label>
-                            <input type="number" wire:model.debounce="initial_amount" min="1000" class="w-full rounded border p-2 focus:outline-none focus:ring-2 focus:ring-blue-500" required>
-                        </div>
-                    </div>
-                    
-                    <div class="flex justify-end mt-4">
-                        <button type="submit" class="btn btn-primary">
-                            Abrir Turno
-                        </button>
-                    </div>
-                </form>
-            </div>
-        @endif
-    </div>
-    
-    <!-- Controles de Cierre y Movimientos -->
-    <div class="p-4 md:p-6 bg-white rounded-lg">
-        
-        <!-- Formulario Cerrar Turno -->
-        @if($livewire->shifts->count() > 0 && $livewire->shifts->first()->status === 'open')
-            <div class="p-4 rounded-lg bg-yellow-50 border border-yellow-200 mb-4">
-                <h4 class="font-medium text-yellow-800">Cerrar Turno</h4>
-                <p class="text-sm text-yellow-700 mb-2">Ingresa el efectivo contado físicamente:</p>
-                
-                <form wire:submit.prevent="closeShift">
-                    <div class="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                            <label class="block text-sm text-gray-700 mb-1">Efectivo contado</label>
-                            <input type="number" wire:model.debounce="actual_cash" min="1000" class="w-full rounded border p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500" required>
-                        </div>
-                        <div>
-                            <label class="block text-sm text-gray-700 mb-1">Diferencia</label>
-                            <input type="text" wire:model="difference" class="w-full rounded border p-2 focus:outline-none focus:ring-2 focus:ring-yellow-500" readonly>
-                            <p class="text-xs text-yellow-500 mt-1">Se calcula automáticamente: Contado - Esperado</p>
-                        </div>
-                    </div>
-                    <input type="hidden" wire:model="notes">
-                    
-                    <div class="flex justify-end mt-4">
-                        <button type="button" wire:click="cancelClose" class="btn btn-link text-yellow-700 mr-2">Cancelar</button>
-                        <button type="submit" class="btn btn-warning">Confirmar Cierre</button>
-                    </div>
-                </form>
-            </div>
-        @endif
-        
-        <!-- Historial de Movimientos -->
-        <div class="overflow-x-auto mt-6">
-            <table class="min-w-full bg-white rounded-lg overflow-hidden">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hora</th>
-                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
-                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Descripción</th>
-                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Método</th>
-                        <th class="p-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Monto</th>
-                    </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                    @foreach($livewire->movements as $movement)
-                    <tr class="hover:bg-gray-50">
-                        <td class="p-3 text-sm text-gray-500">{{ $movement->created_at->format('H:i') }}</td>
-                        <td class="p-3 text-sm font-medium text-gray-900">{{ ucfirst($movement->type) }}</td>
-                        <td class="p-3 text-sm text-gray-700">{{ $movement->description }}</td>
-                        <td class="p-3 text-sm text-gray-500">{{ $movement->payment_method }}</td>
-                        <td class="p-3 text-sm font-medium text-gray-900">${{ number_format($movement->amount, 2, '.', ',') }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
+
+            <form wire:submit="openShift" class="space-y-4">
+                {{ $this->form }}
+
+                <div class="flex justify-end">
+                    <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+                        <x-heroicon-o-plus class="h-4 w-4" />
+                        {{ __('Abrir Turno') }}
+                    </button>
+                </div>
+            </form>
         </div>
-        
-        <!-- Filtros -->
-        <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-            <div class="grid grid-cols-3 gap-2">
-                <select wire:model="filter_type" class="form-select rounded border p-2">
-                    <option value="">Todos los tipos</option>
-                    <option value="sale">Ventas</option>
-                    <option value="expense">Gastos</option>
-                    <option value="income">Entradas</option>
-                    <option value="refund">Reembolsos</option>
-                </select>
-                <select wire:model="filter_method" class="form-select rounded border p-2">
-                    <option value="">Todos los métodos</option>
-                    <option value="cash">Efectivo</option>
-                    <option value="card">Tarjeta</option>
-                    <option value="transfer">Transferencia</option>
-                </select>
-                <button wire:click="exportCsv" class="btn btn-sm btn-outline">Exportar CSV</button>
+    @endif
+
+    {{-- Shift open: dashboard --}}
+    @if($currentShift && $cards)
+        {{-- Summary Cards --}}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {{-- Ventas Totales --}}
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/30">
+                        <x-heroicon-o-arrow-trending-up class="h-5 w-5 text-green-600 dark:text-green-400" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Ventas Totales') }}</p>
+                        <p class="text-xl font-bold text-gray-900 dark:text-white">${{ $cards['ventas_totales'] }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Gastos --}}
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/30">
+                        <x-heroicon-o-arrow-trending-down class="h-5 w-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Gastos') }}</p>
+                        <p class="text-xl font-bold text-gray-900 dark:text-white">${{ $cards['gastos'] }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Neto --}}
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                        <x-heroicon-o-calculator class="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Neto') }}</p>
+                        <p class="text-xl font-bold text-gray-900 dark:text-white">${{ $cards['neto'] }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Monto Inicial --}}
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="flex items-center gap-3">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+                        <x-heroicon-o-banknotes class="h-5 w-5 text-gray-600 dark:text-gray-400" />
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Monto Inicial') }}</p>
+                        <p class="text-xl font-bold text-gray-900 dark:text-white">${{ $cards['monto_inicial'] }}</p>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+
+        {{-- Payment Methods Breakdown --}}
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Efectivo') }}</p>
+                <p class="text-lg font-bold text-gray-900 dark:text-white">${{ $cards['efectivo'] }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Tarjeta') }}</p>
+                <p class="text-lg font-bold text-gray-900 dark:text-white">${{ $cards['tarjeta'] }}</p>
+            </div>
+            <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Transferencia') }}</p>
+                <p class="text-lg font-bold text-gray-900 dark:text-white">${{ $cards['transferencia'] }}</p>
+            </div>
+        </div>
+
+        {{-- Actions Row --}}
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            {{-- Record Expense --}}
+            <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <h3 class="mb-4 text-lg font-semibold text-gray-900 dark:text-white">{{ __('Registrar Gasto') }}</h3>
+                <form wire:submit="recordExpense" class="space-y-4">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Descripción') }}</label>
+                        <input type="text" wire:model="expenseDescription" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="{{ __('Ej: Compra de insumos') }}" />
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">{{ __('Monto') }}</label>
+                        <input type="number" wire:model="expenseAmount" min="0" step="100" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white" placeholder="0" />
+                    </div>
+                    <button type="submit" class="w-full rounded-lg bg-red-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+                        {{ __('Registrar Gasto') }}
+                    </button>
+                </form>
+            </div>
+
+            {{-- Close Shift --}}
+            <div class="rounded-xl border border-yellow-200 bg-yellow-50 p-6 shadow-sm dark:border-yellow-800 dark:bg-yellow-950/30">
+                <h3 class="mb-4 text-lg font-semibold text-yellow-900 dark:text-yellow-100">{{ __('Cerrar Turno') }}</h3>
+                <form wire:submit="closeShift" class="space-y-4">
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-yellow-800 dark:text-yellow-200">{{ __('Efectivo Contado Físicamente') }}</label>
+                        <input type="number" wire:model.live="actualCash" min="0" step="100" class="w-full rounded-lg border border-yellow-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500 dark:border-yellow-700 dark:bg-gray-700 dark:text-white" placeholder="0" />
+                    </div>
+
+                    @if($difference !== null)
+                        <div class="rounded-lg p-3 {{ $difference >= 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30' }}">
+                            <p class="text-sm font-medium {{ $difference >= 0 ? 'text-green-800 dark:text-green-200' : 'text-red-800 dark:text-red-200' }}">
+                                {{ $difference >= 0 ? __('Sobrante') : __('Faltante') }}: ${{ number_format(abs($difference), 2, ',', '.') }}
+                            </p>
+                        </div>
+                    @endif
+
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-yellow-800 dark:text-yellow-200">{{ __('Notas') }}</label>
+                        <textarea wire:model="closeNotes" rows="2" class="w-full rounded-lg border border-yellow-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500 dark:border-yellow-700 dark:bg-gray-700 dark:text-white" placeholder="{{ __('Observaciones del cierre...') }}"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full rounded-lg bg-yellow-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-yellow-500 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
+                        {{ __('Confirmar Cierre') }}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {{-- Movements Table --}}
+        @if(count($movements) > 0)
+            <div class="rounded-xl border border-gray-200 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-800">
+                <div class="border-b border-gray-200 px-6 py-4 dark:border-gray-700">
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ __('Movimientos del Turno') }} ({{ count($movements) }})</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="border-b border-gray-200 bg-gray-50 text-xs font-medium uppercase tracking-wider text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+                            <tr>
+                                <th class="px-6 py-3">{{ __('Hora') }}</th>
+                                <th class="px-6 py-3">{{ __('Tipo') }}</th>
+                                <th class="px-6 py-3">{{ __('Descripción') }}</th>
+                                <th class="px-6 py-3">{{ __('Método') }}</th>
+                                <th class="px-6 py-3 text-right">{{ __('Monto') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                            @foreach($movements as $movement)
+                                <tr class="hover:bg-gray-50 dark:hover:bg-gray-700/50">
+                                    <td class="whitespace-nowrap px-6 py-3 text-gray-500 dark:text-gray-400">
+                                        {{ \Carbon\Carbon::parse($movement['created_at'])->format('H:i') }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-3">
+                                        @php
+                                            $typeColors = [
+                                                'sale' => 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+                                                'expense' => 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+                                                'income' => 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
+                                                'refund' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+                                            ];
+                                            $typeLabels = [
+                                                'sale' => 'Venta',
+                                                'expense' => 'Gasto',
+                                                'income' => 'Ingreso',
+                                                'refund' => 'Reembolso',
+                                            ];
+                                        @endphp
+                                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium {{ $typeColors[$movement['type']] ?? '' }}">
+                                            {{ $typeLabels[$movement['type']] ?? ucfirst($movement['type']) }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-3 text-gray-900 dark:text-white">{{ $movement['description'] }}</td>
+                                    <td class="whitespace-nowrap px-6 py-3 text-gray-500 dark:text-gray-400">
+                                        {{ ucfirst($movement['payment_method']) }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-3 text-right font-medium {{ $movement['amount'] >= 0 ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400' }}">
+                                        ${{ number_format($movement['amount'], 2, ',', '.') }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        @endif
+    @endif
 </div>
-
-<script>
-    // Calcular diferencia en tiempo real
-    livewire.on('update:actual_cash', function (value) {
-        // Calcular difference = actual - expected
-        const expected = {{ $livewire->shifts->first()?->expected_cash ?? 0 }};
-        livewire.set('difference', value - expected);
-    });
-</script>

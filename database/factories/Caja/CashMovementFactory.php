@@ -4,12 +4,11 @@ declare(strict_types=1);
 
 namespace Database\Factories\Caja;
 
+use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Caja\Models\CashMovement;
 use App\Modules\Caja\Models\CashShift;
 use App\Modules\Facturacion\Models\Invoice;
-use App\Modules\Talleres\Models\Tenant;
-use App\Modules\Talleres\Models\WorkOrder;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class CashMovementFactory extends Factory
@@ -34,49 +33,30 @@ class CashMovementFactory extends Factory
 
     public function sale(): static
     {
-        return $this->state(function (array $attrs): array {
+        return $this->state(function (): array {
             return [
                 'type' => 'sale',
-                'payment_method' => array_rand(['cash', 'card', 'transfer']).'_method',
+                'payment_method' => array_rand(['cash', 'card', 'transfer']),
             ];
         });
     }
 
     public function expense(): static
     {
-        return $this->state(function (array $attrs): array {
-            return [
-                'type' => 'expense',
-            ];
-        });
+        return $this->state(fn (): array => ['type' => 'expense']);
     }
 
     public function income(): static
     {
-        return $this->state(function (array $attrs): array {
-            return [
-                'type' => 'income',
-            ];
-        });
+        return $this->state(fn (): array => ['type' => 'income']);
     }
 
     public function refund(): static
     {
-        return $this->state(function (array $attrs): array {
-            return [
-                'type' => 'refund',
-                'amount' => -random_int(1000, 50000) / 100,
-            ];
-        });
-    }
-
-    public function withWorkOrder(): static
-    {
-        return $this->state(function (array $attrs): array {
-            return [
-                'work_order_id' => WorkOrder::factory(),
-            ];
-        });
+        return $this->state(fn (): array => [
+            'type' => 'refund',
+            'amount' => -random_int(1000, 50000) / 100,
+        ]);
     }
 
     public function withInvoice(): static

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Caja\Models;
 
+use App\Models\Concerns\BelongsToTenant;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Caja\Exceptions\TurnoCerradoException;
@@ -15,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CashShift extends Model
 {
-    use \App\Models\Concerns\BelongsToTenant, HasUuids;
+    use BelongsToTenant, HasUuids;
 
     protected $fillable = [
         'tenant_id',
@@ -49,7 +50,12 @@ class CashShift extends Model
         ];
     }
 
-    protected $guarded = [];
+    protected $guarded = [
+        'id',
+        'tenant_id',
+        'created_at',
+        'updated_at',
+    ];
 
     public function tenant(): BelongsTo
     {
@@ -90,6 +96,18 @@ class CashShift extends Model
     public function scopeTenantQuery($query): void
     {
         $query->where('tenant_id', app(TenantManager::class)->getCurrentTenantId());
+    }
+
+    public function addExpectedCash(float $amount): void
+    {
+        $this->expected_cash = (float) ($this->expected_cash ?? $this->initial_amount) + $amount;
+        $this->save();
+    }
+
+    public function subtractExpectedCash(float $amount): void
+    {
+        $this->expected_cash = (float) ($this->expected_cash ?? $this->initial_amount) - abs($amount);
+        $this->save();
     }
 
     public function totalSales(): float
