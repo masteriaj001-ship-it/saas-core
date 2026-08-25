@@ -49,6 +49,8 @@ class WorkOrder extends TenantModel
         'signature_hash',
         'signed_at',
         'closure_notes',
+        'approval_at',
+        'approval_channel',
     ];
 
     protected function casts(): array

@@ -13,6 +13,7 @@ use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ContactFlowTest extends TestCase
@@ -97,19 +98,22 @@ class ContactFlowTest extends TestCase
         $otherTenant = Tenant::factory()->create();
 
         Contact::create([
-            'tenant_id' => $this->tenant->id,
             'name' => 'Contact A',
             'contact_type' => 'client',
         ]);
 
-        Contact::create([
+        DB::table('contacts')->forceCreate([
+            'id' => fake()->uuid(),
             'tenant_id' => $otherTenant->id,
             'name' => 'Contact B',
             'contact_type' => 'client',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
-        $this->assertEquals(1, Contact::where('tenant_id', $this->tenant->id)->count());
-        $this->assertEquals(1, Contact::where('tenant_id', $otherTenant->id)->count());
+        $this->assertEquals(1, DB::table('contacts')->where('tenant_id', $this->tenant->id)->count());
+        $this->assertEquals(1, DB::table('contacts')->where('tenant_id', $otherTenant->id)->count());
     }
 
     public function test_contact_can_be_linked_to_work_order(): void
@@ -175,8 +179,10 @@ class ContactFlowTest extends TestCase
         ]);
 
         $this->assertDatabaseHas('contacts', [
+            'id' => $contact->id,
             'name' => 'Nuevo Cliente',
             'contact_type' => 'client',
+            'tenant_id' => $this->tenant->id,
         ]);
     }
 }

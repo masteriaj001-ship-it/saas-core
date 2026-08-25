@@ -11,6 +11,7 @@ use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class ServiceCatalogTest extends TestCase
@@ -139,20 +140,22 @@ class ServiceCatalogTest extends TestCase
         $otherTenant = Tenant::factory()->create();
 
         ServiceCatalog::create([
-            'tenant_id' => $this->tenant->id,
             'name' => 'Service A',
             'base_price' => 10000,
             'is_active' => true,
         ]);
 
-        ServiceCatalog::create([
+        DB::table('service_catalogs')->forceCreate([
+            'id' => fake()->uuid(),
             'tenant_id' => $otherTenant->id,
             'name' => 'Service B',
             'base_price' => 20000,
             'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
         ]);
 
         $this->assertEquals(1, ServiceCatalog::where('tenant_id', $this->tenant->id)->count());
-        $this->assertEquals(1, ServiceCatalog::where('tenant_id', $otherTenant->id)->count());
+        $this->assertEquals(1, DB::table('service_catalogs')->where('tenant_id', $otherTenant->id)->count());
     }
 }

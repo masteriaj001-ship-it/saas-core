@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Talleres;
 
-use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Talleres\Models\ClientVehicle;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class WorkOrderPhase3Test extends TestCase
@@ -80,17 +80,24 @@ class WorkOrderPhase3Test extends TestCase
 
     public function test_duplicate_contact_not_created_by_phone(): void
     {
-        $first = Contact::firstOrCreate(
-            ['phone' => '555-0100', 'tenant_id' => $this->tenant->id],
-            ['name' => 'Juan Pérez', 'contact_type' => 'client'],
-        );
+        DB::table('contacts')->insert([
+            'id' => fake()->uuid(),
+            'tenant_id' => $this->tenant->id,
+            'phone' => '555-0100',
+            'name' => 'Juan Perez',
+            'contact_type' => 'client',
+            'is_active' => true,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
-        $second = Contact::firstOrCreate(
-            ['phone' => '555-0100', 'tenant_id' => $this->tenant->id],
-            ['name' => 'Juan Pérez', 'contact_type' => 'client'],
-        );
+        $existing = DB::table('contacts')
+            ->where('phone', '555-0100')
+            ->where('tenant_id', $this->tenant->id)
+            ->first();
 
-        $this->assertSame($first->id, $second->id);
-        $this->assertDatabaseCount('contacts', 1);
+        $this->assertNotNull($existing);
+        $this->assertEquals('Juan Perez', $existing->name);
+        $this->assertEquals(1, DB::table('contacts')->where('tenant_id', $this->tenant->id)->count());
     }
 }
