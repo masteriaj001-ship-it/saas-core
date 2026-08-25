@@ -57,6 +57,8 @@ class RegisterService
 
             Auth::login($user);
 
+            $this->tenantManager->clearTenantContext();
+
             return $user;
         });
     }

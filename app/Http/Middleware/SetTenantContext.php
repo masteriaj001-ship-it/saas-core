@@ -41,6 +41,12 @@ class SetTenantContext
             abort(403, 'User has no tenant assignment.');
         }
 
+        $urlTenant = Filament::getTenant();
+
+        if ($urlTenant && $urlTenant->id !== $tenantId) {
+            abort(403, 'Access denied to this tenant.');
+        }
+
         $this->tenantManager->setTenantContext((string) $tenantId);
 
         return $next($request);
