@@ -17,7 +17,7 @@ class RecentActivityWidget extends TableWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?string $maxHeight = '300px';
+    protected static ?string $maxHeight = '200px';
 
     public function table(Table $table): Table
     {

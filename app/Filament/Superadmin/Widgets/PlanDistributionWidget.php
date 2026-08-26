@@ -15,7 +15,7 @@ class PlanDistributionWidget extends ChartWidget
 
     protected function getHeight(): ?string
     {
-        return '250px';
+        return '200px';
     }
 
     public function getHeading(): ?string
