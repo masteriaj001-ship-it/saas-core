@@ -7,6 +7,7 @@ namespace Tests\Feature\Talleres;
 use App\Models\Contact;
 use App\Models\Tenant;
 use App\Modules\Talleres\Models\ClientVehicle;
+use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -71,5 +72,53 @@ class ClientVehicleTest extends TestCase
         ]);
 
         $this->assertIsIterable($vehicle->mileageLogs);
+    }
+
+    public function test_can_search_by_plate(): void
+    {
+        $tenant = Tenant::factory()->create();
+
+        ClientVehicle::factory()->create([
+            'tenant_id' => $tenant->id,
+            'plate' => 'XYZ-789',
+        ]);
+
+        $found = ClientVehicle::byPlate('XYZ-789')->first();
+        $this->assertNotNull($found);
+        $this->assertEquals('XYZ-789', $found->plate);
+    }
+
+    public function test_can_search_by_owner(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $contact = Contact::factory()->create(['tenant_id' => $tenant->id]);
+
+        ClientVehicle::factory()->create([
+            'tenant_id' => $tenant->id,
+            'owner_contact_id' => $contact->id,
+        ]);
+
+        $found = ClientVehicle::byOwner($contact->id)->first();
+        $this->assertNotNull($found);
+        $this->assertEquals($contact->id, $found->owner_contact_id);
+    }
+
+    public function test_client_vehicle_tenant_isolation(): void
+    {
+        $tenantA = Tenant::factory()->create();
+        $tenantB = Tenant::factory()->create();
+
+        ClientVehicle::factory()->create(['tenant_id' => $tenantA->id, 'plate' => 'AAA-000']);
+        ClientVehicle::factory()->create(['tenant_id' => $tenantB->id, 'plate' => 'BBB-111']);
+
+        app(TenantManager::class)->setTenantContext($tenantA->id);
+        $visibleA = ClientVehicle::byPlate('AAA-000')->get();
+        $this->assertCount(1, $visibleA);
+        $this->assertEquals($tenantA->id, $visibleA->first()->tenant_id);
+
+        app(TenantManager::class)->setTenantContext($tenantB->id);
+        $visibleB = ClientVehicle::byPlate('BBB-111')->get();
+        $this->assertCount(1, $visibleB);
+        $this->assertEquals($tenantB->id, $visibleB->first()->tenant_id);
     }
 }

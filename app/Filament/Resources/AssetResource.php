@@ -71,7 +71,6 @@ class AssetResource extends Resource
                             ->required()
                             ->live()
                             ->options([
-                                'vehicle' => __('Vehículos'),
                                 'equipment' => __('Equipamiento / Maquinaria'),
                                 'phones' => __('Celulares'),
                                 'computers' => __('Cómputo'),
@@ -81,7 +80,6 @@ class AssetResource extends Resource
                                 $defaults = match ($state) {
                                     'phones' => ['marca' => '', 'modelo' => '', 'imei' => '', 'clave_acceso' => '', 'observaciones_fisicas' => ''],
                                     'computers' => ['marca' => '', 'modelo' => '', 'procesador' => '', 'ram' => '', 'almacenamiento' => ''],
-                                    'vehicle' => ['marca' => '', 'modelo' => '', 'anio' => '', 'placa' => '', 'color' => '', 'numero_serie' => ''],
                                     default => [],
                                 };
                                 $set('metadata', $defaults);
