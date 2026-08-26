@@ -13,6 +13,11 @@ class PlanDistributionWidget extends ChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
+    protected function getHeight(): ?string
+    {
+        return '250px';
+    }
+
     public function getHeading(): ?string
     {
         return __('Distribución por Plan');
