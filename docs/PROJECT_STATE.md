@@ -1,7 +1,7 @@
 # PROJECT STATE — ProyectDashboard
 
 > Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
-> Última actualización: 2026-08-26 (SUPERADMIN PANEL — EXPIRY DOWNGRADE TO FREE. 505 TESTS, 1153 ASSERTIONS)
+> Última actualización: 2026-08-26 (SUPERADMIN PANEL — EXPIRY DOWNGRADE + COMPACT DASHBOARD. 505 TESTS, 1153 ASSERTIONS)
 
 ---
 
@@ -195,7 +195,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 
 | Página | Ruta | Propósito |
 |---|---|---|
-| `SuperAdminDashboard` | `/superadmin` | Dashboard con 4 widgets: TenantStats, PlanDistribution (doughnut chart), RecentActivity, ChurnRisk |
+| `SuperAdminDashboard` | `/superadmin` | Dashboard compacto: stats (sin icons), doughnut chart (half width, 250px), recent activity + churn risk tables (maxHeight 200px) |
 | `ViewTenant` | `/superadmin/tenants/{record}` | Vista detallada del tenant con info, plan, acciones |
 
 ### Superadmin Panel — Plans & Subscriptions
@@ -468,7 +468,7 @@ php artisan make:command Nombre            # Crear comando Artisan
 | 2026-06-07 | opencode | **Sprint B — Tablas invoices + invoice_items + RLS**: Migraciones `create_invoices_table` (20 cols + RLS + 4 índices) y `create_invoice_items_table` (14 cols + RLS + 2 índices, sin deleted_at). `InvoiceStatusEnum` (Draft/Issued/Paid/Cancelled), `InvoiceDocumentTypeEnum` (Invoice/CreditNote). Modelos Invoice (TenantModel) + InvoiceItem (Model, sin SoftDeletes). InvoiceFactory (3 estados) + InvoiceItemFactory. `FacturacionServiceProvider` registrado en bootstrap/providers.php. 5 tests nuevos. 168 Feature tests, 481 assertions. 0 regresiones. | Filament Resource Invoice |
 | 2026-06-07 | opencode | **Sprint C — InvoiceCodeGenerator + InvoiceResource**: `InvoiceCodeGenerator` con DB lock (mismo patrón que WorkOrderCodeGenerator). `InvoiceResource` Filament con form (Encabezado + Ítems Repeater con cálculos live + Totales readonly) + table (document_number, contact, status badge, grand_total). Pages ListInvoices, CreateInvoice (handleRecordCreation llama generator), EditInvoice. WorkOrder +invoices() HasMany. 3 tests nuevos. 171 Feature tests, 493 assertions. 0 regresiones. | — | `vendor/bin/sail up -d` (levanta selenium) → `vendor/bin/sail dusk` |
 | 2026-06-07 | opencode | **Bug Hunt 403 en Livewire Selects**: Diagnóstico de 403 persistente en `getSearchResultsUsing` de Filament Selects. 3 root causes identificadas y corregidas: (1) Missing `ContactPolicy` — Laravel 11+ deniega por defecto → `Policy::create()` returns `allow()`. (2) `SetTenantContext` llamaba `clearTenantContext()` en `finally` — el contexto PostgreSQL se limpiaba antes de que Livewire procesara `getSearchResultsUsing` → RLS bloqueaba queries. (3) `PreventRequestForgery` en `->middleware()` del panel — Filament aplica su propio stack, no respeta excepción livewire* de bootstrap/app.php. Fixes: `ContactPolicy` creado, `clearTenantContext` eliminado de `SetTenantContext`, `PreventRequestForgery` removido del middleware del panel. Fixes adicionales: `Auth::user()->fresh()->tenant_id` evita tenant_id stale, `createOptionForm` removido de contact_id/asset_id Selects (users crean desde módulos dedicados), `VehicleFormSchema` enums reemplazados por arrays manuales, ContactResource duplicados limpiados, AssetResource name opcional. OpCache reseteado. **174 tests, 497 assertions — 0 regresiones.** | — | — |
-| 2026-08-26 | opencode | **Expiry downgrade to free (Option A)**: CheckExpiredSubscriptions now downgrades expired subscriptions to free plan + creates SubscriptionLog audit entry. Observers enforce free plan limits during the hourly window (previously expired = unlimited access). PlataformaServiceProvider registers the command. New migration makes subscription_logs.changed_by nullable for automated changes. SelectFilter dot notation fix for empty tenants list. 7 new tests. **505 tests, 1153 assertions — 0 regresiones.** Commits: bdf6d3b, 5782ba1. | — |
+| 2026-08-26 | opencode | **Expiry downgrade to free (Option A)**: CheckExpiredSubscriptions now downgrades expired subscriptions to free plan + creates SubscriptionLog audit entry. Observers enforce free plan limits during the hourly window (previously expired = unlimited access). PlataformaServiceProvider registers the command. New migration makes subscription_logs.changed_by nullable for automated changes. SelectFilter dot notation fix for empty tenants list. Compact dashboard: stats without icons, doughnut half-width 250px with maintainAspectRatio false, table widgets maxHeight 200px. 7 new tests. **505 tests, 1153 assertions — 0 regresiones.** Commits: bdf6d3b, 5782ba1, c3dd36a, 8812574, 29f9cf4. | — |
 
 ## 8. Arquitectura Modular (DDD Lite)
 
