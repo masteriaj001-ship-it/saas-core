@@ -29,12 +29,16 @@ class TenantStatsWidget extends StatsOverviewWidget
 
         return [
             Stat::make(__('Total Talleres'), $totalTenants)
+                ->description(__('Registrados'))
                 ->color('primary'),
             Stat::make(__('Activos'), $activeToday)
+                ->description(__('Con acceso'))
                 ->color('success'),
             Stat::make(__('Nuevos este mes'), $newThisMonth)
+                ->description(__('En '.now()->format('M')))
                 ->color('info'),
             Stat::make(__('En riesgo'), $churnRisk)
+                ->description(__('Sin suscripción'))
                 ->color('danger'),
         ];
     }
