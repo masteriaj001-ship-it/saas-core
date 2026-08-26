@@ -8,6 +8,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Plataforma\Actions\StartImpersonationAction;
 use App\Modules\Plataforma\Actions\StopImpersonationAction;
+use App\Modules\Plataforma\Console\Commands\CheckExpiredSubscriptions;
 use App\Modules\Plataforma\Observers\UserLimitObserver;
 use App\Modules\Plataforma\Observers\WorkOrderLimitObserver;
 use App\Modules\Plataforma\Services\ImpersonationService;
@@ -27,6 +28,10 @@ class PlataformaServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->commands([
+            CheckExpiredSubscriptions::class,
+        ]);
+
         WorkOrder::observe(WorkOrderLimitObserver::class);
         User::observe(UserLimitObserver::class);
 

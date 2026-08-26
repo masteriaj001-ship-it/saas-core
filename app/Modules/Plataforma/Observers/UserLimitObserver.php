@@ -7,6 +7,7 @@ namespace App\Modules\Plataforma\Observers;
 use App\Models\User;
 use App\Modules\Plataforma\Exceptions\PlanLimitExceededException;
 use App\Modules\Plataforma\Exceptions\TenantSuspendedException;
+use App\Modules\Plataforma\Models\Plan;
 use App\Modules\Plataforma\Models\Subscription;
 use App\Services\TenantManager;
 
@@ -33,13 +34,11 @@ class UserLimitObserver
             throw new TenantSuspendedException($subscription->tenant?->name ?? '');
         }
 
-        if ($subscription->isExpired()) {
-            return;
-        }
+        $plan = $subscription->isExpired()
+            ? Plan::where('name', 'free')->first()
+            : $subscription->plan;
 
-        $plan = $subscription->plan;
-
-        if ($plan->max_users === null) {
+        if ($plan === null || $plan->max_users === null) {
             return;
         }
 

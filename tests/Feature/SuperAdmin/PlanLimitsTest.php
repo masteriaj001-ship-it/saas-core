@@ -147,4 +147,72 @@ class PlanLimitsTest extends TestCase
 
         $tenantManager->clearTenantContext();
     }
+
+    public function test_expired_subscription_enforces_free_plan_work_order_limit(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $tenantManager = app(TenantManager::class);
+        $tenantManager->setTenantContext($tenant->id);
+
+        $subscription = Subscription::where('tenant_id', $tenant->id)->first();
+        $proPlan = Plan::where('name', 'pro')->first();
+        $freePlan = Plan::where('name', 'free')->first();
+        $subscription->update([
+            'plan_id' => $proPlan->id,
+            'expires_at' => now()->subDay(),
+        ]);
+
+        for ($i = 0; $i < $freePlan->max_work_orders; $i++) {
+            WorkOrder::create([
+                'code' => "OT-EXP-{$i}",
+                'title' => "OT Expired {$i}",
+                'status' => 'draft',
+                'client_report' => 'Test',
+            ]);
+        }
+
+        $this->expectException(PlanLimitExceededException::class);
+
+        WorkOrder::create([
+            'code' => 'OT-EXP-EXCEED',
+            'title' => 'OT Exceed',
+            'status' => 'draft',
+            'client_report' => 'Test',
+        ]);
+
+        $tenantManager->clearTenantContext();
+    }
+
+    public function test_expired_subscription_enforces_free_plan_user_limit(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $tenantManager = app(TenantManager::class);
+        $tenantManager->setTenantContext($tenant->id);
+
+        $subscription = Subscription::where('tenant_id', $tenant->id)->first();
+        $proPlan = Plan::where('name', 'pro')->first();
+        $freePlan = Plan::where('name', 'free')->first();
+        $subscription->update([
+            'plan_id' => $proPlan->id,
+            'expires_at' => now()->subDay(),
+        ]);
+
+        for ($i = 0; $i < $freePlan->max_users; $i++) {
+            User::create([
+                'name' => "User Exp {$i}",
+                'email' => "userexp{$i}@test.com",
+                'password' => Hash::make('password'),
+            ]);
+        }
+
+        $this->expectException(PlanLimitExceededException::class);
+
+        User::create([
+            'name' => 'User Exp Exceed',
+            'email' => 'userexpexceed@test.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        $tenantManager->clearTenantContext();
+    }
 }
