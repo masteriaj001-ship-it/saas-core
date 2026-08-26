@@ -11,11 +11,9 @@ class PlanDistributionWidget extends ChartWidget
 {
     protected static ?int $sort = 2;
 
-    protected int|string|array $columnSpan = 'full';
-
     protected function getHeight(): ?string
     {
-        return '200px';
+        return '250px';
     }
 
     public function getHeading(): ?string
@@ -34,6 +32,19 @@ class PlanDistributionWidget extends ChartWidget
                 ],
             ],
             'labels' => $plans->pluck('label')->toArray(),
+        ];
+    }
+
+    protected function getOptions(): array
+    {
+        return [
+            'maintainAspectRatio' => false,
+            'plugins' => [
+                'legend' => [
+                    'display' => true,
+                    'position' => 'bottom',
+                ],
+            ],
         ];
     }
 
