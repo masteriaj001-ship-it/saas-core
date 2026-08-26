@@ -1,6 +1,6 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
-  "version": "1.1.88",
+  "version": "1.1.89",
   "last_updated": "2026-08-26",
   "vertical": "operaciones",
   "status": "active_development",
@@ -117,7 +117,7 @@
     },
     "client_vehicles": {
       "status": "implemented",
-      "last_check": "2026-08-21",
+      "last_check": "2026-08-26",
       "features": [
         "Tabla client_vehicles con RLS (owner_contact_id, plate, brand, model, year, vin, etc.)",
         "Tabla vehicle_mileage_logs para historial de kilometraje",
@@ -125,18 +125,22 @@
         "Migración de datos de assets vehicle → client_vehicles",
         "Eliminación de columnas de vehículo de assets (plate, vin, brand, model, etc.)",
         "ClientVehicleResource con CRUD completo (Filament)",
-        "WorkOrderResource: selección de vehículo filtrada por contacto",
+        "WorkOrderResource: selector unificado contacto + vehículo filtrado por contacto",
         "WorkOrderResource: creación inline asigna owner_contact_id automáticamente",
         "ClientVehicleFactory con estados sedan/suv/pickup/motorcycle",
         "VehicleMileageLogFactory",
         "Asset limpiado: eliminados isVehicle(), owner(), campos de vehículo",
-        "15 tests migrados + 1 nuevo (44/46 pasan, 2 fallos pre-existentes)"
+        "AssetFactory y AssetResource: tipo 'vehicle' eliminado",
+        "ClientVehicle model: recordMileage(), scopeByPlate(), scopeByOwner()",
+        "ClientVehicleTest: 7 tests (crear, owner, workOrders, mileageLogs, byPlate, byOwner, RLS)",
+        "VehicleMileageLogTest: 4 tests (crear, work_order link, ordering, tenant isolation)",
+        "ClientVehicleWorkOrderTest: 5 tests (link, hasMany, tenant isolation, nullable, forceDelete cascade)"
       ],
       "tables": [
         "client_vehicles (UUID PK, tenant_id, owner_contact_id, plate, brand, model, year, vin, etc.)",
         "vehicle_mileage_logs (UUID PK, tenant_id, client_vehicle_id, work_order_id, mileage, recorded_at)"
       ],
-      "notes": "Separación de activos del taller de vehículos de clientes. commit 0d10e3b. asset_id se mantiene nullable en work_orders para activos propios del taller."
+      "notes": "Separación completa de activos del taller (assets) de vehículos de clientes (client_vehicles). Commits f71154e, 37a1a57. asset_id se mantiene nullable en work_orders para activos propios del taller. Suite 517/517."
     },
     "caja_turnos": {
       "status": "implemented",
@@ -403,10 +407,10 @@
     }
   },
   "test_suite": {
-    "total_tests": 505,
-    "passing": 505,
+    "total_tests": 517,
+    "passing": 517,
     "skipped": 0,
-    "assertions": 1153,
+    "assertions": 1174,
     "status": "green",
     "last_run": "2026-08-26",
     "qa_suite": {
@@ -414,7 +418,7 @@
       "files": 6,
       "status": "passing"
     },
-    "note": "Suite completa 505/505 passing (100%). 0 failures. 1153 assertions. Expiry downgrade to free (7 new tests) + SelectFilter fix."
+    "note": "Suite completa 517/517 passing (100%). 0 failures. 1174 assertions. Client Vehicles Separation: 7 ClientVehicleTest + 4 VehicleMileageLogTest + 5 ClientVehicleWorkOrderTest."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -492,7 +496,7 @@
     "Fix Filament v5 (2026-08-20): import KeyValue en ItemResource (Class App\\Filament\\Resources\\KeyValue not found) y Section en Schemas\\Components para BudgetResource (Class Filament\\Forms\\Components\\Section not found — en v5 Section vive en Filament\\Schemas\\Components\\Section).",
     "feature/pos-hardware-ui ff-mergeado a main (f196dd2): 5 commits (3efbe70 M3 kiosko + pagos + ticket, de3ce46 UI hardware + modal, 0fc848a taller closure fase 2, d8b708b infra guard+seeder+down fix, f196dd2 pint). Suite 409/409 verde.",
     "Single vertical (commit 5a272cb): consolida el modelo a UN template de 'Operaciones tipo Taller' (4 categorías/4 items/2 activos/3 catálogos). Eliminadas las industrias restaurant/mechanic/construction/clinic de config/industry-defaults.php. Fuera el select de industria de auth/register.blade.php y el Select industry de Onboarding.php. seed($tenant) reemplaza seed($tenant, 'mechanic') en todos los callers. settings.industry queda como campo legacy informativo (0 lecturas). Referencias 'mechanic' conservadas solo donde es rol de empleado. Suite 404/984 verde.",
-    "Client Vehicles Separation (commit 0d10e3b): separación de vehículos de clientes (client_vehicles) de activos del taller (assets). Tabla client_vehicles con RLS, vehicle_mileage_logs para historial, ClientVehicleResource Filament CRUD, WorkOrderResource filtrado por contacto, creación inline con owner_contact_id automático. Migración de datos de assets vehicle → client_vehicles. Eliminación de columnas de vehículo de assets. 15 tests migrados + 1 nuevo.",
+    "Client Vehicles Separation (commits f71154e, 37a1a57): separación completa de vehículos de clientes (client_vehicles) de activos del taller (assets). Tablas client_vehicles + vehicle_mileage_logs con RLS, ClientVehicleResource Filament CRUD, WorkOrderResource selector unificado contacto + vehículo, creación inline con owner_contact_id automático. ClientVehicle model: recordMileage(), scopeByPlate(), scopeByOwner(). Migración de datos assets→client_vehicles, eliminación columnas vehicle de assets. AssetFactory y AssetResource sin tipo 'vehicle'. 7+4+5=16 tests nuevos. Suite 517/517.",
     "Fix POS services without stock (commit 4bf2f4c): PosPage now shows services (item_type=service) regardless of stock level. addItem() and updateQuantity() skip stock check for services. Categories filter also includes services with stock=0.",
     "Fix WorkOrder inline create (commit 8f3bc26): createOptionUsing now includes contact_type=client in Contact select. asset_type removed (replaced by client_vehicle_id).",
     "Fix WorkOrder redirect (commit 8660d77): CreateWorkOrder now redirects to list page (index) instead of edit page after creation.",

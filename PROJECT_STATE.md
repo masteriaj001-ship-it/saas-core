@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.85 | **Status:** active_development | **Updated:** 2026-08-25
+> **Version:** 1.1.89 | **Status:** active_development | **Updated:** 2026-08-26
 
 ## Stack
 
@@ -21,6 +21,7 @@
 - **Notes:** AdminPanelProvider configurado con SetTenantContext (sin clearTenantContext), VerifyTenantStatus, slug {tenant:slug}. Todos los Resources usan Schema API.
 - **Tenant Resources:**
   - App\Filament\Resources\AssetResource (navigationSort: 1)
+  - App\Filament\Resources\ClientVehicleResource (navigationSort: 2)
   - App\Filament\Resources\WorkOrderResource (navigationSort: 4)
   - App\Filament\Resources\ContactResource
   - App\Filament\Resources\TransactionResource
@@ -67,6 +68,7 @@
   - Ticket térmico 80mm (ticket-pos.blade.php, window.print) + ruta invoices.ticket (protección cross-tenant 403)
   - PosPage Filament kiosko full-screen: 3 paneles (categorías/catálogo/ticket), dark mode amber
   - PosPage: búsqueda, filtro por item_type, carrito, pago modal (efectivo/tarjeta/transferencia), cálculo de cambio, atajos F2/F4/F5/F10, historial de ventas
+  - PosPage: servicios se muestran sin importar stock (item_type=service sin restricción de stock)
   - Hardware POS parametrizable en TenantResource (Section Impresión): driver esc_pos/window_print, host, port, canal cajón, abrir cajón tras cobro — persistido en tenants.settings->pos_hardware
   - Modal post-pago en PosPage ('Venta registrada'): botones IMPRIMIR / VER TICKET (invoices.ticket) / Cerrar (Esc) — commit de3ce46
   - 30 tests POS+UI: PosCheckoutTest (8) + PosPageTest (20) + TenantPosSettingsTest (2)
@@ -75,13 +77,39 @@
 ### work_order_reception
 
 - **Status:** implemented
-- **Last check:** 2026-06-17
+- **Last check:** 2026-08-22
 - **Features:**
-  - CreateWorkOrderReceptionAction con normalización Contact/Asset/WorkOrder
+  - CreateWorkOrderReceptionAction con normalización Contact/ClientVehicle/WorkOrder
   - createOptionForm en Select de Cliente y Vehículo (modal de creación rápida)
+  - createOptionUsing incluye contact_type=client (asset_type eliminado, reemplazado por client_vehicle_id)
   - Campos de inspección: kilometraje, batería, notas estéticas
+  - Redirect a lista después de crear WO (getRedirectUrl → index)
+  - Notificación en español: 'Orden de trabajo creada'
   - 5 tests PHPUnit (creación, reuso, aislamiento, ID existente)
-- **Notes:** Hybrid (C) — operador ve campos planos, Action normaliza en background. asset_id NOT NULL en schema (siempre requiere vehículo).
+- **Notes:** Hybrid (C) — operador ve campos planos, Action normaliza en background. client_vehicle_id FK en work_orders. asset_id nullable para activos propios del taller. asset_type removido del createOptionUsing (2026-08-22).
+
+### client_vehicles
+
+- **Status:** implemented
+- **Last check:** 2026-08-26
+- **Features:**
+  - Tabla client_vehicles con RLS (owner_contact_id, plate, brand, model, year, vin, etc.)
+  - Tabla vehicle_mileage_logs para historial de kilometraje
+  - client_vehicle_id FK nullable en work_orders
+  - Migración de datos de assets vehicle → client_vehicles
+  - Eliminación de columnas de vehículo de assets (plate, vin, brand, model, etc.)
+  - ClientVehicleResource con CRUD completo (Filament)
+  - WorkOrderResource: selector unificado contacto + vehículo filtrado por contacto
+  - WorkOrderResource: creación inline asigna owner_contact_id automáticamente
+  - ClientVehicleFactory con estados sedan/suv/pickup/motorcycle
+  - VehicleMileageLogFactory
+  - Asset limpiado: eliminados isVehicle(), owner(), campos de vehículo
+  - AssetFactory y AssetResource: tipo 'vehicle' eliminado
+  - ClientVehicle model: recordMileage(), scopeByPlate(), scopeByOwner()
+  - ClientVehicleTest: 7 tests (crear, owner, workOrders, mileageLogs, byPlate, byOwner, RLS)
+  - VehicleMileageLogTest: 4 tests (crear, work_order link, ordering, tenant isolation)
+  - ClientVehicleWorkOrderTest: 5 tests (link, hasMany, tenant isolation, nullable, forceDelete cascade)
+- **Notes:** Separación completa de activos del taller (assets) de vehículos de clientes (client_vehicles). Commits f71154e, 37a1a57. asset_id se mantiene nullable en work_orders para activos propios del taller. Suite 517/517.
 
 ### caja_turnos
 
@@ -93,11 +121,14 @@
   - CashMovementService: recordSale, recordRefund, openShift, closeShift
   - CashShiftResource: lista de turnos con filtros y vista detallada
   - CajaPage: dashboard interactivo con cards de resumen, registrar gasto, cerrar turno
+  - Turno abierto = indicador visual + tiempo transcurrido
   - Desglose por método de pago: efectivo, tarjeta, transferencia
   - Cálculo automático de diferencia (sobrante/faltante) al cerrar
   - Movimientos automáticos: sale al confirmar factura, refund al cancelar
-  - 13 tests PHPUnit
-- **Notes:** Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant.
+  - TurnoCerradoException para validaciones
+  - 13 tests PHPUnit (CashShiftTest + CajaIntegrationTest)
+  - $guarded compliant con R-02 (id, tenant_id, created_at, updated_at)
+- **Notes:** Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard.
 
 ### taller_locations
 
@@ -160,7 +191,7 @@
 - **Features:**
   - User model implementa HasAppAuthentication, HasAppAuthenticationRecovery, HasEmailAuthentication
   - two_factor_secret encryptado via Crypt, two_factor_recovery_codes JSON
-  - SuperadminPanelProvider: multiFactorAuthentication(isRequired: true)
+  - SuperadminPanelProvider: multiFactorAuthentication(isRequired: false)
   - AdminPanelProvider: multiFactorAuthentication(isRequired: false)
   - 5 tests (secret storage, recovery codes, TOTP verification, holder name, confirmation)
 - **Notes:** USR-001 completado. Filament v5 built-in MFA (pragmarx/google2fa). TOTP codes generados programaticamente en tests.
@@ -311,13 +342,37 @@
   - 14 tests FinancialDashboardTest (stats, chart, top items, payment methods, tenant isolation)
 - **Notes:** Dashboard financiero tenant-scoped. 4 widgets auto-discovered en Dashboard. TopItems usa StatsOverviewWidget (no TableWidget) para evitar GROUP BY con UUID en PostgreSQL.
 
+### superadmin_panel_plans
+
+- **Status:** implemented
+- **Last check:** 2026-08-26
+- **Features:**
+  - 6 migrations: plans, subscriptions, subscription_logs, impersonation_logs, seed_default_plans_and_subscriptions, drop_plan_column, alter_subscription_logs_changed_by_nullable
+  - PlanSeeder: free/pro/enterprise
+  - 4 models: Plan, Subscription, SubscriptionLog, ImpersonationLog
+  - Tenant: removed plan from fillable, subscription() HasOne, getPlanNameAttribute accessor
+  - SubscriptionService: changePlan, getActivePlan, isExpired, isSuspended, isActive
+  - ChangePlanAction: transaccional con validación de plan existente
+  - PlanLimitExceededException, TenantSuspendedException
+  - WorkOrderLimitObserver, UserLimitObserver: enforce plan limits (expired → free plan limits)
+  - CheckExpiredSubscriptions artisan command: downgrades expired to free + SubscriptionLog audit
+  - ImpersonationService: database + session flag
+  - StartImpersonationAction, StopImpersonationAction
+  - ImpersonationBanner middleware
+  - SuperAdminDashboard: compact stats (no icons), doughnut chart (half width, 250px, maintainAspectRatio false), recent activity + churn risk tables (maxHeight 200px)
+  - PlanResource CRUD, UserResource list, ViewTenant page
+  - TenantResource: impersonate action, planName accessor, subscription filter (custom key)
+  - 26 tests (SubscriptionTest, PlanManagementTest, PlanLimitsTest, ImpersonationTest, SuperAdminDashboardTest, CheckExpiredSubscriptionsTest)
+  - SuperadminPanelProvider: FilamentInfoWidget removed, MFA optional
+- **Notes:** FASE 1-6 completadas + expiry downgrade. CheckExpiredSubscriptions downgrades expired subscriptions to free plan (Option A). Observers enforce free plan limits during hourly window. 7 migrations total. Suite 505/505.
+
 ## Test Suite
 
-- **Total tests:** 474
-- **Passing:** 474
-- **Assertions:** 1091
+- **Total tests:** 517
+- **Passing:** 517
+- **Assertions:** 1174
 - **Status:** green
-- **Last run:** 2026-08-25
+- **Last run:** 2026-08-26
 
 ## Deployment
 
@@ -364,6 +419,10 @@
 - Location management
 - ServiceCatalog
 - Superadmin panel global
+- Superadmin panel plans and impersonation
+- Auto-downgrade expired subscriptions to free plan (Option A)
+- SelectFilter custom key to avoid Filament v5 auto-JOIN on relationship dot notation
+- Compact superadmin dashboard: stats without icons, doughnut half-width 250px, table widgets 200px maxHeight
 - Onboarding flow
 - Tenant suspension
 - Wizard de creación
@@ -398,9 +457,25 @@
 - POS kiosko fix (Livewire v4): single root div en pos.blade.php + Alpine posKiosk registrado via FilamentView::registerRenderHook(SCRIPTS_AFTER). Commit 9493ade 2026-08-16. Verificado en navegador (root DIV, filtro 2->0, fullscreen, sin errores JS)
 - Hardware POS parametrizable: PrinterSettingsResolver + EscPosService (TCP 9100, GS @ init, ESC p pulses cajon, corte) + TicketRenderer + PosPrintController endpoint POST /pos/print con proteccion cross-tenant 403. Drivers esc_pos (A) y window_print (B). Settings via tenants.settings->pos_hardware. Commit ca79997 en feature/pos-hardware. 10 tests nuevos.
 - UI POS hardware (commit de3ce46): TenantResource Section Impresión (driver/host/port/canal/cajón, dinámico por driver) + modal post-pago en PosPage (IMPRIMIR/VER TICKET/Cerrar Esc). Validado en navegador via Selenium grid.
+- Fix POS mobile (2026-08-22): improved mobile responsiveness - grid minmax 140px (antes 200px), compact padding en items/categorías, styles consistentes con Tailwind. 21/21 tests passing.
+- Fix WorkOrder createOptionUsing (2026-08-22): contact_type=client added to Contact inline create. asset_type removed (replaced by client_vehicle_id).
+- Fix WorkOrder redirect (2026-08-22): CreateWorkOrder redirects to list page after creation.
+- Spanish UI (2026-08-22): Login, sidebar, buttons all in Spanish via setLocale('es') + 51+ published translation files.
+- Collapsible sidebar (2026-08-22): AdminPanelProvider uses sidebarCollapsibleOnDesktop() + maxContentWidth(Width::Full).
+- FilamentInfoWidget removed (2026-08-22): Public repo/docs widget eliminated from AdminPanel.
+- QA test suite (2026-08-22): 61 automated tests + 80+ manual test steps in QA_CHECKLIST.md.
 - Fix Filament v5 (2026-08-20): import KeyValue en ItemResource (Class App\Filament\Resources\KeyValue not found) y Section en Schemas\Components para BudgetResource (Class Filament\Forms\Components\Section not found — en v5 Section vive en Filament\Schemas\Components\Section).
 - feature/pos-hardware-ui ff-mergeado a main (f196dd2): 5 commits (3efbe70 M3 kiosko + pagos + ticket, de3ce46 UI hardware + modal, 0fc848a taller closure fase 2, d8b708b infra guard+seeder+down fix, f196dd2 pint). Suite 409/409 verde.
 - Single vertical (commit 5a272cb): consolida el modelo a UN template de 'Operaciones tipo Taller' (4 categorías/4 items/2 activos/3 catálogos). Eliminadas las industrias restaurant/mechanic/construction/clinic de config/industry-defaults.php. Fuera el select de industria de auth/register.blade.php y el Select industry de Onboarding.php. seed($tenant) reemplaza seed($tenant, 'mechanic') en todos los callers. settings.industry queda como campo legacy informativo (0 lecturas). Referencias 'mechanic' conservadas solo donde es rol de empleado. Suite 404/984 verde.
+- Client Vehicles Separation (commits f71154e, 37a1a57): separación completa de vehículos de clientes (client_vehicles) de activos del taller (assets). Tablas client_vehicles + vehicle_mileage_logs con RLS, ClientVehicleResource Filament CRUD, WorkOrderResource selector unificado contacto + vehículo, creación inline con owner_contact_id automático. ClientVehicle model: recordMileage(), scopeByPlate(), scopeByOwner(). Migración de datos assets→client_vehicles, eliminación columnas vehicle de assets. AssetFactory y AssetResource sin tipo 'vehicle'. 7+4+5=16 tests nuevos. Suite 517/517.
+- Fix POS services without stock (commit 4bf2f4c): PosPage now shows services (item_type=service) regardless of stock level. addItem() and updateQuantity() skip stock check for services. Categories filter also includes services with stock=0.
+- Fix WorkOrder inline create (commit 8f3bc26): createOptionUsing now includes contact_type=client in Contact select. asset_type removed (replaced by client_vehicle_id).
+- Fix WorkOrder redirect (commit 8660d77): CreateWorkOrder now redirects to list page (index) instead of edit page after creation.
+- Spanish translations (commits 00cbe63-522d345): AppServiceProvider forces setLocale('es'), loads 6 Filament translation namespaces. 51+ translation files published in lang/vendor/filament-panels/es/. Login, sidebar, buttons all in Spanish.
+- Collapsible sidebar (commit b17b86f): AdminPanelProvider uses sidebarCollapsibleOnDesktop() + maxContentWidth(Width::Full) for full-width content when sidebar collapsed.
+- FilamentInfoWidget removed (commit 6d84776): Public repo/docs widget eliminated from AdminPanel (kept only in Superadmin).
+- Duplicate items cleanup (2026-08-22): 8 items with same name but different SKUs cleaned from database via ROW_NUMBER window function in Railway console.
+- QA test suite (commit 7491100): 61 automated tests across 6 files (PosFlowTest, WorkOrderFlowTest, ServiceCatalogTest, ContactFlowTest, ItemStockTest, TenantIsolationTest) + QA_CHECKLIST.md with 80+ manual test steps.
 
 ## Security Status
 
