@@ -14,7 +14,7 @@ class AssetFactory extends Factory
 
     public function definition(): array
     {
-        $types = ['vehicle', 'equipment', 'phones', 'computers', 'space'];
+        $types = ['equipment', 'phones', 'computers', 'space'];
 
         return [
             'tenant_id' => Tenant::factory(),

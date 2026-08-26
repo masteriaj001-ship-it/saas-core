@@ -64,4 +64,25 @@ class ClientVehicle extends TenantModel
     {
         return $this->hasMany(VehicleMileageLog::class, 'client_vehicle_id');
     }
+
+    public function recordMileage(int $mileage, ?string $workOrderId = null, ?string $notes = null): VehicleMileageLog
+    {
+        return $this->mileageLogs()->create([
+            'tenant_id' => $this->tenant_id,
+            'work_order_id' => $workOrderId,
+            'mileage' => $mileage,
+            'recorded_at' => now(),
+            'notes' => $notes,
+        ]);
+    }
+
+    public function scopeByPlate($query, string $plate)
+    {
+        return $query->where('plate', $plate);
+    }
+
+    public function scopeByOwner($query, string $ownerContactId)
+    {
+        return $query->where('owner_contact_id', $ownerContactId);
+    }
 }
