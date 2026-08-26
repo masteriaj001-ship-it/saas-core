@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
-  "version": "1.1.86",
-  "last_updated": "2026-08-25",
+  "version": "1.1.87",
+  "last_updated": "2026-08-26",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
@@ -379,42 +379,42 @@
     },
     "superadmin_panel_plans": {
       "status": "implemented",
-      "last_check": "2026-08-25",
+      "last_check": "2026-08-26",
       "features": [
-        "5 migrations: plans, subscriptions, subscription_logs, impersonation_logs, drop_plan_column",
+        "6 migrations: plans, subscriptions, subscription_logs, impersonation_logs, seed_default_plans_and_subscriptions, drop_plan_column, alter_subscription_logs_changed_by_nullable",
         "PlanSeeder: free/pro/enterprise",
         "4 models: Plan, Subscription, SubscriptionLog, ImpersonationLog",
         "Tenant: removed plan from fillable, subscription() HasOne, getPlanNameAttribute accessor",
         "SubscriptionService: changePlan, getActivePlan, isExpired, isSuspended, isActive",
         "ChangePlanAction: transaccional con validación de plan existente",
         "PlanLimitExceededException, TenantSuspendedException",
-        "WorkOrderLimitObserver, UserLimitObserver: enforce plan limits",
-        "CheckExpiredSubscriptions artisan command (hourly schedule)",
+        "WorkOrderLimitObserver, UserLimitObserver: enforce plan limits (expired → free plan limits)",
+        "CheckExpiredSubscriptions artisan command: downgrades expired to free + SubscriptionLog audit",
         "ImpersonationService: database + session flag",
         "StartImpersonationAction, StopImpersonationAction",
         "ImpersonationBanner middleware",
         "SuperAdminDashboard: stats, plan distribution chart, recent activity, churn risk",
         "PlanResource CRUD, UserResource list, ViewTenant page",
-        "TenantResource: impersonate action, planName accessor, subscription filter",
-        "24 tests (SubscriptionTest, PlanManagementTest, PlanLimitsTest, ImpersonationTest, SuperAdminDashboardTest)",
+        "TenantResource: impersonate action, planName accessor, subscription filter (custom key)",
+        "26 tests (SubscriptionTest, PlanManagementTest, PlanLimitsTest, ImpersonationTest, SuperAdminDashboardTest, CheckExpiredSubscriptionsTest)",
         "SuperadminPanelProvider: FilamentInfoWidget removed, MFA optional"
       ],
-      "notes": "FASE 1-6 completadas. 5 migraciones incluyen drop_plan_column para migrar tenant.plan a subscription-centric. TenantFactory auto-creates subscription via afterCreating hook. 498 tests total."
+      "notes": "FASE 1-6 completadas + expiry downgrade. CheckExpiredSubscriptions downgrades expired subscriptions to free plan (Option A). Observers enforce free plan limits during hourly window. 7 migrations total. Suite 505/505."
     }
   },
-"test_suite": {
-    "total_tests": 498,
-    "passing": 498,
+  "test_suite": {
+    "total_tests": 505,
+    "passing": 505,
     "skipped": 0,
-    "assertions": 1138,
+    "assertions": 1153,
     "status": "green",
-    "last_run": "2026-08-25",
+    "last_run": "2026-08-26",
     "qa_suite": {
       "total_tests": 61,
       "files": 6,
       "status": "passing"
     },
-    "note": "Suite completa 498/498 passing (100%). 0 failures. 1138 assertions. Superadmin panel plans/impersonation module completado (24 tests nuevos)."
+    "note": "Suite completa 505/505 passing (100%). 0 failures. 1153 assertions. Expiry downgrade to free (7 new tests) + SelectFilter fix."
   },
   "architecture_rules": {
     "naming_zero_redundancy": true,
@@ -445,6 +445,8 @@
     "ServiceCatalog",
     "Superadmin panel global",
     "Superadmin panel plans and impersonation",
+    "Auto-downgrade expired subscriptions to free plan (Option A)",
+    "SelectFilter custom key to avoid Filament v5 auto-JOIN on relationship dot notation",
     "Onboarding flow",
     "Tenant suspension",
     "Wizard de creación",

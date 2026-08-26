@@ -1,7 +1,7 @@
 # PROJECT STATE — ProyectDashboard
 
 > Stack: Laravel ^13.8 · PHP ^8.3 · PostgreSQL 16.14 · Filament ^5.6 · RLS Nativo
-> Última actualización: 2026-08-25 (SUPERADMIN PANEL — PLANS, SUBSCRIPTIONS, IMPERSONATION. 498 TESTS, 1138 ASSERTIONS)
+> Última actualización: 2026-08-26 (SUPERADMIN PANEL — EXPIRY DOWNGRADE TO FREE. 505 TESTS, 1153 ASSERTIONS)
 
 ---
 
@@ -9,7 +9,7 @@
 
 SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de tenancy). Core base con módulos anexables por industria. 31 migraciones ejecutadas, aislamiento multi-tenant vía `->tenant(Tenant::class, slugAttribute: 'slug')` en Filament + middleware `SetTenantContext` (sin clearTenantContext en finally) + trait `BelongsToTenant` con global scope.
 
-**Fase actual:** VERTICAL TALLERES — COMPLETO. Módulo Facturación — CREADO (invoices + invoice_items). Panel admin (`/admin/{slug}`) con 8 Resources + Dashboard widgets + bloqueo de tenants suspendidos. Panel superadmin (`/superadmin`) con plans/subscriptions, impersonation, plan limits, dashboard widgets. **498 tests, 1138 assertions — 0 regresiones.**
+**Fase actual:** VERTICAL TALLERES — COMPLETO. Módulo Facturación — CREADO (invoices + invoice_items). Panel admin (`/admin/{slug}`) con 8 Resources + Dashboard widgets + bloqueo de tenants suspendidos. Panel superadmin (`/superadmin`) con plans/subscriptions, impersonation, plan limits, dashboard widgets, auto-downgrade de planes expirados a free. **505 tests, 1153 assertions — 0 regresiones.**
 
 ---
 
@@ -204,15 +204,23 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 |---|---|
 | `Plan` model | free/pro/enterprise con max_users, max_work_orders_monthly, price, features JSON |
 | `Subscription` model | tenant_id (unique), plan_id, status (active/expired/suspended), starts_at, expires_at |
-| `SubscriptionLog` model | audit trail de cambios de plan |
+| `SubscriptionLog` model | audit trail de cambios de plan (changed_by nullable para cambios automáticos) |
 | `ImpersonationLog` model | audit trail de impersonation (superadmin_id, tenant_id, impersonated_at) |
 | `SubscriptionService` | changePlan(), getActivePlan(), isExpired(), isSuspended(), isActive() |
 | `ImpersonationService` | start(), stop(), isImpersonating() — session flag |
-| `WorkOrderLimitObserver` |阻止 WorkOrder creation si max_work_orders_monthly exceeded |
-| `UserLimitObserver` |阻止 User creation si max_users exceeded |
-| `CheckExpiredSubscriptions` | artisan command, hourly schedule, suspends expired tenants |
+| `WorkOrderLimitObserver` | Enforce work order limits; expired → free plan limits (not unlimited) |
+| `UserLimitObserver` | Enforce user limits; expired → free plan limits (not unlimited) |
+| `CheckExpiredSubscriptions` | Artisan command, hourly: downgrades expired to free + SubscriptionLog audit |
 | `ImpersonationBanner` middleware | Shows yellow banner during impersonation |
 | Routes | `/superadmin/impersonate/{tenant}`, `/superadmin/stop-impersonating` |
+
+**Flujo de expiración (Option A — downgrade a free):**
+1. Superadmin sube tenant a Pro con `expires_at` manual
+2. Tenant opera con límites Pro
+3. Al vencer → `subscriptions:check-expired` (hourly) → plan_id → free, status → active, expires_at → null
+4. `SubscriptionLog` registra `reason = 'expired_downgraded_to_free'`
+5. Tenant opera con límites free (20 OTs/mes, 2 usuarios)
+6. Superadmin reactiva manualmente con `changePlan()`
 
 ### Filament Pages (Admin Panel)
 
@@ -230,7 +238,7 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | `WorkOrderStatusChart` | BarChartWidget | WOs agrupadas por status dinámico desde `WorkOrderStatusEnum::cases()` con colores mapeados |
 | `LatestWorkOrdersTable` | TableWidget | Últimas 5 WOs con código, título, asset, status, fecha |
 
-### Tests (498 tests, 1138 assertions)
+### Tests (505 tests, 1153 assertions)
 
 | Test Suite | Archivos | Tests | Propósito |
 |---|---|---|---|---|---|---|---|---|
@@ -245,9 +253,10 @@ SaaS multi-tenant con aislamiento por **PostgreSQL RLS nativo** (sin paquetes de
 | CreateTenantWithAdminTest | `tests/Feature/Superadmin/` | 3 | Tenant creation with admin user: valid creation, duplicate email rejection, password mismatch |
 | SubscriptionTest | `tests/Feature/SuperAdmin/` | 5 | Subscription CRUD, plan change, expiration, suspension, active plan retrieval |
 | PlanManagementTest | `tests/Feature/SuperAdmin/` | 4 | Plan creation, edit, delete, features JSON, limits enforcement |
-| PlanLimitsTest | `tests/Feature/SuperAdmin/` | 4 | WorkOrderLimitObserver, UserLimitObserver, limits enforcement, exception messages |
+| PlanLimitsTest | `tests/Feature/SuperAdmin/` | 6 | WorkOrderLimitObserver, UserLimitObserver, limits enforcement, exception messages, expired→free limits |
 | ImpersonationTest | `tests/Feature/SuperAdmin/` | 5 | Start/stop impersonation, session flag, audit log, banner middleware, unauthorized blocked |
 | SuperAdminDashboardTest | `tests/Feature/SuperAdmin/` | 3 | Dashboard accessible, widgets render, tenant stats |
+| CheckExpiredSubscriptionsTest | `tests/Feature/` | 5 | Downgrade expired to free, subscription log, no touch active/free, count |
 | WorkOrderTenantIsolationTest | `tests/Feature/Security/` | 2 | Aislamiento cross-tenant WorkOrders + Assets |
 | TallerOnboardingTest | `tests/Feature/Talleres/` | — | (pendiente — wizard requiere test de integración) |
 | SpatieTenantIsolationTest | `tests/Feature/Security/` | 4 | Roles/permissions aislados entre tenants, global scope filtra, RLS policies existen |
@@ -459,6 +468,7 @@ php artisan make:command Nombre            # Crear comando Artisan
 | 2026-06-07 | opencode | **Sprint B — Tablas invoices + invoice_items + RLS**: Migraciones `create_invoices_table` (20 cols + RLS + 4 índices) y `create_invoice_items_table` (14 cols + RLS + 2 índices, sin deleted_at). `InvoiceStatusEnum` (Draft/Issued/Paid/Cancelled), `InvoiceDocumentTypeEnum` (Invoice/CreditNote). Modelos Invoice (TenantModel) + InvoiceItem (Model, sin SoftDeletes). InvoiceFactory (3 estados) + InvoiceItemFactory. `FacturacionServiceProvider` registrado en bootstrap/providers.php. 5 tests nuevos. 168 Feature tests, 481 assertions. 0 regresiones. | Filament Resource Invoice |
 | 2026-06-07 | opencode | **Sprint C — InvoiceCodeGenerator + InvoiceResource**: `InvoiceCodeGenerator` con DB lock (mismo patrón que WorkOrderCodeGenerator). `InvoiceResource` Filament con form (Encabezado + Ítems Repeater con cálculos live + Totales readonly) + table (document_number, contact, status badge, grand_total). Pages ListInvoices, CreateInvoice (handleRecordCreation llama generator), EditInvoice. WorkOrder +invoices() HasMany. 3 tests nuevos. 171 Feature tests, 493 assertions. 0 regresiones. | — | `vendor/bin/sail up -d` (levanta selenium) → `vendor/bin/sail dusk` |
 | 2026-06-07 | opencode | **Bug Hunt 403 en Livewire Selects**: Diagnóstico de 403 persistente en `getSearchResultsUsing` de Filament Selects. 3 root causes identificadas y corregidas: (1) Missing `ContactPolicy` — Laravel 11+ deniega por defecto → `Policy::create()` returns `allow()`. (2) `SetTenantContext` llamaba `clearTenantContext()` en `finally` — el contexto PostgreSQL se limpiaba antes de que Livewire procesara `getSearchResultsUsing` → RLS bloqueaba queries. (3) `PreventRequestForgery` en `->middleware()` del panel — Filament aplica su propio stack, no respeta excepción livewire* de bootstrap/app.php. Fixes: `ContactPolicy` creado, `clearTenantContext` eliminado de `SetTenantContext`, `PreventRequestForgery` removido del middleware del panel. Fixes adicionales: `Auth::user()->fresh()->tenant_id` evita tenant_id stale, `createOptionForm` removido de contact_id/asset_id Selects (users crean desde módulos dedicados), `VehicleFormSchema` enums reemplazados por arrays manuales, ContactResource duplicados limpiados, AssetResource name opcional. OpCache reseteado. **174 tests, 497 assertions — 0 regresiones.** | — | — |
+| 2026-08-26 | opencode | **Expiry downgrade to free (Option A)**: CheckExpiredSubscriptions now downgrades expired subscriptions to free plan + creates SubscriptionLog audit entry. Observers enforce free plan limits during the hourly window (previously expired = unlimited access). PlataformaServiceProvider registers the command. New migration makes subscription_logs.changed_by nullable for automated changes. SelectFilter dot notation fix for empty tenants list. 7 new tests. **505 tests, 1153 assertions — 0 regresiones.** Commits: bdf6d3b, 5782ba1. | — |
 
 ## 8. Arquitectura Modular (DDD Lite)
 
