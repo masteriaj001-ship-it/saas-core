@@ -7,7 +7,6 @@ namespace Tests\Feature\QA;
 use App\Enums\WorkOrderItemTypeEnum;
 use App\Models\Contact;
 use App\Models\Item;
-use App\Models\Location;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Talleres\Models\ClientVehicle;
@@ -246,27 +245,5 @@ class WorkOrderFlowTest extends TestCase
 
         $workOrder->update(['status' => 'completed', 'completed_at' => now()]);
         $this->assertEquals('completed', $workOrder->fresh()->status->value);
-    }
-
-    public function test_work_order_with_location(): void
-    {
-        $contact = Contact::factory()->for($this->tenant)->client()->create();
-        $vehicle = ClientVehicle::factory()->for($this->tenant)->create();
-        $location = Location::factory()->for($this->tenant)->create();
-
-        $workOrder = WorkOrder::create([
-            'tenant_id' => $this->tenant->id,
-            'contact_id' => $contact->id,
-            'client_vehicle_id' => $vehicle->id,
-            'location_id' => $location->id,
-            'code' => 'WO-TEST-007',
-            'title' => 'Con ubicación',
-            'status' => 'draft',
-        ]);
-
-        $this->assertDatabaseHas('work_orders', [
-            'id' => $workOrder->id,
-            'location_id' => $location->id,
-        ]);
     }
 }

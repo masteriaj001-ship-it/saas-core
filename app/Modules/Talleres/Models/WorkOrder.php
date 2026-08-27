@@ -9,7 +9,6 @@ use App\Enums\WorkOrderMediaStageEnum;
 use App\Enums\WorkOrderStatusEnum;
 use App\Models\Concerns\Auditable;
 use App\Models\Contact;
-use App\Models\Location;
 use App\Models\TenantModel;
 use App\Modules\Facturacion\Models\Invoice;
 use Database\Factories\WorkOrderFactory;
@@ -30,7 +29,6 @@ class WorkOrder extends TenantModel
         'asset_id',
         'client_vehicle_id',
         'contact_id',
-        'location_id',
         'code',
         'title',
         'internal_notes',
@@ -51,6 +49,9 @@ class WorkOrder extends TenantModel
         'closure_notes',
         'approval_at',
         'approval_channel',
+        'inspection_checklist',
+        'inspection_completed_at',
+        'inspection_completed_by',
     ];
 
     protected function casts(): array
@@ -58,11 +59,13 @@ class WorkOrder extends TenantModel
         return array_merge(parent::casts(), [
             'metadata' => 'array',
             'settings' => 'array',
+            'inspection_checklist' => 'array',
             'started_at' => 'datetime',
             'completed_at' => 'datetime',
             'approval_at' => 'datetime',
             'delivery_at' => 'datetime',
             'signed_at' => 'datetime',
+            'inspection_completed_at' => 'datetime',
             'qc_passed' => 'boolean',
             'mileage_km' => 'integer',
             'status' => WorkOrderStatusEnum::class,
@@ -92,6 +95,34 @@ class WorkOrder extends TenantModel
             && $this->media()->where('stage', WorkOrderMediaStageEnum::After)->exists();
     }
 
+    public function hasCompletedInspection(): bool
+    {
+        $checklist = $this->inspection_checklist ?? [];
+
+        return ! empty($checklist['body'])
+            && ! empty($checklist['glass'])
+            && $this->inspection_completed_at !== null;
+    }
+
+    public function isOnTime(): string
+    {
+        if (! $this->estimated_completion_at) {
+            return 'on_time';
+        }
+
+        $now = now();
+
+        if ($now < $this->estimated_completion_at) {
+            return 'on_time';
+        }
+
+        if ($now < $this->estimated_completion_at->copy()->addHours(2)) {
+            return 'at_risk';
+        }
+
+        return 'overdue';
+    }
+
     public function asset(): BelongsTo
     {
         return $this->belongsTo(Asset::class);
@@ -105,11 +136,6 @@ class WorkOrder extends TenantModel
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
-    }
-
-    public function location(): BelongsTo
-    {
-        return $this->belongsTo(Location::class);
     }
 
     public function mechanic(): BelongsTo

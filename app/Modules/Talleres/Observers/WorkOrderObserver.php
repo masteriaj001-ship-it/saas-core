@@ -24,6 +24,14 @@ class WorkOrderObserver
 
         $originalStatus = $workOrder->getOriginal('status');
 
+        if ($workOrder->status === WorkOrderStatusEnum::InProgress && $originalStatus !== WorkOrderStatusEnum::InProgress) {
+            $workOrder->actual_started_at = $workOrder->actual_started_at ?? now();
+        }
+
+        if ($workOrder->status === WorkOrderStatusEnum::WorkDone && $originalStatus !== WorkOrderStatusEnum::WorkDone) {
+            $workOrder->actual_completed_at = $workOrder->actual_completed_at ?? now();
+        }
+
         $workOrder->activities()->create([
             'type' => WorkOrderActivityTypeEnum::StatusChange,
             'description' => sprintf(

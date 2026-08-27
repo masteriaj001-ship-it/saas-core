@@ -278,9 +278,15 @@ class WorkOrderResource extends Resource
             Section::make(__('Recepción'))
                 ->columnSpan(1)
                 ->schema([
-                    Textarea::make('reception_notes')
-                        ->label(__('Notas de recepción'))
+                    Textarea::make('client_report')
+                        ->label(__('Lo que el cliente reporta'))
+                        ->placeholder(__('Describe el problema o servicio solicitado por el cliente'))
+                        ->required()
                         ->rows(3),
+                    Textarea::make('internal_notes')
+                        ->label(__('Notas internas del taller'))
+                        ->placeholder(__('Observaciones para el equipo técnico (no visible al cliente)'))
+                        ->rows(2),
                     Select::make('fuel_level')
                         ->label(__('Nivel de combustible'))
                         ->options([
@@ -299,14 +305,149 @@ class WorkOrderResource extends Resource
                     TextInput::make('battery_level')
                         ->label(__('Nivel de fluido / batería'))
                         ->placeholder('Ej: 12.4V / OK'),
-                    Textarea::make('aesthetic_notes')
-                        ->label(__('Notas de estado estético'))
-                        ->placeholder('Rayones, abolladuras...')
-                        ->rows(2),
                 ]),
             Section::make(__('Inspección de Ingreso'))
                 ->columnSpan(1)
                 ->schema([
+                    Text::make('Carrocería')->columnSpanFull(),
+                    Select::make('inspection_checklist.body.front')
+                        ->label(__('Frente'))
+                        ->options([
+                            'ok' => 'OK',
+                            'scratch' => 'Rayón',
+                            'dent' => 'Golpe',
+                            'crack' => 'Grieta',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.body.rear')
+                        ->label(__('Atrás'))
+                        ->options([
+                            'ok' => 'OK',
+                            'scratch' => 'Rayón',
+                            'dent' => 'Golpe',
+                            'crack' => 'Grieta',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.body.left')
+                        ->label(__('Izquierda'))
+                        ->options([
+                            'ok' => 'OK',
+                            'scratch' => 'Rayón',
+                            'dent' => 'Golpe',
+                            'crack' => 'Grieta',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.body.right')
+                        ->label(__('Derecha'))
+                        ->options([
+                            'ok' => 'OK',
+                            'scratch' => 'Rayón',
+                            'dent' => 'Golpe',
+                            'crack' => 'Grieta',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Text::make('Vidrios')->columnSpanFull(),
+                    Select::make('inspection_checklist.glass.windshield')
+                        ->label(__('Parabrisas'))
+                        ->options([
+                            'ok' => 'OK',
+                            'scratch' => 'Rayón',
+                            'crack' => 'Grieta',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.glass.rear_window')
+                        ->label(__('Vidrio trasero'))
+                        ->options([
+                            'ok' => 'OK',
+                            'scratch' => 'Rayón',
+                            'crack' => 'Grieta',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.glass.left_window')
+                        ->label(__('Vidrio izquierdo'))
+                        ->options([
+                            'ok' => 'OK',
+                            'scratch' => 'Rayón',
+                            'crack' => 'Grieta',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.glass.right_window')
+                        ->label(__('Vidrio derecho'))
+                        ->options([
+                            'ok' => 'OK',
+                            'scratch' => 'Rayón',
+                            'crack' => 'Grieta',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Text::make('Llantas')->columnSpanFull(),
+                    Select::make('inspection_checklist.tires.front_left')
+                        ->label(__('Delantera izquierda'))
+                        ->options([
+                            'ok' => 'OK',
+                            'low' => 'Baja presión',
+                            'worn' => 'Desgastada',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.tires.front_right')
+                        ->label(__('Delantera derecha'))
+                        ->options([
+                            'ok' => 'OK',
+                            'low' => 'Baja presión',
+                            'worn' => 'Desgastada',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.tires.rear_left')
+                        ->label(__('Trasera izquierda'))
+                        ->options([
+                            'ok' => 'OK',
+                            'low' => 'Baja presión',
+                            'worn' => 'Desgastada',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.tires.rear_right')
+                        ->label(__('Trasera derecha'))
+                        ->options([
+                            'ok' => 'OK',
+                            'low' => 'Baja presión',
+                            'worn' => 'Desgastada',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Text::make('Interior')->columnSpanFull(),
+                    Select::make('inspection_checklist.interior.dashboard')
+                        ->label(__('Tablero'))
+                        ->options([
+                            'ok' => 'OK',
+                            'damage' => 'Daño',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.interior.seats')
+                        ->label(__('Asientos'))
+                        ->options([
+                            'ok' => 'OK',
+                            'stain' => 'Mancha',
+                            'damage' => 'Daño',
+                        ])->native(false)->placeholder('OK'),
+                    Select::make('inspection_checklist.interior.mats')
+                        ->label(__('Tapetes'))
+                        ->options([
+                            'ok' => 'OK',
+                            'dirty' => 'Sucios',
+                            'missing' => 'Faltante',
+                        ])->native(false)->placeholder('OK'),
+                    Text::make('Accesorios')->columnSpanFull(),
+                    Toggle::make('inspection_checklist.accessories.radio')
+                        ->label(__('Radio / pantalla')),
+                    Toggle::make('inspection_checklist.accessories.spare_tire')
+                        ->label(__('Llanta de repuesto')),
+                    Toggle::make('inspection_checklist.accessories.jack')
+                        ->label(__('Gato hidráulico')),
+                    Toggle::make('inspection_checklist.accessories.documents')
+                        ->label(__('Documentos en guantera')),
+                    Textarea::make('inspection_checklist.notes')
+                        ->label(__('Notas de inspección'))
+                        ->placeholder(__('Observaciones adicionales'))
+                        ->rows(2)
+                        ->columnSpanFull(),
                 ]),
         ];
     }
@@ -321,12 +462,6 @@ class WorkOrderResource extends Resource
                         ->label(__('Título'))
                         ->required()
                         ->maxLength(255),
-                    Textarea::make('client_report')
-                        ->label(__('Descripción del servicio'))
-                        ->rows(4),
-                    Textarea::make('internal_notes')
-                        ->label(__('Notas internas'))
-                        ->rows(3),
                 ]),
             Section::make(__('Diagnóstico y Aprobación'))
                 ->columnSpan(2)

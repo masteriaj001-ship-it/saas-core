@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Modules\Talleres\Services;
 
+use App\Enums\WorkOrderMediaStageEnum;
 use App\Enums\WorkOrderStatusEnum;
+use App\Models\User;
+use App\Modules\Talleres\Exceptions\InspectionIncompleteException;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Models\WorkOrderActivity;
 use App\Modules\Talleres\Models\WorkOrderMedia;
@@ -57,7 +60,18 @@ class WorkOrderClosureService
 
         return DB::transaction(function () use ($workOrder, $to): WorkOrder {
             $from = $workOrder->status;
-            $workOrder->update(['status' => $to]);
+
+            $updates = ['status' => $to];
+
+            if ($to === WorkOrderStatusEnum::InProgress) {
+                $updates['actual_started_at'] = now();
+            }
+
+            if ($to === WorkOrderStatusEnum::WorkDone) {
+                $updates['actual_completed_at'] = now();
+            }
+
+            $workOrder->update($updates);
 
             WorkOrderActivity::create([
                 'work_order_id' => $workOrder->id,
@@ -66,6 +80,53 @@ class WorkOrderClosureService
                 'from_status' => $from->value,
                 'to_status' => $to->value,
                 'metadata' => [
+                    'photos_version' => $this->photoVersions($workOrder),
+                ],
+            ]);
+
+            return $workOrder->fresh();
+        });
+    }
+
+    public function transitionToReceived(WorkOrder $workOrder, User $user): WorkOrder
+    {
+        if ($workOrder->status !== WorkOrderStatusEnum::Draft) {
+            throw new RuntimeException(
+                sprintf('Transición inválida: %s → received (solo desde draft)', $workOrder->status->value),
+            );
+        }
+
+        if (! $workOrder->hasCompletedInspection()) {
+            throw new InspectionIncompleteException(
+                'La inspección de ingreso debe completarse antes de recibir el vehículo.',
+            );
+        }
+
+        $entryPhotos = $workOrder->media()
+            ->where('stage', WorkOrderMediaStageEnum::Before)
+            ->count();
+
+        if ($entryPhotos < 4) {
+            throw new InspectionIncompleteException(
+                sprintf('Se requieren al menos 4 fotos de ingreso. Tienes %d.', $entryPhotos),
+            );
+        }
+
+        return DB::transaction(function () use ($workOrder, $user): WorkOrder {
+            $workOrder->update([
+                'status' => WorkOrderStatusEnum::Received,
+                'inspection_completed_by' => $user->id,
+            ]);
+
+            WorkOrderActivity::create([
+                'work_order_id' => $workOrder->id,
+                'type' => 'status_change',
+                'description' => 'Estado cambiado de draft a received',
+                'from_status' => WorkOrderStatusEnum::Draft->value,
+                'to_status' => WorkOrderStatusEnum::Received->value,
+                'user_id' => $user->id,
+                'metadata' => [
+                    'inspection_checklist' => $workOrder->inspection_checklist,
                     'photos_version' => $this->photoVersions($workOrder),
                 ],
             ]);
