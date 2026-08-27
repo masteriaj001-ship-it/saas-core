@@ -18,6 +18,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -114,7 +115,7 @@ class WorkshopBayResource extends Resource
                         'diagnostic' => __('Diagnóstico'),
                         default => $state,
                     }),
-                TextColumn::make('is_active')
+                IconColumn::make('is_active')
                     ->label(__('Activo'))
                     ->boolean()
                     ->sortable(),
