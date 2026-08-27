@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
-  "version": "1.1.91",
-  "last_updated": "2026-08-28",
+  "version": "1.1.92",
+  "last_updated": "2026-08-27",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
@@ -60,7 +60,13 @@
         "SetTenantContext: eliminado clearTenantContext del finally (403 en getSearchResultsUsing)",
         "ContactPolicy creado (403 por falta de policy en Laravel 11+)",
         "TransactionResource: Section namespace corregido (Schemas vs Forms)",
-        "InvoiceResource: status column type hint corregido (enum vs string)"
+        "InvoiceResource: status column type hint corregido (enum vs string)",
+        "Filament\\Forms\\Components\\Section → Filament\\Schemas\\Components\\Section (8 archivos: Supplier, WorkshopBay, CreditAccount, Appointment, PurchaseOrder, PriceList + 2 RelationManagers)",
+        "client_vehicle display_name → plate (columna inexistente en AppointmentResource)",
+        "Location import faltante en Appointment model (App\\Modules\\Talleres\\Models\\Location → App\\Models\\Location)",
+        "Appointment Select relationship labels con getOptionLabelFromRecordUsing fallback null-safe",
+        "auth()->user()->can() → auth()->user()?->can() ?? false en 34 instancias (17 archivos) para evitar TypeError cuando permisos no existen",
+        "TransactionResource/EditTransaction: precedencia de operadores corregida en can() + canEdit/canIssue/canCancel"
       ],
       "notes": "AdminPanelProvider configurado con SetTenantContext (sin clearTenantContext), VerifyTenantStatus, slug {tenant:slug}. Todos los Resources usan Schema API."
     },
@@ -504,7 +510,9 @@
     "Collapsible sidebar (commit b17b86f): AdminPanelProvider uses sidebarCollapsibleOnDesktop() + maxContentWidth(Width::Full) for full-width content when sidebar collapsed.",
     "FilamentInfoWidget removed (commit 6d84776): Public repo/docs widget eliminated from AdminPanel (kept only in Superadmin).",
     "Duplicate items cleanup (2026-08-22): 8 items with same name but different SKUs cleaned from database via ROW_NUMBER window function in Railway console.",
-    "QA test suite (commit 7491100): 61 automated tests across 6 files (PosFlowTest, WorkOrderFlowTest, ServiceCatalogTest, ContactFlowTest, ItemStockTest, TenantIsolationTest) + QA_CHECKLIST.md with 80+ manual test steps."
+    "QA test suite (commit 7491100): 61 automated tests across 6 files (PosFlowTest, WorkOrderFlowTest, ServiceCatalogTest, ContactFlowTest, ItemStockTest, TenantIsolationTest) + QA_CHECKLIST.md with 80+ manual test steps.",
+    "Filament v5 Section import fix (commits 1848db3, 24bf109, 228c645, 1ba3d1e, 1fb0d5b): Section moved from Filament\\Forms\\Components\\Section to Filament\\Schemas\\Components\\Section in Filament v5. Fixed in 8 files (Supplier, WorkshopBay, CreditAccount, Appointment, PurchaseOrder, PriceList + 2 RelationManagers). Also fixed: client_vehicle display_name→plate (AppointmentResource), Location import missing in Appointment model, null-safe relationship labels with getOptionLabelFromRecordUsing, auth()->user()->can() null-safe across 17 files (34 instances).",
+    "Filament v5 QA results (2026-08-27): Playwright automated QA — 36/36 pages passed (17 List, 12 Create, 7 Edit). All modules load with HTTP 200. Config cache clear fixed stale 500 on items list."
   ],
   "security_status": {
     "mfa_superadmin": "implemented",

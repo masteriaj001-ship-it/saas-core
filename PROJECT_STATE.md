@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.91 | **Status:** active_development | **Updated:** 2026-08-28
+> **Version:** 1.1.92 | **Status:** active_development | **Updated:** 2026-08-27
 
 ## Stack
 
@@ -40,6 +40,13 @@
   - ContactPolicy creado (403 por falta de policy en Laravel 11+)
   - TransactionResource: Section namespace corregido (Schemas vs Forms)
   - InvoiceResource: status column type hint corregido (enum vs string)
+  - Filament\\Forms\\Components\\Section → Filament\\Schemas\\Components\\Section (8 archivos: Supplier, WorkshopBay, CreditAccount, Appointment, PurchaseOrder, PriceList + 2 RelationManagers)
+  - client_vehicle display_name → plate (columna inexistente en AppointmentResource)
+  - Location import faltante en Appointment model (App\\Modules\\Talleres\\Models\\Location → App\\Models\\Location)
+  - Appointment Select labels con getOptionLabelFromRecordUsing fallback null-safe
+  - auth()->user()->can() → auth()->user()?->can() ?? false en 34 instancias (17 archivos)
+  - TransactionResource/EditTransaction: precedencia de operadores corregida en can() + canEdit/canIssue/canCancel
+- **QA Results (2026-08-27):** Playwright automated — 36/36 pages passed (17 List, 12 Create, 7 Edit). Config cache clear resolved stale 500 on items list.
 - **Checklist:** `checklists/taller_filament.yaml`
 
 ### taller_permissions
