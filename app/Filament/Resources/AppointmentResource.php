@@ -75,28 +75,33 @@ class AppointmentResource extends Resource
                             ->relationship('contact', 'name')
                             ->required()
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->name ?? 'Sin nombre'),
                         Select::make('client_vehicle_id')
                             ->label(__('Vehículo'))
                             ->relationship('vehicle', 'plate')
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->plate ?? 'Sin placa'),
                         Select::make('bay_id')
                             ->label(__('Bahía'))
                             ->relationship('bay', 'name')
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->name ?? 'Sin nombre'),
                         Select::make('mechanic_id')
                             ->label(__('Mecánico'))
                             ->relationship('mechanic', 'name')
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->name ?? 'Sin nombre'),
                         Select::make('location_id')
                             ->label(__('Ubicación'))
                             ->relationship('location', 'name')
                             ->required()
                             ->searchable()
-                            ->preload(),
+                            ->preload()
+                            ->getOptionLabelFromRecordUsing(fn ($record) => $record->name ?? 'Sin nombre'),
                     ]),
                 Section::make(__('Programación'))
                     ->columns(2)
