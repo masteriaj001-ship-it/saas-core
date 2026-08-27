@@ -78,7 +78,7 @@ class AppointmentResource extends Resource
                             ->preload(),
                         Select::make('client_vehicle_id')
                             ->label(__('Vehículo'))
-                            ->relationship('vehicle', 'display_name')
+                            ->relationship('vehicle', 'plate')
                             ->searchable()
                             ->preload(),
                         Select::make('bay_id')
@@ -144,7 +144,7 @@ class AppointmentResource extends Resource
                     ->label(__('Cliente'))
                     ->searchable()
                     ->sortable(),
-                TextColumn::make('vehicle.display_name')
+                TextColumn::make('vehicle.plate')
                     ->label(__('Vehículo'))
                     ->searchable()
                     ->sortable(),
