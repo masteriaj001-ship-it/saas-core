@@ -48,6 +48,16 @@ class WarehouseResource extends Resource
         return 'Inventario';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Bodega';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Bodegas';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

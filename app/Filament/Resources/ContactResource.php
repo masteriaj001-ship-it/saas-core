@@ -44,6 +44,16 @@ class ContactResource extends Resource
         return 'Gestión';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Contacto';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Contactos';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

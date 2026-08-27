@@ -35,6 +35,16 @@ class CashShiftResource extends Resource
         return 'Caja';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Turno de Caja';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Turnos de Caja';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

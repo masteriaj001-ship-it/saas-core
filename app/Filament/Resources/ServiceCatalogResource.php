@@ -40,6 +40,16 @@ class ServiceCatalogResource extends Resource
         return 'Gestión';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Catálogo de Servicios';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Catálogos de Servicios';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

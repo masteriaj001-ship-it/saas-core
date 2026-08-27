@@ -44,6 +44,16 @@ class AppointmentResource extends Resource
         return 'Talleres';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Cita';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Citas';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

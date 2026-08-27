@@ -47,6 +47,16 @@ class InvoiceResource extends Resource
         return 'Facturación';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Factura';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Facturas';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

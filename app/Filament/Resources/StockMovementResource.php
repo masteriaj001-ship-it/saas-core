@@ -33,6 +33,16 @@ class StockMovementResource extends Resource
         return 'Inventario';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Movimiento de Inventario';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Movimientos de Inventario';
+    }
+
     public static function canCreate(): bool
     {
         return false;

@@ -42,6 +42,16 @@ class TransactionResource extends Resource
         return 'Facturación';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Transacción';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Transacciones';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

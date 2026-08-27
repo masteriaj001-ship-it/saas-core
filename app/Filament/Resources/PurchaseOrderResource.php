@@ -48,6 +48,16 @@ class PurchaseOrderResource extends Resource
         return 'Inventario';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Orden de Compra';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Órdenes de Compra';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

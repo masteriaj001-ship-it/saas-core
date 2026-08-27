@@ -51,6 +51,16 @@ class ItemResource extends Resource
         return 'Gestión';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Repuesto/Insumo';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Repuestos/Insumos';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

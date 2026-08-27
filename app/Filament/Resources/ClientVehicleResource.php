@@ -39,7 +39,7 @@ class ClientVehicleResource extends Resource
 
     public static function getPluralModelLabel(): string
     {
-        return 'Vehículos';
+        return 'Vehículos del Cliente';
     }
 
     public static function getNavigationLabel(): string

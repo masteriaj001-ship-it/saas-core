@@ -41,6 +41,16 @@ class LocationResource extends Resource
         return 'Configuración';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Ubicación';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Ubicaciones';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

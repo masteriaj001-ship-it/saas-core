@@ -33,6 +33,16 @@ class CreditTransactionResource extends Resource
         return 'Facturación';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Transacción de Crédito';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Transacciones de Crédito';
+    }
+
     public static function table(Table $table): Table
     {
         return $table

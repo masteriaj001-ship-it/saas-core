@@ -17,6 +17,7 @@ use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
@@ -41,6 +42,16 @@ class PriceListResource extends Resource
         return 'Inventario';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Lista de Precios';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Listas de Precios';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema
@@ -59,9 +70,8 @@ class PriceListResource extends Resource
                 Section::make(__('Configuración'))
                     ->columns(2)
                     ->schema([
-                        TextInput::make('is_default')
-                            ->label(__('Por Defecto'))
-                            ->boolean(),
+                        Toggle::make('is_default')
+                            ->label(__('Por Defecto')),
                     ]),
                 Section::make(__('Metadatos'))
                     ->schema([

@@ -39,6 +39,16 @@ class BudgetResource extends Resource
         return 'Gestión';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Presupuesto';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Presupuestos';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

@@ -41,6 +41,16 @@ class WorkshopBayResource extends Resource
         return 'Talleres';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Bahía';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Bahías';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

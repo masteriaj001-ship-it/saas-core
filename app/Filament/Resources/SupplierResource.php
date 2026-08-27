@@ -41,6 +41,16 @@ class SupplierResource extends Resource
         return 'Inventario';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Proveedor';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Proveedores';
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema

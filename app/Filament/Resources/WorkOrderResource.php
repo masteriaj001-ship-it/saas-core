@@ -57,6 +57,16 @@ class WorkOrderResource extends Resource
         return 'Gestión';
     }
 
+    public static function getModelLabel(): string
+    {
+        return 'Orden de Trabajo';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Órdenes de Trabajo';
+    }
+
     public static function step1Schema(): array
     {
         return [

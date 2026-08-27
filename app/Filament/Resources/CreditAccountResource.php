@@ -18,6 +18,7 @@ use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -42,6 +43,16 @@ class CreditAccountResource extends Resource
     public static function getNavigationGroup(): ?string
     {
         return 'Facturación';
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'Cuenta de Crédito';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'Cuentas de Crédito';
     }
 
     public static function form(Schema $schema): Schema
@@ -81,9 +92,8 @@ class CreditAccountResource extends Resource
                     ]),
                 Section::make(__('Estado'))
                     ->schema([
-                        TextInput::make('is_active')
+                        Toggle::make('is_active')
                             ->label(__('Activo'))
-                            ->boolean()
                             ->default(true),
                     ]),
                 Section::make(__('Notas'))
