@@ -16,7 +16,7 @@ class EditAsset extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->visible(fn (): bool => auth()->user()->can('delete_assets')),
+                ->visible(fn (): bool => auth()->user()?->can('delete_assets') ?? false),
         ];
     }
 }

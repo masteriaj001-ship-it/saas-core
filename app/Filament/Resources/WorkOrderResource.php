@@ -650,14 +650,14 @@ class WorkOrderResource extends Resource
             ])
             ->actions([
                 EditAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('edit_work_orders')),
+                    ->visible(fn (): bool => auth()->user()?->can('edit_work_orders') ?? false),
                 DeleteAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('delete_work_orders')),
+                    ->visible(fn (): bool => auth()->user()?->can('delete_work_orders') ?? false),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn (): bool => auth()->user()->can('delete_work_orders')),
+                        ->visible(fn (): bool => auth()->user()?->can('delete_work_orders') ?? false),
                 ]),
             ]);
     }

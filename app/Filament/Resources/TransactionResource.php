@@ -210,16 +210,16 @@ class TransactionResource extends Resource
             ])
             ->actions([
                 EditAction::make()
-                    ->visible(fn (Transaction $record): bool => auth()->user()->can('edit_transactions') && $record->canEdit()
+                    ->visible(fn (Transaction $record): bool => (auth()->user()?->can('edit_transactions') ?? false) && $record->canEdit()
                     ),
                 DeleteAction::make()
-                    ->visible(fn (Transaction $record): bool => auth()->user()->can('delete_transactions') && $record->canEdit()
+                    ->visible(fn (Transaction $record): bool => (auth()->user()?->can('delete_transactions') ?? false) && $record->canEdit()
                     ),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn (): bool => auth()->user()->can('delete_transactions')),
+                        ->visible(fn (): bool => auth()->user()?->can('delete_transactions') ?? false),
                 ]),
             ]);
     }

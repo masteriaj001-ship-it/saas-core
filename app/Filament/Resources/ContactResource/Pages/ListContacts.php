@@ -16,7 +16,7 @@ class ListContacts extends ListRecords
     {
         return [
             CreateAction::make()
-                ->visible(fn (): bool => auth()->user()->can('create_contacts')),
+                ->visible(fn (): bool => auth()->user()?->can('create_contacts') ?? false),
         ];
     }
 }

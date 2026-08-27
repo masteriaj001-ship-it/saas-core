@@ -16,7 +16,7 @@ class ListWorkOrders extends ListRecords
     {
         return [
             CreateAction::make()
-                ->visible(fn (): bool => auth()->user()->can('create_work_orders')),
+                ->visible(fn (): bool => auth()->user()?->can('create_work_orders') ?? false),
         ];
     }
 }

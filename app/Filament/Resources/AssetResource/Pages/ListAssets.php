@@ -16,7 +16,7 @@ class ListAssets extends ListRecords
     {
         return [
             CreateAction::make()
-                ->visible(fn (): bool => auth()->user()->can('create_assets')),
+                ->visible(fn (): bool => auth()->user()?->can('create_assets') ?? false),
         ];
     }
 }

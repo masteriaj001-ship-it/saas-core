@@ -16,7 +16,7 @@ class EditWarehouse extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->visible(fn (): bool => auth()->user()->can('delete_warehouses')),
+                ->visible(fn (): bool => auth()->user()?->can('delete_warehouses') ?? false),
         ];
     }
 }

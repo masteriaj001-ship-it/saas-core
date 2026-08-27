@@ -16,7 +16,7 @@ class ListWarehouses extends ListRecords
     {
         return [
             CreateAction::make()
-                ->visible(fn (): bool => auth()->user()->can('create_warehouses')),
+                ->visible(fn (): bool => auth()->user()?->can('create_warehouses') ?? false),
         ];
     }
 }

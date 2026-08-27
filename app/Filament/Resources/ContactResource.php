@@ -197,14 +197,14 @@ class ContactResource extends Resource
             ])
             ->actions([
                 EditAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('edit_contacts')),
+                    ->visible(fn (): bool => auth()->user()?->can('edit_contacts') ?? false),
                 DeleteAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('delete_contacts')),
+                    ->visible(fn (): bool => auth()->user()?->can('delete_contacts') ?? false),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn (): bool => auth()->user()->can('delete_contacts')),
+                        ->visible(fn (): bool => auth()->user()?->can('delete_contacts') ?? false),
                 ]),
             ]);
     }

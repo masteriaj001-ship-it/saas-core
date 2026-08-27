@@ -16,7 +16,7 @@ class ListItems extends ListRecords
     {
         return [
             CreateAction::make()
-                ->visible(fn (): bool => auth()->user()->can('create_items')),
+                ->visible(fn (): bool => auth()->user()?->can('create_items') ?? false),
         ];
     }
 }

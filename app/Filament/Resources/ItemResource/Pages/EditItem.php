@@ -16,7 +16,7 @@ class EditItem extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->visible(fn (): bool => auth()->user()->can('delete_items')),
+                ->visible(fn (): bool => auth()->user()?->can('delete_items') ?? false),
         ];
     }
 }

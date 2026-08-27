@@ -16,7 +16,7 @@ class EditContact extends EditRecord
     {
         return [
             DeleteAction::make()
-                ->visible(fn (): bool => auth()->user()->can('delete_contacts')),
+                ->visible(fn (): bool => auth()->user()?->can('delete_contacts') ?? false),
         ];
     }
 }

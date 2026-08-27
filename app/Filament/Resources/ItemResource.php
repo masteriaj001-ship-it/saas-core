@@ -260,16 +260,16 @@ class ItemResource extends Resource
                                 ->send();
                         }
                     })
-                    ->visible(fn (): bool => auth()->user()->can('edit_items')),
+                    ->visible(fn (): bool => auth()->user()?->can('edit_items') ?? false ?? false),
                 EditAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('edit_items')),
+                    ->visible(fn (): bool => auth()->user()?->can('edit_items') ?? false ?? false),
                 DeleteAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('delete_items')),
+                    ->visible(fn (): bool => auth()->user()?->can('delete_items') ?? false ?? false),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn (): bool => auth()->user()->can('delete_items')),
+                        ->visible(fn (): bool => auth()->user()?->can('delete_items') ?? false ?? false),
                 ]),
             ]);
     }

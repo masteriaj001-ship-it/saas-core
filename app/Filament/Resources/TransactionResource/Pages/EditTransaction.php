@@ -23,7 +23,7 @@ class EditTransaction extends EditRecord
                 ->label('Emitir')
                 ->icon('heroicon-o-check-circle')
                 ->color('success')
-                ->visible(fn (Transaction $record): bool => auth()->user()->can('edit_transactions') && $record->canIssue()
+                ->visible(fn (Transaction $record): bool => (auth()->user()?->can('edit_transactions') ?? false) && $record->canIssue()
                 )
                 ->requiresConfirmation()
                 ->action(function (Transaction $record) {
@@ -38,7 +38,7 @@ class EditTransaction extends EditRecord
                 ->label('Anular')
                 ->icon('heroicon-o-x-circle')
                 ->color('danger')
-                ->visible(fn (Transaction $record): bool => auth()->user()->can('edit_transactions') && $record->canCancel()
+                ->visible(fn (Transaction $record): bool => (auth()->user()?->can('edit_transactions') ?? false) && $record->canCancel()
                 )
                 ->requiresConfirmation()
                 ->action(function (Transaction $record) {
@@ -50,7 +50,7 @@ class EditTransaction extends EditRecord
                     $this->refreshFormData(['status', 'cufe']);
                 }),
             DeleteAction::make()
-                ->visible(fn (Transaction $record): bool => auth()->user()->can('delete_transactions') && $record->canEdit()
+                ->visible(fn (Transaction $record): bool => (auth()->user()?->can('delete_transactions') ?? false) && $record->canEdit()
                 ),
         ];
     }

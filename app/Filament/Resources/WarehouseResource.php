@@ -195,7 +195,7 @@ class WarehouseResource extends Resource
                                 ->send();
                         }
                     })
-                    ->visible(fn (): bool => auth()->user()->can('edit_warehouses')),
+                    ->visible(fn (): bool => auth()->user()?->can('edit_warehouses') ?? false),
                 Action::make('adjustStock')
                     ->label(__('Ajustar Stock'))
                     ->icon('heroicon-o-arrow-path')
@@ -263,16 +263,16 @@ class WarehouseResource extends Resource
                                 ->send();
                         }
                     })
-                    ->visible(fn (): bool => auth()->user()->can('edit_warehouses')),
+                    ->visible(fn (): bool => auth()->user()?->can('edit_warehouses') ?? false),
                 EditAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('edit_warehouses')),
+                    ->visible(fn (): bool => auth()->user()?->can('edit_warehouses') ?? false),
                 DeleteAction::make()
-                    ->visible(fn (): bool => auth()->user()->can('delete_warehouses')),
+                    ->visible(fn (): bool => auth()->user()?->can('delete_warehouses') ?? false),
             ])
             ->bulkActions([
                 BulkActionGroup::make([
                     DeleteBulkAction::make()
-                        ->visible(fn (): bool => auth()->user()->can('delete_warehouses')),
+                        ->visible(fn (): bool => auth()->user()?->can('delete_warehouses') ?? false),
                 ]),
             ]);
     }

@@ -16,7 +16,7 @@ class ListTransactions extends ListRecords
     {
         return [
             CreateAction::make()
-                ->visible(fn (): bool => auth()->user()->can('create_transactions')),
+                ->visible(fn (): bool => auth()->user()?->can('create_transactions') ?? false),
         ];
     }
 }
