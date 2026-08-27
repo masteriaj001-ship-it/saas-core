@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\PurchaseOrderResource\RelationManagers;
 
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\Section;
+use Filament\Schemas\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
