@@ -31,12 +31,12 @@ class BudgetResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Presupuestos');
+        return 'Presupuestos';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Gestión');
+        return 'Gestión';
     }
 
     public static function form(Schema $schema): Schema

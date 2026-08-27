@@ -33,12 +33,12 @@ class LocationResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Ubicaciones');
+        return 'Ubicaciones';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Configuración');
+        return 'Configuración';
     }
 
     public static function form(Schema $schema): Schema

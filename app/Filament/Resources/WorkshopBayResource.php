@@ -33,12 +33,12 @@ class WorkshopBayResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Bahías');
+        return 'Bahías';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Talleres');
+        return 'Talleres';
     }
 
     public static function form(Schema $schema): Schema

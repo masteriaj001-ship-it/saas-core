@@ -34,22 +34,22 @@ class AssetResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('Activo');
+        return 'Activo';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Activos');
+        return 'Activos';
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('Activos');
+        return 'Activos';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Gestión');
+        return 'Gestión';
     }
 
     public static function form(Schema $schema): Schema

@@ -36,12 +36,12 @@ class CreditAccountResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Cuentas de Crédito');
+        return 'Cuentas de Crédito';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Facturación');
+        return 'Facturación';
     }
 
     public static function form(Schema $schema): Schema

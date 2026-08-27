@@ -33,12 +33,12 @@ class PriceListResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Listas de Precios');
+        return 'Listas de Precios';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Inventario');
+        return 'Inventario';
     }
 
     public static function form(Schema $schema): Schema

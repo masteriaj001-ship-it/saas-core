@@ -49,12 +49,12 @@ class WorkOrderResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Órdenes de Trabajo');
+        return 'Órdenes de Trabajo';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Gestión');
+        return 'Gestión';
     }
 
     public static function step1Schema(): array
@@ -158,7 +158,7 @@ class WorkOrderResource extends Resource
                                 ->first();
 
                             if (! $vehicle) {
-                                return __('(sin nombre)');
+                                return '(sin nombre)';
                             }
 
                             return static::formatClientVehicleLabel($vehicle);

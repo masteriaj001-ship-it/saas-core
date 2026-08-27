@@ -34,17 +34,17 @@ class ClientVehicleResource extends Resource
 
     public static function getModelLabel(): string
     {
-        return __('Vehículo del Cliente');
+        return 'Vehículo del Cliente';
     }
 
     public static function getPluralModelLabel(): string
     {
-        return __('Vehículos');
+        return 'Vehículos';
     }
 
     public static function getNavigationLabel(): string
     {
-        return __('Vehículos');
+        return 'Vehículos';
     }
 
     public static function form(Schema $schema): Schema

@@ -43,12 +43,12 @@ class ItemResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Repuestos/Insumos');
+        return 'Repuestos/Insumos';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Gestión');
+        return 'Gestión';
     }
 
     public static function form(Schema $schema): Schema

@@ -33,12 +33,12 @@ class SupplierResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Proveedores');
+        return 'Proveedores';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Inventario');
+        return 'Inventario';
     }
 
     public static function form(Schema $schema): Schema

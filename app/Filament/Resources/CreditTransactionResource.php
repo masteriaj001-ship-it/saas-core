@@ -25,12 +25,12 @@ class CreditTransactionResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Transacciones de Crédito');
+        return 'Transacciones de Crédito';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Facturación');
+        return 'Facturación';
     }
 
     public static function table(Table $table): Table

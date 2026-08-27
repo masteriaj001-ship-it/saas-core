@@ -36,12 +36,12 @@ class ContactResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Contactos');
+        return 'Contactos';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Gestión');
+        return 'Gestión';
     }
 
     public static function form(Schema $schema): Schema

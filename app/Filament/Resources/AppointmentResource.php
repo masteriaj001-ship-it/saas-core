@@ -36,12 +36,12 @@ class AppointmentResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Citas');
+        return 'Citas';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Talleres');
+        return 'Talleres';
     }
 
     public static function form(Schema $schema): Schema

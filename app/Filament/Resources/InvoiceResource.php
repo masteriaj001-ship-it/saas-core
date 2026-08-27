@@ -39,12 +39,12 @@ class InvoiceResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Facturas');
+        return 'Facturas';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Facturación');
+        return 'Facturación';
     }
 
     public static function form(Schema $schema): Schema

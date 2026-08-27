@@ -25,12 +25,12 @@ class StockMovementResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Movimientos de Inventario');
+        return 'Movimientos de Inventario';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Inventario');
+        return 'Inventario';
     }
 
     public static function canCreate(): bool

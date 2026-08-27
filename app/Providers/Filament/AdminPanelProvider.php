@@ -38,6 +38,7 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
+            ->locale('es')
             ->darkMode(true, isForced: true)
             ->sidebarCollapsibleOnDesktop()
             ->maxContentWidth(Width::Full)

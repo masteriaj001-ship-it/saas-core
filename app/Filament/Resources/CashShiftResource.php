@@ -27,12 +27,12 @@ class CashShiftResource extends Resource
 
     public static function getNavigationLabel(): string
     {
-        return __('Turnos de Caja');
+        return 'Turnos de Caja';
     }
 
     public static function getNavigationGroup(): ?string
     {
-        return __('Caja');
+        return 'Caja';
     }
 
     public static function form(Schema $schema): Schema
