@@ -1,8 +1,7 @@
 # FEATURE SPEC — Inventario / Stock Inteligente
 
-> Estado: **PENDIENTE** — Spec cerrado, esperando ejecución
-> Fecha: 2026-08-21
-> Prioridad: Crítica para piloto
+> Estado: **PARCIALMENTE COMPLETADO** — Phase 1 Core Operativo (2026-08-27)
+> Faltante: UI unificada ItemsRelationManager, eliminación tipo service, migración datos
 
 ---
 

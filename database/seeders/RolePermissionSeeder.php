@@ -18,7 +18,7 @@ class RolePermissionSeeder extends Seeder
             'work_orders', 'assets', 'items', 'contacts', 'transactions',
             'invoices', 'budgets', 'budget_items', 'locations', 'service_catalogs',
             'work_order_checklist_items', 'document_sequences', 'sms_codes',
-            'warehouses', 'stock_movements',
+            'warehouses', 'stock_movements', 'credit_accounts', 'credit_transactions',
         ];
 
         $actions = ['view', 'create', 'edit', 'delete'];

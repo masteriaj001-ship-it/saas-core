@@ -23,10 +23,13 @@ class Item extends TenantModel
         'unit',
         'price',
         'cost',
+        'average_cost',
         'stock',
         'min_stock',
         'default_warehouse_id',
         'metadata',
+        'created_by',
+        'updated_by',
     ];
 
     protected function casts(): array
@@ -34,6 +37,7 @@ class Item extends TenantModel
         return array_merge(parent::casts(), [
             'price' => 'decimal:2',
             'cost' => 'decimal:2',
+            'average_cost' => 'decimal:2',
             'stock' => 'integer',
             'min_stock' => 'integer',
             'metadata' => 'array',

@@ -6,6 +6,7 @@ namespace App\Modules\Facturacion\Models;
 
 use App\Enums\InvoiceDocumentTypeEnum;
 use App\Enums\InvoiceStatusEnum;
+use App\Enums\PaymentMethodEnum;
 use App\Models\Contact;
 use App\Models\TenantModel;
 use App\Modules\Talleres\Models\WorkOrder;
@@ -26,12 +27,14 @@ class Invoice extends TenantModel
     protected $fillable = [
         'work_order_id',
         'contact_id',
+        'credit_account_id',
         'document_type',
         'prefix',
         'sequence',
         'pos_sequence',
         'document_number',
         'status',
+        'payment_method',
         'issued_at',
         'due_at',
         'subtotal',
@@ -48,6 +51,7 @@ class Invoice extends TenantModel
         return array_merge(parent::casts(), [
             'document_type' => InvoiceDocumentTypeEnum::class,
             'status' => InvoiceStatusEnum::class,
+            'payment_method' => PaymentMethodEnum::class,
             'issued_at' => 'datetime',
             'due_at' => 'datetime',
             'subtotal' => 'decimal:2',
@@ -65,6 +69,11 @@ class Invoice extends TenantModel
     public function contact(): BelongsTo
     {
         return $this->belongsTo(Contact::class);
+    }
+
+    public function creditAccount(): BelongsTo
+    {
+        return $this->belongsTo(CreditAccount::class);
     }
 
     public function items(): HasMany

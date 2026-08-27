@@ -29,6 +29,8 @@ class WorkOrderItem extends TenantModel
         'description',
         'metadata',
         'type',
+        'stock_movement_id',
+        'unit_cost_at_sale',
     ];
 
     protected function casts(): array
@@ -36,6 +38,7 @@ class WorkOrderItem extends TenantModel
         return array_merge(parent::casts(), [
             'quantity' => 'decimal:4',
             'unit_price' => 'decimal:4',
+            'unit_cost_at_sale' => 'decimal:2',
             'metadata' => 'array',
             'type' => WorkOrderItemTypeEnum::class,
         ]);

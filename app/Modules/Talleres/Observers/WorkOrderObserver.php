@@ -7,6 +7,7 @@ namespace App\Modules\Talleres\Observers;
 use App\Enums\WorkOrderActivityTypeEnum;
 use App\Enums\WorkOrderStatusEnum;
 use App\Models\User;
+use App\Modules\Inventario\Services\StockConsumptionService;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Notifications\WorkOrderApprovedNotification;
 use App\Modules\Talleres\Notifications\WorkOrderRejectedNotification;
@@ -38,6 +39,20 @@ class WorkOrderObserver
         app(WorkOrderWebhookService::class)->dispatch($workOrder, 'status_changed');
 
         $this->dispatchApprovalNotifications($workOrder, $originalStatus);
+        $this->consumeStockOnCompletion($workOrder, $originalStatus);
+    }
+
+    private function consumeStockOnCompletion(WorkOrder $workOrder, ?WorkOrderStatusEnum $originalStatus): void
+    {
+        if ($workOrder->status !== WorkOrderStatusEnum::Completed) {
+            return;
+        }
+
+        if ($originalStatus === WorkOrderStatusEnum::Completed) {
+            return;
+        }
+
+        app(StockConsumptionService::class)->consumeForWorkOrder($workOrder);
     }
 
     private function dispatchApprovalNotifications(WorkOrder $workOrder, ?WorkOrderStatusEnum $originalStatus): void

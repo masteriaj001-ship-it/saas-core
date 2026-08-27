@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.89 | **Status:** active_development | **Updated:** 2026-08-26
+> **Version:** 1.1.91 | **Status:** active_development | **Updated:** 2026-08-28
 
 ## Stack
 
@@ -297,6 +297,46 @@
   - 3 tests unitarios del LoginResponse
 - **Notes:** Decisión: user_type field en vez de usar Spatie 'viewer' como proxy. Evita mezclar permisos con tipo de usuario.
 
+### core_operativo_phase1
+
+- **Status:** implemented
+- **Last check:** 2026-08-27
+- **Features:**
+  - 11 migrations: suppliers, purchase_orders, purchase_order_items, item_cost_histories, workshop_bays, price_lists, price_list_items, appointments + modify items/work_orders/work_order_items
+  - 2 enums: PurchaseStatus, AppointmentStatus
+  - 8 models: Supplier, PurchaseOrder, PurchaseOrderItem, ItemCostHistory, WorkshopBay, Appointment, PriceList, PriceListItem
+  - 7 factories with states (draft, ordered, partial, received, cancelled)
+  - 5 services: StockMovementService, CostingService, PurchaseService, StockConsumptionService, LowStockAlertService
+  - 3 observers: PurchaseOrderObserver (auto code), StockMovementObserver (low stock alerts), WorkOrderObserver (stock consumption on WO complete)
+  - 1 notification: LowStockNotification (queued, mail)
+  - 6 Filament Resources: SupplierResource, PurchaseOrderResource (with ItemsRelationManager + Recibir action), StockMovementResource (read-only), WorkshopBayResource, AppointmentResource (with AppointmentCalendar page), PriceListResource (with ItemsRelationManager)
+  - 5 Policies: SupplierPolicy, PurchaseOrderPolicy, WorkshopBayPolicy, AppointmentPolicy, PriceListPolicy
+  - 1 Artisan command: inventory:check-low-stock
+  - 25+ tests across SupplierTest, PurchaseOrderTest, CostingServiceTest, StockConsumptionOnCompleteTest, StockMovementResourceTest, CheckLowStockCommandTest, AppointmentTest, WorkshopBayTest
+  - Laravel 13 compatibility: public $timestamps on models, newFactory() override on factories, explicit $model on factories
+- **Notes:** Phase 1 Core Operativo completo. 547/547 tests green. Covers suppliers, purchasing with CMP, stock consumption on WO completion, workshop bays, appointments with calendar, price lists, low stock alerts.
+
+### credit_accounts
+
+- **Status:** implemented
+- **Last check:** 2026-08-28
+- **Features:**
+  - 3 migrations: credit_accounts, credit_transactions, add credit_account_id to invoices
+  - 2 models: CreditAccount, CreditTransaction (both with BelongsToTenant, HasFactory, newFactory() override)
+  - Invoice model updated: credit_account_id added to $fillable, payment_method cast, creditAccount() relationship
+  - CreditAccountService: charge, payment, reverseCharge, recalculateBalance, getOrCreateForContact
+  - CreditReportService: getStatement, getOverdueAccounts, getAgingReport
+  - CreditLimitExceededException with context (contact, balance, amount, limit)
+  - InvoiceObserver: detects draft→issued/paid with credit method → creates charge; cancelled → reverses charge
+  - OverdueCreditNotification (queued, mail) for overdue accounts
+  - CheckOverdueCreditsCommand (credit:check-overdue with --tenant filter)
+  - 2 Filament Resources: CreditAccountResource (CRUD + Registrar Pago action), CreditTransactionResource (read-only)
+  - 2 Factories: CreditAccountFactory (states: inactive, withBalance, noLimit), CreditTransactionFactory (states: charge, payment, chargeReverse, overdue, paid)
+  - 17 tests: CreditAccountTest (CRUD, relationships, overdue, limits, payments, reversals, statements, aging, commands)
+  - RLS enabled on credit_accounts and credit_transactions
+  - GENERATED STORED available_credit on credit_accounts (PostgreSQL)
+- **Notes:** Phase 2 Cartera/Crédito completo. 564/564 tests green. Ledger inmutable, aging report, auto-charge on credit invoice, auto-reverse on cancel.
+
 ### rate_limiting
 
 - **Status:** implemented
@@ -368,11 +408,11 @@
 
 ## Test Suite
 
-- **Total tests:** 517
-- **Passing:** 517
-- **Assertions:** 1174
+- **Total tests:** 564
+- **Passing:** 564
+- **Assertions:** 1256
 - **Status:** green
-- **Last run:** 2026-08-26
+- **Last run:** 2026-08-28
 
 ## Deployment
 
@@ -476,6 +516,8 @@
 - FilamentInfoWidget removed (commit 6d84776): Public repo/docs widget eliminated from AdminPanel (kept only in Superadmin).
 - Duplicate items cleanup (2026-08-22): 8 items with same name but different SKUs cleaned from database via ROW_NUMBER window function in Railway console.
 - QA test suite (commit 7491100): 61 automated tests across 6 files (PosFlowTest, WorkOrderFlowTest, ServiceCatalogTest, ContactFlowTest, ItemStockTest, TenantIsolationTest) + QA_CHECKLIST.md with 80+ manual test steps.
+- Phase 1 Core Operativo (2026-08-27): 11 migrations, 8 models, 5 services, 3 observers, 6 Filament Resources, 5 policies, 25+ new tests. Covers suppliers, purchasing with CMP, stock consumption on WO completion, workshop bays, appointments with calendar, price lists, low stock alerts. Suite 547/547.
+- Phase 2 Cartera/Crédito (2026-08-28): 3 migrations, 2 models, 2 services, 1 observer, 1 notification, 1 command, 2 Filament Resources, 17 new tests. Ledger inmutable, aging report, auto-charge on credit invoice, auto-reverse on cancel, GENERATED STORED available_credit. Suite 564/564.
 
 ## Security Status
 

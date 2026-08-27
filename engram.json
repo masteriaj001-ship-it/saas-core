@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
-  "version": "1.1.89",
-  "last_updated": "2026-08-26",
+  "version": "1.1.91",
+  "last_updated": "2026-08-28",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
