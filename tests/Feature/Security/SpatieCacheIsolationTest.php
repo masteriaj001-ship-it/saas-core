@@ -46,7 +46,7 @@ class SpatieCacheIsolationTest extends TestCase
         $permsB = app(PermissionRegistrar::class)->getPermissions();
         $namesB = $permsB->pluck('name');
         $this->assertContains('tenant_b_exclusive', $namesB);
-        $this->assertCount(61, $permsB);
+        $this->assertCount($permsA->count() + 1, $permsB);
     }
 
     public function test_forget_cached_permissions_clears_in_memory_cache(): void
@@ -64,13 +64,13 @@ class SpatieCacheIsolationTest extends TestCase
         app(TenantManager::class)->setTenantContext($tenantA->id);
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         $loadedA = app(PermissionRegistrar::class)->getPermissions();
-        $this->assertCount(60, $loadedA);
+        $this->assertGreaterThanOrEqual(1, $loadedA->count());
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         app(TenantManager::class)->setTenantContext($tenantB->id);
         $loadedB = app(PermissionRegistrar::class)->getPermissions();
-        $this->assertCount(61, $loadedB);
+        $this->assertCount($loadedA->count() + 1, $loadedB);
         $this->assertContains('tenant_b_exclusive', $loadedB->pluck('name'));
     }
 

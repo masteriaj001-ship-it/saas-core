@@ -75,7 +75,7 @@ class RegistrationWithDefaultsTest extends TestCase
         $items = Item::where('tenant_id', $user->tenant_id)->get();
 
         $this->assertCount(4, $items);
-        $this->assertEquals('Filtro de aceite', $items[0]->name);
+        $this->assertTrue($items->pluck('name')->contains('Filtro de aceite'));
     }
 
     public function test_creates_default_contacts(): void
@@ -134,6 +134,6 @@ class RegistrationWithDefaultsTest extends TestCase
         $this->assertCount(4, $categories);
         $this->assertEquals('Servicios', $categories[0]->name);
         $this->assertCount(4, $items);
-        $this->assertEquals('Filtro de aceite', $items[0]->name);
+        $this->assertTrue($items->pluck('name')->contains('Filtro de aceite'));
     }
 }

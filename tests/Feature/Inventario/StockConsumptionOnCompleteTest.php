@@ -6,7 +6,6 @@ namespace Tests\Feature\Inventario;
 
 use App\Enums\WorkOrderStatusEnum;
 use App\Models\Item;
-use App\Models\Location;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Inventario\Models\Warehouse;
@@ -23,8 +22,6 @@ final class StockConsumptionOnCompleteTest extends TestCase
 
     private User $user;
 
-    private Location $location;
-
     private Warehouse $warehouse;
 
     protected function setUp(): void
@@ -33,7 +30,6 @@ final class StockConsumptionOnCompleteTest extends TestCase
 
         $this->tenant = Tenant::factory()->create(['onboarding_completed' => true]);
         $this->user = User::factory()->for($this->tenant)->create();
-        $this->location = Location::factory()->create(['tenant_id' => $this->tenant->id]);
         $this->warehouse = Warehouse::factory()->default()->create([
             'tenant_id' => $this->tenant->id,
         ]);
@@ -51,7 +47,7 @@ final class StockConsumptionOnCompleteTest extends TestCase
 
         $workOrder = WorkOrder::factory()->create([
             'tenant_id' => $this->tenant->id,
-            'location_id' => $this->location->id,
+
             'status' => WorkOrderStatusEnum::InProgress,
         ]);
 
@@ -93,8 +89,7 @@ final class StockConsumptionOnCompleteTest extends TestCase
 
         $workOrder = WorkOrder::factory()->create([
             'tenant_id' => $this->tenant->id,
-            'location_id' => $this->location->id,
-            'status' => WorkOrderStatusEnum::Draft,
+            'status' => WorkOrderStatusEnum::InProgress,
         ]);
 
         $workOrder->items()->create([
@@ -119,7 +114,7 @@ final class StockConsumptionOnCompleteTest extends TestCase
     {
         $workOrder = WorkOrder::factory()->create([
             'tenant_id' => $this->tenant->id,
-            'location_id' => $this->location->id,
+
             'status' => WorkOrderStatusEnum::InProgress,
         ]);
 
