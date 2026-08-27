@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Modules\Talleres\Models;
 
 use App\Models\Contact;
+use App\Models\Location;
 use App\Models\TenantModel;
 use App\Models\User;
 use App\Modules\Talleres\Enums\AppointmentStatus;
