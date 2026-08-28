@@ -1,3 +1,4 @@
+<x-filament-panels::page>
 <div class="space-y-6">
     {{-- Header --}}
     <div class="flex items-center justify-between">
@@ -225,3 +226,4 @@
         @endif
     @endif
 </div>
+</x-filament-panels::page>
