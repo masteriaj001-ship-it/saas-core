@@ -8,18 +8,11 @@ use App\Modules\Caja\Models\CashMovement;
 use App\Modules\Caja\Models\CashShift;
 use App\Modules\Caja\Services\CashMovementService;
 use Filament\Facades\Filament;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Forms\Contracts\HasForms;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Filament\Schemas\Schema;
 
-class CajaPage extends Page implements HasForms
+class CajaPage extends Page
 {
-    use InteractsWithForms;
-
     protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-currency-dollar';
 
     protected static string|\UnitEnum|null $navigationGroup = 'Caja';
@@ -113,8 +106,6 @@ class CajaPage extends Page implements HasForms
 
     public function openShift(): void
     {
-        $data = $this->form->getState();
-
         if ($this->currentShift) {
             Notification::make()
                 ->title(__('Ya existe un turno abierto'))
@@ -124,9 +115,18 @@ class CajaPage extends Page implements HasForms
             return;
         }
 
+        if ($this->initialAmount === null || $this->initialAmount <= 0) {
+            Notification::make()
+                ->title(__('Ingresa un monto inicial válido'))
+                ->danger()
+                ->send();
+
+            return;
+        }
+
         try {
             $user = auth()->user();
-            CashMovementService::openShift($user, $data['initial_amount']);
+            CashMovementService::openShift($user, $this->initialAmount);
 
             $this->initialAmount = null;
             $this->loadData();
@@ -195,9 +195,7 @@ class CajaPage extends Page implements HasForms
             return;
         }
 
-        $data = $this->form->getState();
-
-        if (empty($data['expense_description']) || empty($data['expense_amount']) || $data['expense_amount'] <= 0) {
+        if (empty($this->expenseDescription) || $this->expenseAmount === null || $this->expenseAmount <= 0) {
             Notification::make()
                 ->title(__('Ingresa descripción y monto válido'))
                 ->danger()
@@ -211,12 +209,12 @@ class CajaPage extends Page implements HasForms
             'shift_id' => $this->currentShift->id,
             'type' => 'expense',
             'payment_method' => 'cash',
-            'amount' => $data['expense_amount'],
-            'description' => $data['expense_description'],
+            'amount' => $this->expenseAmount,
+            'description' => $this->expenseDescription,
             'created_by' => auth()->id(),
         ]);
 
-        $this->currentShift->subtractExpectedCash($data['expense_amount']);
+        $this->currentShift->subtractExpectedCash($this->expenseAmount);
 
         $this->expenseDescription = null;
         $this->expenseAmount = null;
@@ -226,38 +224,5 @@ class CajaPage extends Page implements HasForms
             ->title(__('Gasto registrado'))
             ->success()
             ->send();
-    }
-
-    public function form(Schema $form): Schema
-    {
-        return $form
-            ->schema([
-                TextInput::make('initial_amount')
-                    ->label(__('Monto Inicial'))
-                    ->numeric()
-                    ->required()
-                    ->minValue(0)
-                    ->suffix('$'),
-                TextInput::make('actual_cash')
-                    ->label(__('Efectivo Contado'))
-                    ->numeric()
-                    ->required()
-                    ->minValue(0)
-                    ->suffix('$')
-                    ->live(onBlur: true)
-                    ->afterStateUpdated(fn ($state) => $this->calculateDifference()),
-                Textarea::make('close_notes')
-                    ->label(__('Notas de Cierre'))
-                    ->rows(2),
-                TextInput::make('expense_description')
-                    ->label(__('Descripción del Gasto'))
-                    ->required(),
-                TextInput::make('expense_amount')
-                    ->label(__('Monto del Gasto'))
-                    ->numeric()
-                    ->required()
-                    ->minValue(0)
-                    ->suffix('$'),
-            ]);
     }
 }

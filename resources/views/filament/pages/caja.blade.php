@@ -1,4 +1,3 @@
-<x-filament-panels::page>
 <div class="space-y-6">
     {{-- Header --}}
     <div class="flex items-center justify-between">
@@ -34,7 +33,10 @@
             </div>
 
             <form wire:submit="openShift" class="space-y-4">
-                {{ $this->form }}
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-blue-800 dark:text-blue-200">{{ __('Monto Inicial') }}</label>
+                    <input type="number" wire:model="initialAmount" min="0" step="100" required class="w-full rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-blue-700 dark:bg-gray-700 dark:text-white" placeholder="0" />
+                </div>
 
                 <div class="flex justify-end">
                     <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
@@ -145,7 +147,7 @@
                 <form wire:submit="closeShift" class="space-y-4">
                     <div>
                         <label class="mb-1 block text-sm font-medium text-yellow-800 dark:text-yellow-200">{{ __('Efectivo Contado Físicamente') }}</label>
-                        <input type="number" wire:model.live="actualCash" min="0" step="100" class="w-full rounded-lg border border-yellow-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500 dark:border-yellow-700 dark:bg-gray-700 dark:text-white" placeholder="0" />
+                        <input type="number" wire:model.live="actualCash" wire:change="calculateDifference" min="0" step="100" class="w-full rounded-lg border border-yellow-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-yellow-500 focus:outline-none focus:ring-1 focus:ring-yellow-500 dark:border-yellow-700 dark:bg-gray-700 dark:text-white" placeholder="0" />
                     </div>
 
                     @if($difference !== null)
@@ -226,4 +228,3 @@
         @endif
     @endif
 </div>
-</x-filament-panels::page>
