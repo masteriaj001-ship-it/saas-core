@@ -7,6 +7,7 @@ namespace App\Filament\Pages\Caja;
 use App\Modules\Caja\Models\CashMovement;
 use App\Modules\Caja\Models\CashShift;
 use App\Modules\Caja\Services\CashMovementService;
+use Filament\Facades\Filament;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Concerns\InteractsWithForms;
@@ -56,7 +57,7 @@ class CajaPage extends Page implements HasForms
 
     public function loadData(): void
     {
-        $tenant = \Filament::getTenant();
+        $tenant = Filament::getTenant();
 
         $this->currentShift = CashShift::where('tenant_id', $tenant->id)
             ->where('status', 'open')
