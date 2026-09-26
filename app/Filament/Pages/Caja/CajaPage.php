@@ -13,7 +13,7 @@ use Filament\Pages\Page;
 
 class CajaPage extends Page
 {
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-currency-dollar';
+    protected static string|\BackedEnum|null $navigationIcon = null;
 
     protected static string|\UnitEnum|null $navigationGroup = 'Caja';
 
