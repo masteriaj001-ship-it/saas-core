@@ -43,6 +43,9 @@ services:
     name: saas-core-redis
     region: frankfurt
     plan: free
+    ipAllowList:
+      - action: allow
+        value: 0.0.0.0/0
 
 databases:
   - name: saas-core-db
