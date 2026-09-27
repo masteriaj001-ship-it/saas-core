@@ -1,0 +1,67 @@
+services:
+  # Web Service (Laravel app)
+  - type: web
+    name: saas-core
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    region: frankfurt
+    plan: free
+    autoDeploy: true
+    healthCheckPath: /
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: LOG_CHANNEL
+        value: stack
+      - key: SESSION_DRIVER
+        value: database
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: FILESYSTEM_DISK
+        value: s3
+      - key: REDIS_CLIENT
+        value: phpredis
+      # App Key - genera con: php artisan key:generate --show
+      - key: APP_KEY
+        sync: false
+      # S3 (Tigris compatible) - configura después en Render dashboard
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_DEFAULT_REGION
+        value: auto
+      - key: AWS_BUCKET
+        sync: false
+      - key: AWS_USE_PATH_STYLE_ENDPOINT
+        value: "true"
+      - key: AWS_ENDPOINT
+        value: https://fly.storage.tigris.dev
+
+  # PostgreSQL Database (90 days free)
+  - type: pserv
+    name: saas-core-db
+    region: frankfurt
+    plan: free
+    postgresMajorVersion: "16"
+
+  # Redis (free)
+  - type: redis
+    name: saas-core-redis
+    region: frankfurt
+    plan: free
+    redisMajorVersion: "7"
+
+databases:
+  - name: saas-core-db
+    databaseName: saas_core
+    user: saas_core
+
+# Link database and redis to web service via environment variables
+# Render inyectará automáticamente:
+# - DATABASE_URL (desde saas-core-db)
+# - REDIS_URL (desde saas-core-redis)
