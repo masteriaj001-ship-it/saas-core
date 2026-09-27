@@ -50,4 +50,4 @@ databases:
     user: saas_core
     region: frankfurt
     plan: free
-    postgresMajorVersion: "16"
+    postgresMajorVersion: "16"   
