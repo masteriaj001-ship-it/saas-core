@@ -22,7 +22,7 @@ php artisan storage:link >/dev/null 2>&1 || true
 
 php artisan package:discover --ansi || true
 
-php artisan migrate --force
+php docker/migrate.php
 
 php artisan livewire:publish --assets 2>/dev/null || true
 
