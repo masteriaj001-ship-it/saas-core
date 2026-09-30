@@ -130,6 +130,45 @@ class RegistrationTest extends TestCase
         $response->assertSessionHasErrors('email');
     }
 
+    public function test_registration_fails_with_duplicate_email_without_tenant_context(): void
+    {
+        $tenant = Tenant::factory()->create();
+        app(TenantManager::class)->setTenantContext($tenant->id);
+        $this->seed(RolePermissionSeeder::class);
+
+        User::factory()->create([
+            'email' => 'taken@example.com',
+        ]);
+
+        app(TenantManager::class)->clearTenantContext();
+
+        $response = $this->post(route('register'), [
+            'name' => 'No Context User',
+            'business_name' => 'No Context Business',
+            'email' => 'taken@example.com',
+            'password' => 'SecurePass1!',
+            'password_confirmation' => 'SecurePass1!',
+        ]);
+
+        $response->assertSessionHasErrors('email');
+    }
+
+    public function test_registration_succeeds_without_tenant_context(): void
+    {
+        $response = $this->post(route('register'), [
+            'name' => 'Fresh User',
+            'business_name' => 'Fresh Business',
+            'email' => 'fresh@example.com',
+            'password' => 'SecurePass1!',
+            'password_confirmation' => 'SecurePass1!',
+        ]);
+
+        $response->assertRedirect('/admin');
+        $this->assertDatabaseHas('users', [
+            'email' => 'fresh@example.com',
+        ]);
+    }
+
     public function test_registration_fails_with_weak_password(): void
     {
         $response = $this->post(route('register'), [
