@@ -93,7 +93,7 @@ class CajaPage extends Page
             'turno_abierto' => true,
             'tiempo_abierto' => now()->diffForHumans($this->currentShift->opened_at),
             'abierto_por' => $this->currentShift->openedBy?->name ?? '---',
-            'monto_inicial' => number_format($this->currentShift->initial_amount, 2, ',', '.'),
+            'monto_inicial' => number_format((float) $this->currentShift->initial_amount, 2, ',', '.'),
             'ventas_totales' => number_format($totalSales, 2, ',', '.'),
             'gastos' => number_format($totalExpenses, 2, ',', '.'),
             'efectivo' => number_format($cashSales, 2, ',', '.'),
