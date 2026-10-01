@@ -13,6 +13,8 @@
 | GAP-003 | Jobs no establecen contexto de tenant | ✅ Fix aplicado | BelongsToTenantJob trait + SetTenantContextForJob middleware |
 | GAP-004 | Tests no ejercitan RLS real | ✅ Fix aplicado | TenantManager sincroniza pgsql-rls automáticamente |
 | GAP-005 | current_tenant_id() sin fallback | ✅ Fix aplicado | Migración 0000_00_00_000002: current_tenant_id_or_null() creada |
+| GAP-006 | Policy users_select: evaluación de OR no garantizada (registro 500 en prod) | ✅ Fix aplicado | CASE en policy + test RLS genérico (2026-09-30) |
+| GAP-007 | Activity log inserta antes de setTenantContext en registro | ✅ Fix aplicado | Contexto pre-seteado + RegistrationRlsTest (2026-10-01) |
 
 ---
 
@@ -140,6 +142,71 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 
 ---
 
+## GAP-006: Policy users_select — evaluación de OR no garantizada (✅ FIX APLICADO 2026-09-30)
+
+**Hallazgo:** La policy original de `SELECT` en `users` era:
+
+```sql
+USING (
+    current_setting('app.current_tenant_id', true) IS NULL
+    OR current_setting('app.current_tenant_id', true) = ''
+    OR tenant_id = current_tenant_id()   -- RAISE si no hay contexto
+);
+```
+
+PostgreSQL **no garantiza el orden de evaluación de `OR`**. Con planes genéricos (prepared statements tras ~3 ejecuciones) el planner puede evaluar `tenant_id = current_tenant_id()` antes de las ramas guard, lanzando `tenant_context_missing` en cualquier `SELECT` sobre `users` sin contexto: registro (validación email único), login, password reset.
+
+**Reproducción determinística:**
+```sql
+SET plan_cache_mode = force_generic_plan;
+SELECT count(*) FROM users WHERE email = 'x@y.com' AND deleted_at IS NULL;
+-- ERROR: tenant_context_missing (con policy original)
+```
+
+**Fix aplicado:** Migración `2026_09_30_235149_fix_users_select_policy_evaluation_order` reescribe la policy con `CASE` (evaluación ordenada garantizada):
+
+```sql
+USING (
+    CASE
+        WHEN current_setting('app.current_tenant_id', true) IS NULL
+          OR current_setting('app.current_tenant_id', true) = ''
+        THEN true
+        ELSE tenant_id = current_tenant_id()
+    END
+);
+```
+
+Semántica idéntica: sin contexto → todos los rows (requerido por login/reset); con contexto → aislamiento por tenant; UUID malformado → excepción. La migración también elimina `email_exists()` (fix previo inválido: `FORCE ROW LEVEL SECURITY` derrota a `SECURITY DEFINER`).
+
+**Intento fallido documentado:** `SECURITY DEFINER` en `email_exists()` NO bypasea RLS cuando la tabla tiene `FORCE` — la policy aplica incluso al dueño de la tabla.
+
+**Tests:**
+- `tests/Feature/Security/UsersSelectRlsTest.php` — 5 tests (conexión pgsql-rls): sin contexto no lanza, genérico-plan no lanza, aislamiento con contexto.
+
+---
+
+## GAP-007: Activity log inserta antes de setTenantContext en registro (✅ FIX APLICADO 2026-10-01)
+
+**Hallazgo:** `RegisterService::register()` creaba el `Tenant` **antes** de `setTenantContext()`. El trait `Auditable` (spatie activitylog) inserta en `activity_log` en el evento `created`, con policy `WITH CHECK (tenant_id = current_tenant_id())` → `tenant_context_missing` en producción (visible solo con RLS real, no con `sail`/BYPASSRLS).
+
+**Fix aplicado:** Pre-generar el UUID del tenant, setear contexto **primero**, crear con `id` explícito (asignación directa — `id` no es mass-assignable):
+
+```php
+$tenantId = (string) Str::uuid();
+$this->tenantManager->setTenantContext($tenantId);
+
+$tenant = new Tenant([...]);
+$tenant->id = $tenantId;
+$tenant->save();
+```
+
+El evento `created` (activity log) dispara después del INSERT del tenant → FK satisfecha; el hook `BelongsToTenant` de `Activity` setea `tenant_id` desde el contexto → `WITH CHECK` pasa.
+
+**Tests:**
+- `tests/Feature/Security/RegistrationRlsTest.php` — 2 tests: flujo completo de registro bajo `pgsql-rls` (RLS real) + activity log auditable.
+
+---
+
 ## Referencias
 
 - `AGENTS.md` — Sección "RLS Awareness & Security Gaps" con reglas para código nuevo
@@ -147,6 +214,9 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 - `tests/Feature/Security/SuperadminContextAppScopeTest.php` — 5 tests app-scope (GAP-002)
 - `tests/Feature/Security/SuperadminContextRlsTest.php` — 3 tests RLS (GAP-005)
 - `tests/Feature/Security/TenantJobContextAppScopeTest.php` — 4 tests (GAP-003)
+- `tests/Feature/Security/UsersSelectRlsTest.php` — 5 tests RLS users_select (GAP-006)
+- `tests/Feature/Security/RegistrationRlsTest.php` — 2 tests registro bajo RLS real (GAP-007)
+- `database/migrations/2026_09_30_235149_fix_users_select_policy_evaluation_order.php` — CASE en policy users_select (GAP-006)
 - `tests/Doubles/Jobs/WithTenantContextJob.php` — Test double para GAP-003
 - `database/migrations/0000_00_00_000001_create_current_tenant_id_function.php` — Función PostgreSQL original
 - `database/migrations/0000_00_00_000002_create_current_tenant_id_or_null_function.php` — Función con fallback NULL (GAP-005)
@@ -169,8 +239,10 @@ La función `current_tenant_id()` explota sin contexto. No hay modo "sin tenant"
 | ✅ Fix aplicado | GAP-005 | current_tenant_id_or_null creada (2026-06-17) |
 | ✅ Fix aplicado | GAP-003 | BelongsToTenantJob trait + SetTenantContextForJob middleware (2026-06-17) |
 | ✅ Fix aplicado | GAP-004 | TenantManager sincroniza pgsql-rls (2026-06-17) |
+| ✅ Fix aplicado | GAP-006 | CASE en users_select policy (2026-09-30) |
+| ✅ Fix aplicado | GAP-007 | Contexto antes de Tenant::create (2026-10-01) |
 
-> **Nota:** Ningún fix se ejecutará sin autorización explícita de John ("APROBADO" literal). Fecha de próxima auditoría: 2026-09-01.
+> **Nota:** Ningún fix se ejecutará sin autorización explícita de John ("APROBADO" literal). Fecha de próxima auditoría: 2026-10-01.
 
 ---
 

@@ -588,6 +588,12 @@ El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_ten
 
 10. **¿Por qué no usar un solo usuario?** `sail` necesita `BYPASSRLS` para migraciones, seeders y limpieza de tests. Si `app_user` fuera default, los Feature tests normales fallarían sin contexto RLS configurado.
 
+11. **En policies RLS, nunca confíes en el orden de evaluación de `OR`.** PG puede reordenar ramas (especialmente con planes genéricos). Si una rama lanza excepción (`current_tenant_id()`), envuelve en `CASE` para forzar orden. Ver GAP-006.
+
+12. **`SECURITY DEFINER` no bypasea `FORCE ROW LEVEL SECURITY`.** La policy aplica incluso al dueño de la tabla. No intentes crear funciones SQL "privileged" para leer tablas con FORCE — arregla la policy o setea contexto. Ver GAP-006.
+
+13. **Flujos pre-contexto (registro, setup inicial):** setea `app.current_tenant_id` con el UUID generado ANTES del primer INSERT que pueda tocar tablas con RLS (incluye activity log vía trait `Auditable`). Ver GAP-007 y `RegisterService`.
+
 ### Gaps documentados (no fixeados)
 
 | ID | Hallazgo | Fix requiere |
@@ -597,6 +603,8 @@ El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_ten
 | GAP-003 | Jobs no establecen contexto de tenant | ✅ BelongsToTenantJob trait + middleware (2026-06-17) |
 | GAP-004 | Tests no ejercitan RLS real | ✅ TenantManager sincroniza pgsql-rls (2026-06-17) |
 | GAP-005 | current_tenant_id() sin fallback | ✅ current_tenant_id_or_null() creada (2026-06-17) |
+| GAP-006 | Policy users_select evaluaba OR en orden no garantizado (500 en registro/prod) | ✅ CASE en policy + UsersSelectRlsTest (2026-09-30) |
+| GAP-007 | Activity log se insertaba antes de setTenantContext en registro | ✅ Contexto pre-seteado en RegisterService + RegistrationRlsTest (2026-10-01) |
 
 ### Referencia
 
