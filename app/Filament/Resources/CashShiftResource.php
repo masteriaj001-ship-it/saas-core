@@ -104,16 +104,16 @@ class CashShiftResource extends Resource
                     ->sortable(),
                 TextColumn::make('totalSales')
                     ->label(__('Ventas'))
-                    ->numeric(thousandsSeparator: '.')
-                    ->sortable(),
+                    ->getStateUsing(fn (CashShift $record): float => $record->totalSales())
+                    ->numeric(thousandsSeparator: '.'),
                 TextColumn::make('totalExpenses')
                     ->label(__('Gastos'))
-                    ->numeric(thousandsSeparator: '.')
-                    ->sortable(),
+                    ->getStateUsing(fn (CashShift $record): float => $record->totalExpenses())
+                    ->numeric(thousandsSeparator: '.'),
                 TextColumn::make('netAmount')
                     ->label(__('Neto'))
-                    ->numeric(thousandsSeparator: '.')
-                    ->sortable(),
+                    ->getStateUsing(fn (CashShift $record): float => $record->netAmount())
+                    ->numeric(thousandsSeparator: '.'),
                 TextColumn::make('status')
                     ->label(__('Estado'))
                     ->badge(),

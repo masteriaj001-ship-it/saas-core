@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\CashShiftResource\Pages;
 
 use App\Filament\Resources\CashShiftResource;
+use App\Modules\Caja\Models\CashShift;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Section;
@@ -30,9 +31,9 @@ class ViewCashShift extends ViewRecord
                 Section::make(__('Resumen'))
                     ->columns(3)
                     ->schema([
-                        TextEntry::make('totalSales')->label(__('Ventas'))->money('COP'),
-                        TextEntry::make('totalExpenses')->label(__('Gastos'))->money('COP'),
-                        TextEntry::make('netAmount')->label(__('Neto'))->money('COP'),
+                        TextEntry::make('totalSales')->label(__('Ventas'))->getStateUsing(fn (CashShift $record): float => $record->totalSales())->money('COP'),
+                        TextEntry::make('totalExpenses')->label(__('Gastos'))->getStateUsing(fn (CashShift $record): float => $record->totalExpenses())->money('COP'),
+                        TextEntry::make('netAmount')->label(__('Neto'))->getStateUsing(fn (CashShift $record): float => $record->netAmount())->money('COP'),
                     ]),
                 Section::make(__('Cierre'))
                     ->columns(3)
@@ -45,7 +46,7 @@ class ViewCashShift extends ViewRecord
                     ->schema([
                         TextEntry::make('status')->label(__('Estado'))->badge(),
                         TextEntry::make('notes')->label(__('Notas')),
-                        TextEntry::make('cashMovements_count')->label(__('Total Movimientos'))->count(),
+                        TextEntry::make('cashMovements_count')->label(__('Total Movimientos'))->getStateUsing(fn (CashShift $record): int => $record->cashMovements()->count()),
                     ]),
             ]);
     }
