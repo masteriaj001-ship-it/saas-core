@@ -41,7 +41,7 @@ class AdminPanelProvider extends PanelProvider
             ->darkMode(true, isForced: true)
             ->sidebarCollapsibleOnDesktop()
             ->maxContentWidth(Width::Full)
-            ->viteTheme('resources/css/filament/admin/theme.css')
+            ->viteTheme('resources/css/app.css')
             ->login()
             ->profile()
             ->passwordReset()
