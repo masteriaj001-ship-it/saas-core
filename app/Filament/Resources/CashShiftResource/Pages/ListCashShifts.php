@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Filament\Resources\CashShiftResource\Pages;
 
 use App\Filament\Resources\CashShiftResource;
-use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ListRecords;
 
 class ListCashShifts extends ListRecords
@@ -14,8 +13,6 @@ class ListCashShifts extends ListRecords
 
     protected function getHeaderActions(): array
     {
-        return [
-            CreateAction::make(),
-        ];
+        return [];
     }
 }
