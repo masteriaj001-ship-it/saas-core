@@ -42,6 +42,10 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 COPY . .
+# Filament theme CSS is @imported by resources/css/filament/admin/theme.css,
+# but /vendor is excluded from the build context (.dockerignore), so bring
+# it in from the vendor stage before running the Vite build.
+COPY --from=vendor /app/vendor/filament /app/vendor/filament
 RUN npm run build
 
 FROM base AS runtime
