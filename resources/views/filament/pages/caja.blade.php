@@ -24,7 +24,7 @@
         <div class="rounded-xl border border-blue-200 bg-blue-50 p-6 dark:border-blue-700/60 dark:bg-blue-900/40">
             <div class="flex items-center gap-3 mb-4">
                 <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/50">
-                    <x-heroicon-o-currency-dollar class="h-5 w-5 text-blue-600 dark:text-blue-400" width="20" height="20" />
+                    <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedCurrencyDollar" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
                     <h3 class="text-lg font-semibold text-blue-900 dark:text-blue-100">{{ __('Abrir Nuevo Turno') }}</h3>
@@ -40,7 +40,7 @@
 
                 <div class="flex justify-end">
                     <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
-                        <x-heroicon-o-plus class="h-4 w-4" width="16" height="16" />
+                        <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedPlus" class="h-4 w-4" />
                         {{ __('Abrir Turno') }}
                     </button>
                 </div>
@@ -56,7 +56,7 @@
             <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-600 dark:bg-gray-800/80">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100 dark:bg-green-900/40">
-                        <x-heroicon-o-arrow-trending-up class="h-5 w-5 text-green-600 dark:text-green-400" width="20" height="20" />
+                        <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedArrowTrendingUp" class="h-5 w-5 text-green-600 dark:text-green-400" />
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Ventas Totales') }}</p>
@@ -69,7 +69,7 @@
             <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-600 dark:bg-gray-800/80">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/40">
-                        <x-heroicon-o-arrow-trending-down class="h-5 w-5 text-red-600 dark:text-red-400" width="20" height="20" />
+                        <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedArrowTrendingDown" class="h-5 w-5 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Gastos') }}</p>
@@ -82,7 +82,7 @@
             <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-600 dark:bg-gray-800/80">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                        <x-heroicon-o-calculator class="h-5 w-5 text-blue-600 dark:text-blue-400" width="20" height="20" />
+                        <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedCalculator" class="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Neto') }}</p>
@@ -95,7 +95,7 @@
             <div class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-600 dark:bg-gray-800/80">
                 <div class="flex items-center gap-3">
                     <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700/60">
-                        <x-heroicon-o-banknotes class="h-5 w-5 text-gray-600 dark:text-gray-400" width="20" height="20" />
+                        <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedBanknotes" class="h-5 w-5 text-gray-600 dark:text-gray-400" />
                     </div>
                     <div>
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ __('Monto Inicial') }}</p>
