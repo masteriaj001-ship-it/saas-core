@@ -34,16 +34,20 @@ class RegisterService
                 ->slug()
                 ->append('-', Str::random(4));
 
-            $tenant = Tenant::create([
+            $tenantId = (string) Str::uuid();
+
+            $this->tenantManager->setTenantContext($tenantId);
+
+            $tenant = new Tenant([
                 'name' => $data['business_name'],
                 'slug' => $slug,
                 'is_active' => true,
                 'settings' => [],
             ]);
+            $tenant->id = $tenantId;
+            $tenant->save();
 
             $this->createFreeSubscription($tenant);
-
-            $this->tenantManager->setTenantContext($tenant->id);
 
             $user = User::create([
                 'name' => $data['name'],
