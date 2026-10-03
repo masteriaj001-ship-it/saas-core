@@ -14,7 +14,10 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
@@ -93,25 +96,35 @@ class BudgetResource extends Resource
                                     ->label(__('Descripción'))
                                     ->required()
                                     ->columnSpanFull(),
-                                TextInput::make('quantity')
-                                    ->label(__('Cantidad'))
-                                    ->numeric()
-                                    ->default(1)
-                                    ->required(),
-                                TextInput::make('unit_price')
-                                    ->label(__('Precio Unit.'))
-                                    ->numeric()
-                                    ->required(),
-                                TextInput::make('discount')
-                                    ->label(__('Dto.'))
-                                    ->numeric()
-                                    ->default(0),
-                                TextInput::make('total')
-                                    ->label(__('Total'))
-                                    ->numeric()
-                                    ->disabled(),
+                                Grid::make(2)
+                                    ->schema([
+                                        TextInput::make('quantity')
+                                            ->label(__('Cantidad'))
+                                            ->numeric()
+                                            ->default(1)
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => static::recalculateItem($get, $set)),
+                                        TextInput::make('unit_price')
+                                            ->label(__('Precio Unit.'))
+                                            ->numeric()
+                                            ->required()
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => static::recalculateItem($get, $set)),
+                                        TextInput::make('discount')
+                                            ->label(__('Dto.'))
+                                            ->numeric()
+                                            ->default(0)
+                                            ->live(onBlur: true)
+                                            ->afterStateUpdated(fn (Get $get, Set $set) => static::recalculateItem($get, $set)),
+                                        TextInput::make('total')
+                                            ->label(__('Total'))
+                                            ->numeric()
+                                            ->disabled()
+                                            ->dehydrated(),
+                                    ])
+                                    ->columnSpanFull(),
                             ])
-                            ->columns(4)
                             ->columnSpanFull()
                             ->addActionLabel(__('Añadir ítem')),
                     ]),
@@ -122,6 +135,19 @@ class BudgetResource extends Resource
                             ->rows(3),
                     ]),
             ]);
+    }
+
+    protected static function recalculateItem(Get $get, Set $set): void
+    {
+        $quantity = (float) ($get('quantity') ?? 1);
+        $unitPrice = (float) ($get('unit_price') ?? 0);
+        $discount = (float) ($get('discount') ?? 0);
+
+        $subtotal = $quantity * $unitPrice;
+        $total = $subtotal - $discount;
+
+        $set('subtotal', round($subtotal, 2));
+        $set('total', round($total, 2));
     }
 
     public static function table(Table $table): Table
