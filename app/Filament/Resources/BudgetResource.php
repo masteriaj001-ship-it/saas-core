@@ -14,7 +14,6 @@ use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -90,30 +89,31 @@ class BudgetResource extends Resource
                         Repeater::make('items')
                             ->relationship()
                             ->schema([
-                                Grid::make(6)->schema([
-                                    TextInput::make('description')
-                                        ->label(__('Descripción'))
-                                        ->required()
-                                        ->columnSpan(2),
-                                    TextInput::make('quantity')
-                                        ->label(__('Cantidad'))
-                                        ->numeric()
-                                        ->default(1)
-                                        ->required(),
-                                    TextInput::make('unit_price')
-                                        ->label(__('Precio Unit.'))
-                                        ->numeric()
-                                        ->required(),
-                                    TextInput::make('discount')
-                                        ->label(__('Dto.'))
-                                        ->numeric()
-                                        ->default(0),
-                                    TextInput::make('total')
-                                        ->label(__('Total'))
-                                        ->numeric()
-                                        ->disabled(),
-                                ]),
-                            ]),
+                                TextInput::make('description')
+                                    ->label(__('Descripción'))
+                                    ->required()
+                                    ->columnSpanFull(),
+                                TextInput::make('quantity')
+                                    ->label(__('Cantidad'))
+                                    ->numeric()
+                                    ->default(1)
+                                    ->required(),
+                                TextInput::make('unit_price')
+                                    ->label(__('Precio Unit.'))
+                                    ->numeric()
+                                    ->required(),
+                                TextInput::make('discount')
+                                    ->label(__('Dto.'))
+                                    ->numeric()
+                                    ->default(0),
+                                TextInput::make('total')
+                                    ->label(__('Total'))
+                                    ->numeric()
+                                    ->disabled(),
+                            ])
+                            ->columns(4)
+                            ->columnSpanFull()
+                            ->addActionLabel(__('Añadir ítem')),
                     ]),
                 Section::make(__('Notas'))
                     ->schema([
