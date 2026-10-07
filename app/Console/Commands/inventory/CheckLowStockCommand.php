@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Console\Commands\inventory;
 
 use App\Models\Item;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Inventario\Notifications\LowStockNotification;
+use App\Services\TenantManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Notification;
 
@@ -20,19 +22,32 @@ class CheckLowStockCommand extends Command
     {
         $tenantId = $this->option('tenant');
 
-        $query = Item::whereColumn('stock', '<=', 'min_stock')
-            ->where('min_stock', '>', 0);
+        $tenantIds = $tenantId
+            ? [$tenantId]
+            : Tenant::query()->orderBy('id')->pluck('id')->all();
 
-        if ($tenantId) {
-            $query->where('tenant_id', $tenantId);
+        $found = false;
+
+        foreach ($tenantIds as $id) {
+            app(TenantManager::class)->setTenantContext($id);
+            $found = $this->processTenant() || $found;
         }
 
-        $lowStockItems = $query->get();
+        if (! $found) {
+            $this->info('No items with low stock found.');
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function processTenant(): bool
+    {
+        $lowStockItems = Item::whereColumn('stock', '<=', 'min_stock')
+            ->where('min_stock', '>', 0)
+            ->get();
 
         if ($lowStockItems->isEmpty()) {
-            $this->info('No items with low stock found.');
-
-            return self::SUCCESS;
+            return false;
         }
 
         $this->warn("Found {$lowStockItems->count()} items with low stock:");
@@ -53,7 +68,7 @@ class CheckLowStockCommand extends Command
 
         $this->table(['Item', 'SKU', 'Stock', 'Mínimo', 'Tenant'], $rows);
 
-        return self::SUCCESS;
+        return true;
     }
 
     private function notifyTenant(Item $item): void

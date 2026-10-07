@@ -20,6 +20,7 @@ class RolePermissionSeeder extends Seeder
             'work_order_checklist_items', 'document_sequences', 'sms_codes',
             'warehouses', 'stock_movements', 'credit_accounts', 'credit_transactions',
             'suppliers', 'purchase_orders', 'price_lists', 'appointments', 'workshop_bays',
+            'cash_shifts', 'client_vehicles',
         ];
 
         $actions = ['view', 'create', 'edit', 'delete'];
@@ -68,6 +69,8 @@ class RolePermissionSeeder extends Seeder
                 'view_price_lists', 'create_price_lists', 'edit_price_lists',
                 'view_appointments', 'create_appointments', 'edit_appointments',
                 'view_workshop_bays', 'create_workshop_bays', 'edit_workshop_bays',
+                'view_cash_shifts', 'create_cash_shifts', 'edit_cash_shifts',
+                'view_client_vehicles', 'create_client_vehicles', 'edit_client_vehicles',
             ])->get()
         );
 

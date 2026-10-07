@@ -376,4 +376,57 @@ final class CreditAccountTest extends TestCase
             ->expectsOutput('No overdue credit accounts found.')
             ->assertExitCode(0);
     }
+
+    public function test_check_overdue_command_notifies_all_tenants(): void
+    {
+        $otherTenant = Tenant::factory()->create(['onboarding_completed' => true]);
+        $otherUser = User::factory()->for($otherTenant)->create();
+        $otherContact = Contact::factory()->create(['tenant_id' => $otherTenant->id]);
+
+        app(TenantManager::class)->setTenantContext($otherTenant->id);
+        $this->seed(RolePermissionSeeder::class);
+        $otherUser->assignRole('owner');
+        app(TenantManager::class)->setTenantContext($this->tenant->id);
+
+        CreditAccount::factory()->withBalance(100000)->create([
+            'tenant_id' => $this->tenant->id,
+            'contact_id' => $this->contact->id,
+            'credit_limit' => 500000,
+        ]);
+
+        CreditTransaction::factory()->overdue()->create([
+            'tenant_id' => $this->tenant->id,
+            'credit_account_id' => CreditAccount::where('tenant_id', $this->tenant->id)->first()->id,
+            'amount' => 100000,
+        ]);
+
+        CreditAccount::factory()->withBalance(50000)->create([
+            'tenant_id' => $otherTenant->id,
+            'contact_id' => $otherContact->id,
+            'credit_limit' => 500000,
+        ]);
+
+        CreditTransaction::factory()->overdue()->create([
+            'tenant_id' => $otherTenant->id,
+            'credit_account_id' => CreditAccount::withoutGlobalScopes()->where('tenant_id', $otherTenant->id)->first()->id,
+            'amount' => 50000,
+        ]);
+
+        Notification::fake();
+
+        $this->artisan('credit:check-overdue')
+            ->assertExitCode(0);
+
+        Notification::assertSentTo(
+            [$this->user],
+            OverdueCreditNotification::class,
+            fn (OverdueCreditNotification $notification): bool => ($notification->tenantId ?? null) === $this->tenant->id
+        );
+
+        Notification::assertSentTo(
+            [$otherUser],
+            OverdueCreditNotification::class,
+            fn (OverdueCreditNotification $notification): bool => ($notification->tenantId ?? null) === $otherTenant->id
+        );
+    }
 }

@@ -18,7 +18,6 @@ class CashMovement extends Model
     use BelongsToTenant, HasUuids;
 
     protected $fillable = [
-        'tenant_id',
         'shift_id',
         'work_order_id',
         'invoice_id',

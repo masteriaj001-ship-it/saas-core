@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Console\Commands\facturacion;
 
+use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Facturacion\Notifications\OverdueCreditNotification;
 use App\Modules\Facturacion\Services\CreditReportService;
@@ -22,16 +23,30 @@ class CheckOverdueCreditsCommand extends Command
     {
         $tenantId = $this->option('tenant');
 
-        if ($tenantId) {
-            app(TenantManager::class)->setTenantContext($tenantId);
+        $tenantIds = $tenantId
+            ? [$tenantId]
+            : Tenant::query()->orderBy('id')->pluck('id')->all();
+
+        $found = false;
+
+        foreach ($tenantIds as $id) {
+            app(TenantManager::class)->setTenantContext($id);
+            $found = $this->processTenant($reportService) || $found;
         }
 
+        if (! $found) {
+            $this->info('No overdue credit accounts found.');
+        }
+
+        return self::SUCCESS;
+    }
+
+    private function processTenant(CreditReportService $reportService): bool
+    {
         $overdueAccounts = $reportService->getOverdueAccounts();
 
         if ($overdueAccounts->isEmpty()) {
-            $this->info('No overdue credit accounts found.');
-
-            return self::SUCCESS;
+            return false;
         }
 
         $this->warn("Found {$overdueAccounts->count()} overdue accounts:");
@@ -48,7 +63,7 @@ class CheckOverdueCreditsCommand extends Command
             $this->notifyTenant($account, $overdueAmount, $daysOverdue);
         }
 
-        return self::SUCCESS;
+        return true;
     }
 
     private function notifyTenant($account, float $overdueAmount, int $daysOverdue): void

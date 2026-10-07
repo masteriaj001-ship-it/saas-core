@@ -7,6 +7,7 @@ namespace App\Modules\Plataforma\Console\Commands;
 use App\Modules\Plataforma\Models\Plan;
 use App\Modules\Plataforma\Models\Subscription;
 use App\Modules\Plataforma\Models\SubscriptionLog;
+use App\Services\TenantManager;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -34,6 +35,10 @@ class CheckExpiredSubscriptions extends Command
         $count = 0;
 
         foreach ($expiredSubscriptions as $subscription) {
+            if (! empty($subscription->tenant_id)) {
+                app(TenantManager::class)->setTenantContext($subscription->tenant_id);
+            }
+
             $oldPlanId = $subscription->plan_id;
 
             $subscription->update([

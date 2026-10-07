@@ -260,4 +260,29 @@ class TransactionTest extends TestCase
         $this->assertEquals(57000, $transaction->total_tax);
         $this->assertEquals(357000, $transaction->total_amount);
     }
+
+    public function test_create_ignores_spoofed_tenant_id(): void
+    {
+        $otherTenant = Tenant::factory()->create();
+
+        $transaction = $this->service->createWithItems([
+            'tenant_id' => $otherTenant->id,
+            'contact_id' => $this->client->id,
+            'type' => 'sale',
+            'status' => 'draft',
+            'created_by' => $this->admin->id,
+        ], [
+            [
+                'item_id' => $this->item->id,
+                'quantity' => 1,
+                'unit_price' => 10000,
+                'tax_rate' => 0,
+                'tax_amount' => 0,
+                'total_item_amount' => 0,
+            ],
+        ]);
+
+        $this->assertEquals($this->tenant->id, $transaction->tenant_id);
+        $this->assertEquals($this->tenant->id, $transaction->items->first()->tenant_id);
+    }
 }

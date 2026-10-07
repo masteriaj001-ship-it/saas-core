@@ -156,7 +156,7 @@ class TransactionService
     {
         return DB::transaction(function () use ($transactionData, $itemsData) {
             $transaction = Transaction::make($transactionData);
-            $transaction->tenant_id = $transactionData['tenant_id'];
+            $transaction->tenant_id = $this->tenantManager->getCurrentTenantId() ?? $transaction->tenant_id;
             $transaction->invoice_number = $this->generateInvoiceNumber($transaction);
             $transaction->save();
 

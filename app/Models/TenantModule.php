@@ -7,7 +7,6 @@ namespace App\Models;
 class TenantModule extends TenantModel
 {
     protected $fillable = [
-        'tenant_id',
         'module_slug',
         'is_active',
         'config',

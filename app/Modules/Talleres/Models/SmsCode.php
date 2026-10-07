@@ -22,7 +22,6 @@ class SmsCode extends Model
     ];
 
     protected $fillable = [
-        'tenant_id',
         'work_order_id',
         'code',
         'expires_at',

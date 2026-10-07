@@ -19,7 +19,6 @@ class CashShift extends Model
     use BelongsToTenant, HasUuids;
 
     protected $fillable = [
-        'tenant_id',
         'opened_by',
         'closed_by',
         'opened_at',

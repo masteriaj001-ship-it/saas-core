@@ -106,4 +106,44 @@ final class CheckLowStockCommandTest extends TestCase
             LowStockNotification::class,
         );
     }
+
+    public function test_command_notifies_all_tenants_without_flag(): void
+    {
+        $otherTenant = Tenant::factory()->create(['onboarding_completed' => true]);
+        $otherUser = User::factory()->for($otherTenant)->create();
+
+        app(TenantManager::class)->setTenantContext($otherTenant->id);
+        $this->seed(RolePermissionSeeder::class);
+        $otherUser->assignRole('owner');
+        app(TenantManager::class)->setTenantContext($this->tenant->id);
+
+        Item::factory()->create([
+            'tenant_id' => $this->tenant->id,
+            'stock' => 2,
+            'min_stock' => 10,
+        ]);
+
+        Item::factory()->create([
+            'tenant_id' => $otherTenant->id,
+            'stock' => 1,
+            'min_stock' => 10,
+        ]);
+
+        Notification::fake();
+
+        $this->artisan('inventory:check-low-stock')
+            ->assertExitCode(0);
+
+        Notification::assertSentTo(
+            [$this->user],
+            LowStockNotification::class,
+            fn (LowStockNotification $notification): bool => ($notification->tenantId ?? null) === $this->tenant->id
+        );
+
+        Notification::assertSentTo(
+            [$otherUser],
+            LowStockNotification::class,
+            fn (LowStockNotification $notification): bool => ($notification->tenantId ?? null) === $otherTenant->id
+        );
+    }
 }

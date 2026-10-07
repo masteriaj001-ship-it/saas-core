@@ -10,9 +10,11 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Caja\Models\CashShift;
 use App\Services\TenantManager;
+use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
 class CashShiftTableTest extends TestCase
@@ -32,6 +34,9 @@ class CashShiftTableTest extends TestCase
 
         $this->actingAs($this->user);
         app(TenantManager::class)->setTenantContext($this->tenant->id);
+        $this->seed(RolePermissionSeeder::class);
+        app(PermissionRegistrar::class)->forgetCachedPermissions();
+        $this->user->assignRole('owner');
         Filament::setCurrentPanel(app('filament')->getPanel('admin'));
         Filament::setTenant($this->tenant);
     }
