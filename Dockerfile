@@ -24,7 +24,6 @@ RUN apk add --no-cache \
         bcmath \
         exif \
         pcntl \
-        opcache \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
     && rm -rf /var/cache/apk/*
 
