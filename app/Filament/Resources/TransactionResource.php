@@ -78,7 +78,6 @@ class TransactionResource extends Resource
                             ->preload(),
                         Select::make('status')
                             ->label('Estado')
-                            ->required()
                             ->disabled()
                             ->options([
                                 'draft' => 'Borrador',

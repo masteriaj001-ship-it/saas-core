@@ -73,4 +73,13 @@ final class StockMovementResourceTest extends TestCase
             'quantity' => 10,
         ]);
     }
+
+    public function test_table_query_eager_loads_relations(): void
+    {
+        $eagerLoads = array_keys(StockMovementResource::getEloquentQuery()->getEagerLoads());
+
+        $this->assertContains('item', $eagerLoads);
+        $this->assertContains('warehouse', $eagerLoads);
+        $this->assertContains('user', $eagerLoads);
+    }
 }

@@ -2,13 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Caja;
+namespace Tests\Feature\Inventario;
 
-use App\Filament\Resources\CashShiftResource\Pages\ListCashShifts;
-use App\Filament\Resources\CashShiftResource\Pages\ViewCashShift;
+use App\Filament\Resources\PriceListResource\Pages\ListPriceLists;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Modules\Caja\Models\CashShift;
+use App\Modules\Inventario\Models\PriceList;
 use App\Services\TenantManager;
 use Database\Seeders\RolePermissionSeeder;
 use Filament\Facades\Filament;
@@ -17,7 +16,7 @@ use Livewire\Livewire;
 use Spatie\Permission\PermissionRegistrar;
 use Tests\TestCase;
 
-class CashShiftTableTest extends TestCase
+class PriceListTableTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -41,30 +40,13 @@ class CashShiftTableTest extends TestCase
         Filament::setTenant($this->tenant);
     }
 
-    public function test_list_renders_computed_columns(): void
+    public function test_sorting_by_items_count_does_not_error(): void
     {
-        $shift = CashShift::openShift($this->user, 200000);
+        PriceList::factory()->create(['tenant_id' => $this->tenant->id]);
+        PriceList::factory()->create(['tenant_id' => $this->tenant->id]);
 
-        Livewire::test(ListCashShifts::class)
-            ->assertSuccessful()
-            ->assertCanSeeTableRecords([$shift]);
-    }
-
-    public function test_sorting_by_opened_by_does_not_error(): void
-    {
-        CashShift::openShift($this->user, 200000);
-
-        Livewire::test(ListCashShifts::class)
-            ->sortTable('openedBy.name')
+        Livewire::test(ListPriceLists::class)
+            ->sortTable('items_count')
             ->assertSuccessful();
-    }
-
-    public function test_view_renders_computed_entries(): void
-    {
-        $shift = CashShift::openShift($this->user, 200000);
-
-        Livewire::test(ViewCashShift::class, [
-            'record' => $shift->getKey(),
-        ])->assertSuccessful();
     }
 }

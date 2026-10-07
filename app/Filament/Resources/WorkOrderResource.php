@@ -731,10 +731,10 @@ class WorkOrderResource extends Resource
                     ->label(__('Servicio'))
                     ->limit(50)
                     ->toggleable(),
-                TextColumn::make('clientVehicle')
+                TextColumn::make('clientVehicle.plate')
                     ->label(__('Vehículo'))
                     ->searchable()
-                    ->getStateUsing(fn (WorkOrder $record): string => $record->clientVehicle?->plate ?? formatClientVehicleLabel($record->clientVehicle)),
+                    ->getStateUsing(fn (WorkOrder $record): string => $record->clientVehicle?->plate ?? ($record->clientVehicle ? static::formatClientVehicleLabel($record->clientVehicle) : '—')),
                 TextColumn::make('mechanic.name')
                     ->label(__('Mecánico'))
                     ->searchable()
@@ -818,7 +818,7 @@ class WorkOrderResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereNull('deleted_at');
+        return parent::getEloquentQuery()->whereNull('deleted_at')->with(['mechanic', 'clientVehicle']);
     }
 
     public static function formatClientVehicleLabel(ClientVehicle $vehicle): string

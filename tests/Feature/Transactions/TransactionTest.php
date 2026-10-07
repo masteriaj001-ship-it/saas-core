@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Transactions;
 
+use App\Filament\Resources\TransactionResource\Pages\CreateTransaction;
+use App\Filament\Resources\TransactionResource\Pages\ListTransactions;
 use App\Models\Contact;
 use App\Models\Item;
 use App\Models\Tenant;
@@ -14,9 +16,11 @@ use App\Modules\Inventario\Models\Warehouse;
 use App\Services\TenantManager;
 use App\Services\Transactions\TransactionService;
 use Database\Seeders\RolePermissionSeeder;
+use Filament\Facades\Filament;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TransactionTest extends TestCase
@@ -259,6 +263,44 @@ class TransactionTest extends TestCase
         $this->assertEquals(300000, $transaction->subtotal);
         $this->assertEquals(57000, $transaction->total_tax);
         $this->assertEquals(357000, $transaction->total_amount);
+    }
+
+    public function test_can_create_transaction_from_ui(): void
+    {
+        Filament::setCurrentPanel(app('filament')->getPanel('admin'));
+        Filament::setTenant($this->tenant);
+
+        Livewire::test(CreateTransaction::class)
+            ->fillForm([
+                'type' => 'purchase',
+                'contact_id' => $this->supplier->id,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $this->assertDatabaseHas('transactions', [
+            'tenant_id' => $this->tenant->id,
+            'type' => 'purchase',
+            'status' => 'draft',
+        ]);
+    }
+
+    public function test_sorting_by_contact_does_not_error(): void
+    {
+        Filament::setCurrentPanel(app('filament')->getPanel('admin'));
+        Filament::setTenant($this->tenant);
+
+        $this->service->createWithItems([
+            'tenant_id' => $this->tenant->id,
+            'contact_id' => $this->client->id,
+            'type' => 'sale',
+            'status' => 'draft',
+            'created_by' => $this->admin->id,
+        ], []);
+
+        Livewire::test(ListTransactions::class)
+            ->sortTable('contact.name')
+            ->assertSuccessful();
     }
 
     public function test_create_ignores_spoofed_tenant_id(): void

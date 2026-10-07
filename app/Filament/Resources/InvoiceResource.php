@@ -256,7 +256,7 @@ class InvoiceResource extends Resource
 
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()->whereNull('deleted_at');
+        return parent::getEloquentQuery()->whereNull('deleted_at')->with(['contact', 'workOrder']);
     }
 
     protected static function recalculateItem(Get $get, Set $set): void

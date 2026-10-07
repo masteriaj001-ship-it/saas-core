@@ -6,6 +6,7 @@ namespace Tests\Feature\Facturacion;
 
 use App\Enums\InvoiceDocumentTypeEnum;
 use App\Enums\InvoiceStatusEnum;
+use App\Filament\Resources\InvoiceResource;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Facturacion\Models\Invoice;
@@ -133,5 +134,13 @@ class InvoiceModelTest extends TestCase
         $this->assertTrue(InvoiceStatusEnum::tryFrom('confirmed') instanceof InvoiceStatusEnum);
         $this->assertTrue(InvoiceStatusEnum::tryFrom('cancelled') instanceof InvoiceStatusEnum);
         $this->assertNull(InvoiceStatusEnum::tryFrom('invalid'));
+    }
+
+    public function test_table_query_eager_loads_relations(): void
+    {
+        $eagerLoads = array_keys(InvoiceResource::getEloquentQuery()->getEagerLoads());
+
+        $this->assertContains('contact', $eagerLoads);
+        $this->assertContains('workOrder', $eagerLoads);
     }
 }
