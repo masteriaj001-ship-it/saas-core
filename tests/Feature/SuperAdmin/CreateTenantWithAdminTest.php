@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Superadmin;
+namespace Tests\Feature\SuperAdmin;
 
 use App\Filament\Superadmin\Resources\TenantResource\Pages\CreateTenant;
 use App\Models\Tenant;

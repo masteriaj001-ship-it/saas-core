@@ -162,8 +162,9 @@ class ContactResource extends Resource
                 TextColumn::make('roles.role_code')
                     ->label(__('Roles'))
                     ->badge()
-                    ->color(fn (string $state): string|array|null => ContactRoleEnum::tryFrom($state)?->getColor() ?? 'gray')
-                    ->formatStateUsing(fn (string $state): string => ContactRoleEnum::tryFrom($state)?->getLabel() ?? $state),
+                    ->getStateUsing(fn (Contact $record): array => $record->roles
+                        ->map(fn ($role): string => ContactRoleEnum::tryFrom($role->role_code)?->getLabel() ?? $role->role_code)
+                        ->all()),
                 TextColumn::make('tax_id')
                     ->label(__('RFC / ID Fiscal'))
                     ->searchable(),
