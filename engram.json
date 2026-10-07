@@ -5,10 +5,10 @@
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
-    "platform": "Railway",
-    "url": "https://saas-core-production-7165.up.railway.app",
+    "platform": "Render (migrado desde Railway)",
+    "url": "https://saas-core-1pdj.onrender.com",
     "custom_domain": "pending (decidir nombre de proyecto antes del dominio)",
-    "database": "PostgreSQL Railway (host postgres.railway.internal, user sin BYPASSRLS = RLS activo)",
+    "database": "PostgreSQL Render saas-core-db (plan free, sin backups garantizados)",
     "built_at": "2026-08-20",
     "fixes_applied": [
       "Multi-stage Dockerfile: vendor + assets (node:22) + runtime (php:8.5-fpm-alpine + nginx)",
@@ -18,6 +18,14 @@
       "entrypoint.sh: livewire:publish --assets sin --force (flag no existe en v5), removido route:cache (Livewire registra rutas de assets dinámicamente)",
       "User model implementa FilamentUser (canAccessPanel) — sin eso el panel admin da 403 en production",
       "Railway no soporta --build-arg; todas las env via dashboard"
+    ],
+    "render_ops_2026_10_01": [
+      "route:cache reactivado en entrypoint (Livewire v4 lo soporta: endpoints estables por APP_KEY + getUpdateUri resuelve desde router cacheado; verificado boot+login 200 en local)",
+      "NO event:cache: AppServiceProvider escucha eventos con closure (fatal al cachear)",
+      "OPcache en imagen Docker (docker-php-ext-install opcache + docker/opcache.ini, validate_timestamps=0, sin JIT)",
+      "blueprint: healthCheckPath /up, SESSION_SECURE_COOKIE=true, LOG_CHANNEL=stderr",
+      "Pendientes con costo (requieren aprobación): worker queue:work, cron subscriptions:check-expired, DB Starter+backups, Sentry (paquete nuevo)",
+      "Pendiente con riesgo: migrar sesión/caché/cola a Redis (cablear REDIS_URL primero)"
     ],
     "open_items": [
       "Obtener dominio propio y agregar como Custom Domain en Railway (Networking)",

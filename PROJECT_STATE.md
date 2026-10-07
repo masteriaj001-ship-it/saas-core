@@ -429,10 +429,10 @@
 
 ## Deployment
 
-- **Platform:** Railway
-- **URL:** https://saas-core-production-7165.up.railway.app
+- **Platform:** Render (migrado desde Railway)
+- **URL:** https://saas-core-1pdj.onrender.com
 - **Custom domain:** pending (decidir nombre de proyecto antes del dominio)
-- **Database:** PostgreSQL Railway (host postgres.railway.internal, user sin BYPASSRLS = RLS activo)
+- **Database:** PostgreSQL Render saas-core-db (plan free, sin backups garantizados)
 - **Fixes applied:**
   - Multi-stage Dockerfile: vendor + assets (node:22) + runtime (php:8.5-fpm-alpine + nginx)
   - APP_URL=https://... en Railway Variables (https, no http) — resolvio Mixed Content de Livewire
