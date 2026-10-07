@@ -46,6 +46,7 @@
   - Appointment Select relationship labels con getOptionLabelFromRecordUsing fallback null-safe
   - auth()->user()->can() → auth()->user()?->can() ?? false en 34 instancias (17 archivos) para evitar TypeError cuando permisos no existen
   - TransactionResource/EditTransaction: precedencia de operadores corregida en can() + canEdit/canIssue/canCancel
+  - Fase 2 UI/tablas 2026-10-01: WorkOrderResource clientVehicle usa static::formatClientVehicleLabel con fallback '—' (función global no existe); eliminado Observers/WorkOrderUpdateObserver.php muerto (colisión de clase); TransactionResource status sin required (bloqueaba crear desde UI, servidor fuerza draft); clientVehicle.plate en search (search global reventaba con SQL 42703); with() en WorkOrders/Invoice/StockMovement; sortables sobre relaciones verificados OK en v5 (sin cambios)
 - **Checklist:** `checklists/taller_filament.yaml`
 
 ### taller_permissions
