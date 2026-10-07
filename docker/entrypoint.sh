@@ -27,6 +27,7 @@ php docker/migrate.php
 php artisan livewire:publish --assets 2>/dev/null || true
 
 php artisan config:cache
+php artisan route:cache
 php artisan view:cache
 
 php-fpm -D

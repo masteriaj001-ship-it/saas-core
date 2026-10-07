@@ -6,14 +6,16 @@ services:
     region: frankfurt
     plan: free
     autoDeploy: true
-    healthCheckPath: /
+    healthCheckPath: /up
     envVars:
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: "false"
       - key: LOG_CHANNEL
-        value: stack
+        value: stderr
+      - key: SESSION_SECURE_COOKIE
+        value: "true"
       - key: SESSION_DRIVER
         value: database
       - key: QUEUE_CONNECTION

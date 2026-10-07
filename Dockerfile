@@ -24,6 +24,7 @@ RUN apk add --no-cache \
         bcmath \
         exif \
         pcntl \
+        opcache \
     && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin --filename=composer \
     && rm -rf /var/cache/apk/*
 
@@ -69,6 +70,7 @@ RUN mkdir -p \
 
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 COPY docker/nginx-default.conf /etc/nginx/http.d/default.conf
+COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
 RUN chmod +x /usr/local/bin/entrypoint
 
 EXPOSE 80
