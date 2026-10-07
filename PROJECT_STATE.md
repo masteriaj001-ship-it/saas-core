@@ -47,6 +47,7 @@
   - auth()->user()->can() → auth()->user()?->can() ?? false en 34 instancias (17 archivos) para evitar TypeError cuando permisos no existen
   - TransactionResource/EditTransaction: precedencia de operadores corregida en can() + canEdit/canIssue/canCancel
   - Fase 2 UI/tablas 2026-10-01: WorkOrderResource clientVehicle usa static::formatClientVehicleLabel con fallback '—' (función global no existe); eliminado Observers/WorkOrderUpdateObserver.php muerto (colisión de clase); TransactionResource status sin required (bloqueaba crear desde UI, servidor fuerza draft); clientVehicle.plate en search (search global reventaba con SQL 42703); with() en WorkOrders/Invoice/StockMovement; sortables sobre relaciones verificados OK en v5 (sin cambios)
+  - Fase 4 higiene 2026-10-07: ContactResource roles.role_code via getStateUsing con labels (celda salía vacía con HasMany); tests Superadmin/ unificados en SuperAdmin/; squash de migraciones rechazado (prod ya migrada); split WorkOrderResource y factories diferidos (sin ganancia funcional)
 - **Checklist:** `checklists/taller_filament.yaml`
 
 ### taller_permissions
