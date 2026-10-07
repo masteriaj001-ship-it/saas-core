@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.92 | **Status:** active_development | **Updated:** 2026-08-27
+> **Version:** 1.1.92 | **Status:** active_development | **Updated:** 2026-10-01
 
 ## Stack
 
@@ -18,7 +18,7 @@
 
 - **Status:** implemented
 - **Last check:** 2026-06-08
-- **Notes:** AdminPanelProvider configurado con SetTenantContext (sin clearTenantContext), VerifyTenantStatus, slug {tenant:slug}. Todos los Resources usan Schema API.
+- **Notes:** AdminPanelProvider configurado con SetTenantContext (sin clearTenantContext), VerifyTenantStatus, slug {tenant:slug}. Todos los Resources usan Schema API. QA Playwright 2026-08-27: 36/36 pages passed (17 List, 12 Create, 7 Edit).
 - **Tenant Resources:**
   - App\Filament\Resources\AssetResource (navigationSort: 1)
   - App\Filament\Resources\ClientVehicleResource (navigationSort: 2)
@@ -40,13 +40,12 @@
   - ContactPolicy creado (403 por falta de policy en Laravel 11+)
   - TransactionResource: Section namespace corregido (Schemas vs Forms)
   - InvoiceResource: status column type hint corregido (enum vs string)
-  - Filament\\Forms\\Components\\Section → Filament\\Schemas\\Components\\Section (8 archivos: Supplier, WorkshopBay, CreditAccount, Appointment, PurchaseOrder, PriceList + 2 RelationManagers)
+  - Filament\Forms\Components\Section → Filament\Schemas\Components\Section (8 archivos: Supplier, WorkshopBay, CreditAccount, Appointment, PurchaseOrder, PriceList + 2 RelationManagers)
   - client_vehicle display_name → plate (columna inexistente en AppointmentResource)
-  - Location import faltante en Appointment model (App\\Modules\\Talleres\\Models\\Location → App\\Models\\Location)
-  - Appointment Select labels con getOptionLabelFromRecordUsing fallback null-safe
-  - auth()->user()->can() → auth()->user()?->can() ?? false en 34 instancias (17 archivos)
+  - Location import faltante en Appointment model (App\Modules\Talleres\Models\Location → App\Models\Location)
+  - Appointment Select relationship labels con getOptionLabelFromRecordUsing fallback null-safe
+  - auth()->user()->can() → auth()->user()?->can() ?? false en 34 instancias (17 archivos) para evitar TypeError cuando permisos no existen
   - TransactionResource/EditTransaction: precedencia de operadores corregida en can() + canEdit/canIssue/canCancel
-- **QA Results (2026-08-27):** Playwright automated — 36/36 pages passed (17 List, 12 Create, 7 Edit). Config cache clear resolved stale 500 on items list.
 - **Checklist:** `checklists/taller_filament.yaml`
 
 ### taller_permissions
@@ -121,7 +120,7 @@
 ### caja_turnos
 
 - **Status:** implemented
-- **Last check:** 2026-08-25
+- **Last check:** 2026-10-01
 - **Features:**
   - CashShift model: open/close/canOpen/addExpectedCash/subtractExpectedCash
   - CashMovement model: type enum (sale/expense/income/refund), payment_method enum
@@ -133,9 +132,15 @@
   - Cálculo automático de diferencia (sobrante/faltante) al cerrar
   - Movimientos automáticos: sale al confirmar factura, refund al cancelar
   - TurnoCerradoException para validaciones
-  - 13 tests PHPUnit (CashShiftTest + CajaIntegrationTest)
+  - 16 tests PHPUnit (CashShiftTest + CajaIntegrationTest + CajaPageTest + CashShiftTableTest)
   - $guarded compliant con R-02 (id, tenant_id, created_at, updated_at)
-- **Notes:** Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard.
+  - Turnos solo se abren desde CajaPage: CreateAction removido de ListCashShifts (evita opened_by null)
+  - Panel viteTheme resources/css/filament/admin/theme.css (core Filament + utilidades Tailwind vistas custom)
+  - Dockerfile assets stage copia vendor/filament (vendor excluido del build context)
+  - Iconos CajaPage via x-filament::icon + Heroicon enum (inmune a DisableBladeIconComponents)
+  - Casts (float) antes de number_format con decimal:2 (devuelve string + strict_types = TypeError)
+  - Columnas/entries calculadas via getStateUsing (metodos float no son relaciones Eloquent)
+- **Notes:** Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard. Fixes prod 2026-10-01 (commits c150db2, f8448d8, a43c9b8, 3b19882, 55a397b): sin CreateAction en lista, tema Vite del panel, iconos Filament, casts float, getStateUsing en columnas calculadas.
 
 ### taller_locations
 
@@ -415,11 +420,11 @@
 
 ## Test Suite
 
-- **Total tests:** 564
-- **Passing:** 564
-- **Assertions:** 1256
+- **Total tests:** 517
+- **Passing:** 517
+- **Assertions:** 1174
 - **Status:** green
-- **Last run:** 2026-08-28
+- **Last run:** 2026-08-26
 
 ## Deployment
 
@@ -523,8 +528,8 @@
 - FilamentInfoWidget removed (commit 6d84776): Public repo/docs widget eliminated from AdminPanel (kept only in Superadmin).
 - Duplicate items cleanup (2026-08-22): 8 items with same name but different SKUs cleaned from database via ROW_NUMBER window function in Railway console.
 - QA test suite (commit 7491100): 61 automated tests across 6 files (PosFlowTest, WorkOrderFlowTest, ServiceCatalogTest, ContactFlowTest, ItemStockTest, TenantIsolationTest) + QA_CHECKLIST.md with 80+ manual test steps.
-- Phase 1 Core Operativo (2026-08-27): 11 migrations, 8 models, 5 services, 3 observers, 6 Filament Resources, 5 policies, 25+ new tests. Covers suppliers, purchasing with CMP, stock consumption on WO completion, workshop bays, appointments with calendar, price lists, low stock alerts. Suite 547/547.
-- Phase 2 Cartera/Crédito (2026-08-28): 3 migrations, 2 models, 2 services, 1 observer, 1 notification, 1 command, 2 Filament Resources, 17 new tests. Ledger inmutable, aging report, auto-charge on credit invoice, auto-reverse on cancel, GENERATED STORED available_credit. Suite 564/564.
+- Filament v5 Section import fix (commits 1848db3, 24bf109, 228c645, 1ba3d1e, 1fb0d5b): Section moved from Filament\Forms\Components\Section to Filament\Schemas\Components\Section in Filament v5. Fixed in 8 files (Supplier, WorkshopBay, CreditAccount, Appointment, PurchaseOrder, PriceList + 2 RelationManagers). Also fixed: client_vehicle display_name→plate (AppointmentResource), Location import missing in Appointment model, null-safe relationship labels with getOptionLabelFromRecordUsing, auth()->user()->can() null-safe across 17 files (34 instances).
+- Filament v5 QA results (2026-08-27): Playwright automated QA — 36/36 pages passed (17 List, 12 Create, 7 Edit). All modules load with HTTP 200. Config cache clear fixed stale 500 on items list.
 
 ## Security Status
 
@@ -534,6 +539,7 @@
 - **rls_gaps:** 
 - **rls_fixed:** GAP-001, GAP-002, GAP-003, GAP-004, GAP-005
 - **fix_priority:** none
+- **phase1_tenant_hardening_2026_10_01:** TransactionService::createWithItems fuerza tenant_id del contexto (ignora input), tenant_id removido de $fillable en CashShift, CashMovement, SmsCode, TenantModule (hook creating lo inyecta), 11 policies nuevas (Budget, CashShift, ClientVehicle, CreditAccount, CreditTransaction, Invoice, Item, Location, ServiceCatalog, StockMovement, Warehouse), Seeder: permisos cash_shifts + client_vehicles (view/create/edit/delete + grants editor), Comandos iteran por tenant con setTenantContext (check-low-stock, check-overdue, check-expired), Notificaciones queued capturan tenantId y fijan contexto en via() (LowStock, OverdueCredit), Tests: MassAssignmentTenantTest, ResourcePolicyTest, CashShiftTableTest(owner), multi-tenant en CheckLowStock/CheckOverdue
 - **audit_logs:** implemented
 - **rate_limiting:** layered (route + livewire + named limiters)
 - **rate_limiting_endpoints:** forgot-password (3/hora/IP), reset-password (5/hora/IP), login (5/60s/IP), sanctum/token (5/min/IP), register (10/hora/IP)

@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
   "version": "1.1.92",
-  "last_updated": "2026-08-27",
+  "last_updated": "2026-10-01",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
@@ -68,7 +68,7 @@
         "auth()->user()->can() → auth()->user()?->can() ?? false en 34 instancias (17 archivos) para evitar TypeError cuando permisos no existen",
         "TransactionResource/EditTransaction: precedencia de operadores corregida en can() + canEdit/canIssue/canCancel"
       ],
-      "notes": "AdminPanelProvider configurado con SetTenantContext (sin clearTenantContext), VerifyTenantStatus, slug {tenant:slug}. Todos los Resources usan Schema API."
+      "notes": "AdminPanelProvider configurado con SetTenantContext (sin clearTenantContext), VerifyTenantStatus, slug {tenant:slug}. Todos los Resources usan Schema API. QA Playwright 2026-08-27: 36/36 pages passed (17 List, 12 Create, 7 Edit)."
     },
     "taller_permissions": {
       "status": "implemented",
@@ -150,7 +150,7 @@
     },
     "caja_turnos": {
       "status": "implemented",
-      "last_check": "2026-08-25",
+      "last_check": "2026-10-01",
       "features": [
         "CashShift model: open/close/canOpen/addExpectedCash/subtractExpectedCash",
         "CashMovement model: type enum (sale/expense/income/refund), payment_method enum",
@@ -162,14 +162,20 @@
         "Cálculo automático de diferencia (sobrante/faltante) al cerrar",
         "Movimientos automáticos: sale al confirmar factura, refund al cancelar",
         "TurnoCerradoException para validaciones",
-        "13 tests PHPUnit (CashShiftTest + CajaIntegrationTest)",
-        "$guarded compliant con R-02 (id, tenant_id, created_at, updated_at)"
+        "16 tests PHPUnit (CashShiftTest + CajaIntegrationTest + CajaPageTest + CashShiftTableTest)",
+        "$guarded compliant con R-02 (id, tenant_id, created_at, updated_at)",
+        "Turnos solo se abren desde CajaPage: CreateAction removido de ListCashShifts (evita opened_by null)",
+        "Panel viteTheme resources/css/filament/admin/theme.css (core Filament + utilidades Tailwind vistas custom)",
+        "Dockerfile assets stage copia vendor/filament (vendor excluido del build context)",
+        "Iconos CajaPage via x-filament::icon + Heroicon enum (inmune a DisableBladeIconComponents)",
+        "Casts (float) antes de number_format con decimal:2 (devuelve string + strict_types = TypeError)",
+        "Columnas/entries calculadas via getStateUsing (metodos float no son relaciones Eloquent)"
       ],
       "tables": [
         "cash_shifts (UUID PK, tenant_id, opened_by, closed_by, opened_at, closed_at, initial_amount, expected_cash, actual_cash, difference, status, notes, metadata)",
         "cash_movements (UUID PK, tenant_id, shift_id, work_order_id, invoice_id, type, payment_method, amount, description, created_by, metadata)"
       ],
-      "notes": "Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard."
+      "notes": "Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard. Fixes prod 2026-10-01 (commits c150db2, f8448d8, a43c9b8, 3b19882, 55a397b): sin CreateAction en lista, tema Vite del panel, iconos Filament, casts float, getStateUsing en columnas calculadas."
     },
     "taller_locations": {
       "status": "implemented",
@@ -341,6 +347,46 @@
         "3 tests unitarios del LoginResponse"
       ],
       "notes": "Decisión: user_type field en vez de usar Spatie 'viewer' como proxy. Evita mezclar permisos con tipo de usuario."
+    },
+    "core_operativo_phase1": {
+      "status": "implemented",
+      "last_check": "2026-08-27",
+      "features": [
+        "11 migrations: suppliers, purchase_orders, purchase_order_items, item_cost_histories, workshop_bays, price_lists, price_list_items, appointments + modify items/work_orders/work_order_items",
+        "2 enums: PurchaseStatus, AppointmentStatus",
+        "8 models: Supplier, PurchaseOrder, PurchaseOrderItem, ItemCostHistory, WorkshopBay, Appointment, PriceList, PriceListItem",
+        "7 factories with states (draft, ordered, partial, received, cancelled)",
+        "5 services: StockMovementService, CostingService, PurchaseService, StockConsumptionService, LowStockAlertService",
+        "3 observers: PurchaseOrderObserver (auto code), StockMovementObserver (low stock alerts), WorkOrderObserver (stock consumption on WO complete)",
+        "1 notification: LowStockNotification (queued, mail)",
+        "6 Filament Resources: SupplierResource, PurchaseOrderResource (with ItemsRelationManager + Recibir action), StockMovementResource (read-only), WorkshopBayResource, AppointmentResource (with AppointmentCalendar page), PriceListResource (with ItemsRelationManager)",
+        "5 Policies: SupplierPolicy, PurchaseOrderPolicy, WorkshopBayPolicy, AppointmentPolicy, PriceListPolicy",
+        "1 Artisan command: inventory:check-low-stock",
+        "25+ tests across SupplierTest, PurchaseOrderTest, CostingServiceTest, StockConsumptionOnCompleteTest, StockMovementResourceTest, CheckLowStockCommandTest, AppointmentTest, WorkshopBayTest",
+        "Laravel 13 compatibility: public $timestamps on models, newFactory() override on factories, explicit $model on factories"
+      ],
+      "notes": "Phase 1 Core Operativo completo. 547/547 tests green. Covers suppliers, purchasing with CMP, stock consumption on WO completion, workshop bays, appointments with calendar, price lists, low stock alerts."
+    },
+    "credit_accounts": {
+      "status": "implemented",
+      "last_check": "2026-08-28",
+      "features": [
+        "3 migrations: credit_accounts, credit_transactions, add credit_account_id to invoices",
+        "2 models: CreditAccount, CreditTransaction (both with BelongsToTenant, HasFactory, newFactory() override)",
+        "Invoice model updated: credit_account_id added to $fillable, payment_method cast, creditAccount() relationship",
+        "CreditAccountService: charge, payment, reverseCharge, recalculateBalance, getOrCreateForContact",
+        "CreditReportService: getStatement, getOverdueAccounts, getAgingReport",
+        "CreditLimitExceededException with context (contact, balance, amount, limit)",
+        "InvoiceObserver: detects draft→issued/paid with credit method → creates charge; cancelled → reverses charge",
+        "OverdueCreditNotification (queued, mail) for overdue accounts",
+        "CheckOverdueCreditsCommand (credit:check-overdue with --tenant filter)",
+        "2 Filament Resources: CreditAccountResource (CRUD + Registrar Pago action), CreditTransactionResource (read-only)",
+        "2 Factories: CreditAccountFactory (states: inactive, withBalance, noLimit), CreditTransactionFactory (states: charge, payment, chargeReverse, overdue, paid)",
+        "17 tests: CreditAccountTest (CRUD, relationships, overdue, limits, payments, reversals, statements, aging, commands)",
+        "RLS enabled on credit_accounts and credit_transactions",
+        "GENERATED STORED available_credit on credit_accounts (PostgreSQL)"
+      ],
+      "notes": "Phase 2 Cartera/Crédito completo. 564/564 tests green. Ledger inmutable, aging report, auto-charge on credit invoice, auto-reverse on cancel."
     },
     "rate_limiting": {
       "status": "implemented",
@@ -527,6 +573,15 @@
       "GAP-005"
     ],
     "fix_priority": "none",
+    "phase1_tenant_hardening_2026_10_01": [
+      "TransactionService::createWithItems fuerza tenant_id del contexto (ignora input)",
+      "tenant_id removido de $fillable en CashShift, CashMovement, SmsCode, TenantModule (hook creating lo inyecta)",
+      "11 policies nuevas (Budget, CashShift, ClientVehicle, CreditAccount, CreditTransaction, Invoice, Item, Location, ServiceCatalog, StockMovement, Warehouse)",
+      "Seeder: permisos cash_shifts + client_vehicles (view/create/edit/delete + grants editor)",
+      "Comandos iteran por tenant con setTenantContext (check-low-stock, check-overdue, check-expired)",
+      "Notificaciones queued capturan tenantId y fijan contexto en via() (LowStock, OverdueCredit)",
+      "Tests: MassAssignmentTenantTest, ResourcePolicyTest, CashShiftTableTest(owner), multi-tenant en CheckLowStock/CheckOverdue"
+    ],
     "audit_logs": "implemented",
     "rate_limiting": "layered (route + livewire + named limiters)",
     "rate_limiting_endpoints": [
