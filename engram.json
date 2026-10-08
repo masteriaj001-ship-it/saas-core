@@ -19,12 +19,12 @@
       "User model implementa FilamentUser (canAccessPanel) — sin eso el panel admin da 403 en production",
       "Railway no soporta --build-arg; todas las env via dashboard"
     ],
-    "render_ops_2026_10_01": [
-      "route:cache reactivado en entrypoint (Livewire v4 lo soporta: endpoints estables por APP_KEY + getUpdateUri resuelve desde router cacheado; verificado boot+login 200 en local)",
+    "render_ops_2026_10_01": [      "route:cache reactivado en entrypoint (Livewire v4 lo soporta: endpoints estables por APP_KEY + getUpdateUri resuelve desde router cacheado; verificado boot+login 200 en local)",
       "NO event:cache: AppServiceProvider escucha eventos con closure (fatal al cachear)",
-      "OPcache en imagen Docker (docker-php-ext-install opcache + docker/opcache.ini, validate_timestamps=0, sin JIT)",
+      "OPcache en imagen Docker (built-in en php:8.5-fpm-alpine, solo docker/opcache.ini, validate_timestamps=0, sin JIT)",
       "blueprint: healthCheckPath /up, SESSION_SECURE_COOKIE=true, LOG_CHANNEL=stderr",
-      "Pendientes con costo (requieren aprobación): worker queue:work, cron subscriptions:check-expired, DB Starter+backups, Sentry (paquete nuevo)",
+      "Fase A worker/cron 2026-10-08 (commit 0a53627): entrypoint multimodo (WORKER_MODE/args/web), saas-core-worker starter + saas-core-scheduler cron horario; mail queda en log driver; QA circuito real pendiente",
+      "Pendientes con costo (requieren aprobación): DB Starter+backups, Sentry (paquete nuevo)",
       "Pendiente con riesgo: migrar sesión/caché/cola a Redis (cablear REDIS_URL primero)"
     ],
     "open_items": [
