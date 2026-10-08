@@ -18,6 +18,18 @@ if [ -n "${DATABASE_URL}" ] && [ -z "${DB_HOST}" ]; then
     export DB_HOST DB_PORT DB_DATABASE DB_USERNAME DB_PASSWORD
 fi
 
+# Role switch: Render passes dockerCommand/startCommand as arguments.
+# - WORKER_MODE=1 → queue worker (no migrate, no caches, no servers).
+# - With arguments → one-shot (cron): run them and exit.
+# - No arguments → web (default): migrate + caches + fpm + nginx.
+if [ "${WORKER_MODE}" = "1" ]; then
+    exec php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+fi
+
+if [ $# -gt 0 ]; then
+    exec "$@"
+fi
+
 php artisan storage:link >/dev/null 2>&1 || true
 
 php artisan package:discover --ansi || true
