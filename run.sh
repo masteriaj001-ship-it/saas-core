@@ -1,9 +1,12 @@
 #!/bin/bash
-# Pipeline de agentes headless (port a OpenCode): 8 pasos stateless comunicados por artefactos.
+# Pipeline de agentes headless (port a OpenCode): pasos stateless comunicados por artefactos.
 # Uso:
-#   ./run.sh                 -> corre pasos 1-7 (hasta release + qa-notes)
-#   ./run.sh address-review  -> corre solo address-review (después de comentarios en la PR)
-#   ./run.sh plan            -> corre desde un paso intermedo (ej: plan)
+#   ./run.sh                      -> corre pasos 1-7 (enrich..qa-notes)
+#   ./run.sh --until <paso>       -> corre desde enrich hasta <paso> inclusive (GATE)
+#                                    ej: ./run.sh --until plan  -> para y esperas tu OK
+#   ./run.sh <paso>               -> corre desde <paso> hasta el final
+#                                    ej: ./run.sh implement    -> tras tu OK de tasks.json
+#   ./run.sh address-review       -> solo address-review (tras comentarios de la PR)
 # Variables de entorno:
 #   MODEL=x/y            -> fuerza el mismo modelo en TODOS los pasos
 #   MODEL_STRONG=x/y     -> modelo de los pasos que exigen razonamiento
@@ -32,9 +35,22 @@ require() {
 }
 
 run_from() {
-  local start=$1
-  local steps=("enrich" "plan" "implement" "code-review" "qa-code" "release" "qa-notes" "address-review")
-  local models=("$STRONG" "$STRONG" "$STRONG" "$STRONG" "$STRONG" "$FAST" "$STRONG" "$STRONG")
+  local start=$1 until=${2:-}
+  local steps=("enrich" "plan" "implement" "code-review" "qa-code" "release" "qa-notes")
+  local models=("$STRONG" "$STRONG" "$STRONG" "$STRONG" "$STRONG" "$FAST" "$STRONG")
+
+  if [ -n "$until" ]; then
+    case " ${steps[*]} " in
+      *" $until "*) ;;
+      *) echo "ERROR: --until '$until' no es un paso válido (valores: ${steps[*]})"; exit 1 ;;
+    esac
+  fi
+  case " ${steps[*]} " in
+    *" $start "*) ;;
+    " all "*) ;;
+    *) echo "ERROR: paso inicial '$start' no válido (valores: all ${steps[*]})"; exit 1 ;;
+  esac
+
   local started=0
   for i in "${!steps[@]}"; do
     [ "$start" = "all" ] && started=1
@@ -50,6 +66,10 @@ run_from() {
         release)     require mrs.json ;;
         qa-notes)    require qa-notes.md ;;
       esac
+      if [ -n "$until" ] && [ "$until" = "${steps[$i]}" ]; then
+        echo "==> detenido en '$until' (--until). Siguiente paso tras tu revisión/OK."
+        return 0
+      fi
     fi
   done
 }
@@ -59,6 +79,10 @@ case "${1:-all}" in
   address-review)
     step address-review "$STRONG"
     require verdict.json
+    ;;
+  --until)
+    if [ $# -lt 2 ]; then echo "uso: ./run.sh --until <paso>"; exit 1; fi
+    run_from all "$2"
     ;;
   *) run_from "${1:-all}" ;;
 esac

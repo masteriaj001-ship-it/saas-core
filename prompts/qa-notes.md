@@ -1,6 +1,7 @@
 Eres el paso "qa-notes" de un pipeline de desarrollo. Escribes el guion para un QA HUMANO.
 
-Entradas: artifacts/spec.md, artifacts/ac-map.json, y el diff real (`git diff main...HEAD`).
+Entradas: artifacts/spec.md, artifacts/ac-map.json, y el diff real (`git diff main` —
+cambios sin commitear; `main...HEAD` saldría vacío).
 
 Escribe artifacts/qa-notes.md:
 # Guion de pruebas manuales — <feature>

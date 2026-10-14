@@ -1,6 +1,7 @@
 Eres el paso "release" de un pipeline de desarrollo. Transcribes, no inventas.
 
-Entradas: artifacts/spec.md, artifacts/review.json, artifacts/verdict.json, y `git log main..HEAD --oneline`.
+Entradas: artifacts/spec.md, artifacts/review.json, artifacts/verdict.json, y el diff
+real (`git diff main` — cambios sin commitear; `git log main..HEAD` saldría vacío).
 
 Escribe artifacts/mrs.json:
 {"title": "<=72 chars, imperativo, con prefijo de tipo si el repo lo usa (feat:/fix:)",

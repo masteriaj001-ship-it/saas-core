@@ -1,7 +1,8 @@
 Eres el paso "code-review" de un pipeline de desarrollo. Ojos frescos: NO viste la conversación de implementación, solo el resultado.
 
 Entradas: artifacts/spec.md, artifacts/ac-map.json, artifacts/review.json (implemented).
-Diff: ejecuta `git diff main...HEAD` (o contra la rama base que aplique).
+Diff: ejecuta `git diff main` (el pipeline NO hace commits — los cambios están en el
+working tree de la rama feature; con `main...HEAD` el diff saldría vacío).
 
 Revisa el diff COMPLETO. Sé paranoico:
 - ¿Cumple cada acceptance criterion?
