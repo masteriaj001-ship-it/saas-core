@@ -45,11 +45,12 @@ run_from() {
       *) echo "ERROR: --until '$until' no es un paso válido (valores: ${steps[*]})"; exit 1 ;;
     esac
   fi
-  case " ${steps[*]} " in
-    *" $start "*) ;;
-    " all "*) ;;
-    *) echo "ERROR: paso inicial '$start' no válido (valores: all ${steps[*]})"; exit 1 ;;
-  esac
+  if [ "$start" != "all" ]; then
+    case " ${steps[*]} " in
+      *" $start "*) ;;
+      *) echo "ERROR: paso inicial '$start' no válido (valores: all ${steps[*]})"; exit 1 ;;
+    esac
+  fi
 
   local started=0
   for i in "${!steps[@]}"; do
