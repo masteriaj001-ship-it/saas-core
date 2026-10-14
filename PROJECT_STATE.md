@@ -1,6 +1,6 @@
 # ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)
 
-> **Version:** 1.1.92 | **Status:** active_development | **Updated:** 2026-10-01
+> **Version:** 1.1.92 | **Status:** active_development | **Updated:** 2026-10-14
 
 ## Stack
 
@@ -122,7 +122,7 @@
 ### caja_turnos
 
 - **Status:** implemented
-- **Last check:** 2026-10-01
+- **Last check:** 2026-10-14
 - **Features:**
   - CashShift model: open/close/canOpen/addExpectedCash/subtractExpectedCash
   - CashMovement model: type enum (sale/expense/income/refund), payment_method enum
@@ -142,7 +142,12 @@
   - Iconos CajaPage via x-filament::icon + Heroicon enum (inmune a DisableBladeIconComponents)
   - Casts (float) antes de number_format con decimal:2 (devuelve string + strict_types = TypeError)
   - Columnas/entries calculadas via getStateUsing (metodos float no son relaciones Eloquent)
-- **Notes:** Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard. Fixes prod 2026-10-01 (commits c150db2, f8448d8, a43c9b8, 3b19882, 55a397b): sin CreateAction en lista, tema Vite del panel, iconos Filament, casts float, getStateUsing en columnas calculadas.
+  - CreateCashShift: pagina Filament de creacion via URL directa (finding 3: sin boton en UI) con notas visibles para admin/owner; delega en CashMovementService::openShift
+  - Notas de apertura y cierre concatenadas en CashShift::close() con separador ' | ' (append); CajaPage cierra pasando closeNotes
+  - CashMovementService::openShift envuelta en DB::transaction (turno + notas + movimiento income atomicos)
+  - CashShiftPolicy + RolePermissionSeeder: permisos view/create/edit/delete_cash_shifts por tenant (owner=admin-edit=todo, editor=edit, viewer=view)
+  - Tests: CashShiftCreatePageTest (8: delegacion servicio, notas visibles/ocultas por rol, status ausente, viewer 403) + append en CashShiftTest; suite completa 615
+- **Notes:** Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard. Fixes prod 2026-10-01 (commits c150db2, f8448d8, a43c9b8, 3b19882, 55a397b): sin CreateAction en lista, tema Vite del panel, iconos Filament, casts float, getStateUsing en columnas calculadas. Piloto pipeline agentes 2026-10-14 (PR #14, branch feature/cash-shift-create-notes): página CreateCashShift + append de notas; permisos cash_shifts/client_vehicles faltantes en dev re-sincronizados vía RolePermissionSeeder con contexto de tenant (permisos son filas por-tenant).
 
 ### taller_locations
 
