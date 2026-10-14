@@ -148,7 +148,10 @@ class CashShift extends Model
         $this->actual_cash = $actualCash;
         $this->difference = $actualCash - $this->expected_cash;
         $this->status = 'closed';
-        $this->notes = $notes;
+
+        if (filled($notes)) {
+            $this->notes = filled($this->notes) ? $this->notes.' | '.$notes : $notes;
+        }
 
         return $this->save();
     }

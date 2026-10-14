@@ -12,6 +12,7 @@ Stack: Laravel 13 · PHP 8.5 · PostgreSQL 18 · Filament 5 · Docker (Sail) · 
 | `01_MULTI_TENANT_FLOW.md` | Todos | Ciclo completo RLS + TenantManager |
 | `02_ELOQUENT_AND_MIGRATIONS.md` | Devs | Modelos, traits, migraciones |
 | `03_SDLC_FEATURE_LIFECYCLE.md` | Todos | Cómo nace y muere un feature |
+| `PIPELINE.md` | Devs | Pipeline de agentes headless (run.sh), gate Plan+OK, métricas |
 | `proyect-dashboard/docs/PROJECT_STATE.md` | Todos | Estado actual del proyecto |
 | `proyect-dashboard/docs/WORKFLOW.md` | Todos | Cómo operar con agentes IA |
 | `AGENTS.md` | Agentes IA | Reglas mandatorias de gobernanza |

@@ -4,11 +4,12 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources;
 
+use App\Filament\Resources\CashShiftResource\Pages\CreateCashShift;
 use App\Filament\Resources\CashShiftResource\Pages\ListCashShifts;
 use App\Filament\Resources\CashShiftResource\Pages\ViewCashShift;
 use App\Modules\Caja\Models\CashShift;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
@@ -55,14 +56,17 @@ class CashShiftResource extends Resource
                         TextInput::make('initial_amount')
                             ->label(__('Monto Inicial'))
                             ->numeric()
-                            ->required(),
-                        Select::make('status')
-                            ->label(__('Estado'))
-                            ->options([
-                                'open' => __('Abierto'),
-                                'closed' => __('Cerrado'),
-                            ])
-                            ->required(),
+                            ->required()
+                            // El closure exterior lo evalúa Filament para obtener la rule; el interior es la closure-rule de Laravel que recibe $fail.
+                            ->rule(fn (): \Closure => function (string $attribute, mixed $value, \Closure $fail): void {
+                                if (! CashShift::canOpen()) {
+                                    $fail(__('Ya existe un turno abierto'));
+                                }
+                            }),
+                        Textarea::make('notes')
+                            ->label(__('Notas'))
+                            ->nullable()
+                            ->visible(fn (): bool => auth()->user()?->hasRole(['admin', 'owner']) ?? false),
                     ]),
                 Section::make(__('Resumen'))
                     ->schema([
@@ -136,6 +140,8 @@ class CashShiftResource extends Resource
     {
         return [
             'index' => ListCashShifts::route('/'),
+            // Página NO expuesta en UI (sin acción Crear en ListCashShifts) por decisión post-incidente; accesible solo por URL directa.
+            'create' => CreateCashShift::route('/create'),
             'view' => ViewCashShift::route('/{record}'),
         ];
     }

@@ -27,3 +27,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /sketches/
+
+# agent pipeline
+/artifacts/
+/feature-request.md
