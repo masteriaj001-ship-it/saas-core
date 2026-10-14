@@ -39,6 +39,9 @@ Reglas para los tests PHPUnit 12:
   Testing (assertCanSeeTableRecords, assertTableActionExists, assertFormSet, assertNotified...).
   Filament 5.6 corre sobre Livewire 4 — verifica nombres de métodos/argumentos en los tests existentes
   antes de asumirlos.
+- Reglas ->rule(...): verifica la firma real en vendor/filament antes de escribir la task.
+  Filament evalúa el closure que tú le pases (devuelve la rule); la closure-rule de Laravel
+  es la interna y recibe $fail. Un doble cierre mal modelado revienta en runtime, no en plan.
 - Tests de lógica de negocio: PHPUnit puro ($this->assertEquals, assertDatabaseHas...).
 - factories: usa las existentes; si falta una, añade tarea "factory: ...".
 - "verify" siempre es un comando ejecutable y aislado (--filter) con prefijo vendor/bin/sail.
