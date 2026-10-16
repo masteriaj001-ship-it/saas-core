@@ -197,3 +197,20 @@ Toda transición de estado guarda en `work_order_activities`:
 | 10 | RLS en `sms_codes` aísla por tenant | Seguridad |
 
 **Total: 10 tests**
+
+---
+
+## 9. Fase 3 — Automatismos de vencimiento (implementada 2026-10-14)
+
+Implementa los "(automático)" del §2 y el bloqueo del §6. Branch `feature/work-order-closure-phase3`.
+
+- **Ventana de vencimiento:** `settings.closure_window_started_at` (ISO-8601, JSONB, patrón `is_legacy_closure`) se estampa al entrar a `esperando_cliente` y `no_recoge`. Al re-entrar a `no_recoge` se limpia `settings.pickup_alert_sent_at` (reingreso vuelve a alertar).
+- **Sweep:** comando horario `work-orders:check-closure-expiry` (schedule `hourly()->withoutOverlapping()`), transición a `incumplimiento` + `blocked_until` atómicos en `DB::transaction` por orden; notificación database al dueño tras commit.
+- **Aislamiento (seguridad RLS):** `catch (\Throwable)` por orden (legacy, `InvalidFormatException`, `TypeError` → log + continue) y try/catch por tenant con `finally { clearTenantContext() }` — un registro venenoso no aborta el sweep ni filtra contexto de tenant entre iteraciones.
+- **Triple fallback de ventana (decisión John):** `closure_window_started_at` → fila de `work_order_activities` → `created_at` de la orden. Sin ventana determinable solo por estos tres eslabones (el AC8 "omitir" quedó reescrito).
+- **Bloqueo: duración 7d (decisión John 2026-10-14)** — justificación: 7d > 72h de compromiso de recogida, el bloqueo nunca vence antes de que la deuda tenga sentido cobrar. Expiración por fecha: aplica a **todos** los roles (crear orden con `blocked_until` pasado no bloquea, aunque el actor sea editor).
+- **Desbloqueo manual:** campo `blocked_until` en edición de Contact visible/clearable solo para `hasRole(['admin','owner'])` (patrón de acciones sensibles de caja). Filament 5.6 no expone `clearable()` — la limpieza es nullable + clearState del date-time picker (no hay botón ×).
+- **Enforcement de creación:** `WorkOrderObserver@creating` → `ValidationException` si el contacto tiene `blocked_until` futuro — un solo punto que cubre wizard y recepción; el wizard surfacing el error (no silencioso).
+- **Legacy:** orden `is_legacy_closure` saltada con `Log::warning` solamente (sin filas de activity por ejecución — protege el audit trail).
+- **Alerta 48h:** at-most-once — marker + notificación en la misma `DB::transaction` (informativa; el enforcement real es la breach a las 72h).
+- **Tests Fase 3:** `WorkOrderClosurePhase3Test`, `CheckWorkOrderClosureExpiryCommandTest`, `WorkOrderBlockedContactTest` (incluye camino wizard Livewire), `ContactBlockedUntilFormTest`. Suite total: **648 tests**.
