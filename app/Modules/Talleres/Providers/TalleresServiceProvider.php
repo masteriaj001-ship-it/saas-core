@@ -7,6 +7,7 @@ namespace App\Modules\Talleres\Providers;
 use App\Modules\Talleres\Actions\CreateAssetAction;
 use App\Modules\Talleres\Actions\RegisterTenantAction;
 use App\Modules\Talleres\Actions\RequestQuoteApprovalAction;
+use App\Modules\Talleres\Console\Commands\CheckWorkOrderClosureExpiry;
 use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Models\WorkOrderItem;
 use App\Modules\Talleres\Observers\WorkOrderItemObserver;
@@ -15,6 +16,7 @@ use App\Modules\Talleres\Services\MediaService;
 use App\Modules\Talleres\Services\WorkOrderCodeGenerator;
 use App\Modules\Talleres\Services\WorkOrderWebhookService;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\Schedule;
 use Illuminate\Support\ServiceProvider;
 
 class TalleresServiceProvider extends ServiceProvider
@@ -31,6 +33,14 @@ class TalleresServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->commands([
+            CheckWorkOrderClosureExpiry::class,
+        ]);
+
+        Schedule::command('work-orders:check-closure-expiry')
+            ->hourly()
+            ->withoutOverlapping();
+
         $this->loadViewsFrom(
             __DIR__.'/../Resources/Views',
             'talleres'

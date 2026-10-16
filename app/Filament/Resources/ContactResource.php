@@ -13,6 +13,7 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -125,6 +126,14 @@ class ContactResource extends Resource
                         TextInput::make('document_number')
                             ->label(__('Número de documento'))
                             ->maxLength(30),
+                    ]),
+                Section::make(__('Bloqueo'))
+                    ->visible(fn (): bool => auth()->user()?->hasRole(['admin', 'owner']) ?? false)
+                    ->schema([
+                        DateTimePicker::make('blocked_until')
+                            ->label(__('Bloqueado hasta'))
+                            ->nullable()
+                            ->seconds(false),
                     ]),
                 Section::make(__('Metadatos'))
                     ->schema([
