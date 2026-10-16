@@ -16,7 +16,7 @@ class BudgetObserver
 
     public function updated(Budget $budget): void
     {
-        if (! $budget->isDirty('status')) {
+        if (! $budget->wasChanged('status')) {
             return;
         }
 

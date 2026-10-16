@@ -53,7 +53,7 @@ class BudgetConversionService
                 ]);
             }
 
-            $budget->update([
+            $budget->updateQuietly([
                 'converted_to_work_order_id' => $workOrder->id,
                 'contact_id' => $contact->id,
             ]);
@@ -62,31 +62,38 @@ class BudgetConversionService
         });
     }
 
+    public function findExistingContact(Budget $budget): ?Contact
+    {
+        if ($budget->contact_id) {
+            return $budget->contact;
+        }
+
+        if ($budget->contact_phone) {
+            $contact = Contact::where('tenant_id', $budget->tenant_id)
+                ->where('phone', $budget->contact_phone)
+                ->first();
+
+            if ($contact !== null) {
+                return $contact;
+            }
+        }
+
+        if ($budget->contact_email) {
+            return Contact::where('tenant_id', $budget->tenant_id)
+                ->where('email', $budget->contact_email)
+                ->first();
+        }
+
+        return null;
+    }
+
     private function resolveContact(Budget $budget): Contact
     {
         if ($budget->contact_id) {
             return $budget->contact;
         }
 
-        $contact = null;
-
-        if ($budget->contact_phone) {
-            $contact = Contact::where('tenant_id', $budget->tenant_id)
-                ->where('phone', $budget->contact_phone)
-                ->first();
-        }
-
-        if (! $contact && $budget->contact_email) {
-            $contact = Contact::where('tenant_id', $budget->tenant_id)
-                ->where('email', $budget->contact_email)
-                ->first();
-        }
-
-        if ($contact) {
-            return $contact;
-        }
-
-        return Contact::create([
+        return $this->findExistingContact($budget) ?? Contact::create([
             'tenant_id' => $budget->tenant_id,
             'contact_type' => 'client',
             'name' => $budget->contact_name,

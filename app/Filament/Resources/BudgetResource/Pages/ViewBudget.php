@@ -7,6 +7,7 @@ namespace App\Filament\Resources\BudgetResource\Pages;
 use App\Enums\BudgetStatusEnum;
 use App\Filament\Resources\BudgetResource;
 use App\Modules\Budget\Models\Budget;
+use App\Modules\Budget\Services\BudgetConversionService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Textarea;
 use Filament\Infolists\Components\TextEntry;
@@ -41,6 +42,20 @@ class ViewBudget extends ViewRecord
                 ->color('success')
                 ->visible(fn (Budget $record): bool => $record->status === BudgetStatusEnum::Sent)
                 ->action(function (Budget $record): void {
+                    $contact = app(BudgetConversionService::class)->findExistingContact($record);
+
+                    if ($contact?->blocked_until?->isFuture()) {
+                        Notification::make()
+                            ->danger()
+                            ->title(sprintf(
+                                __('El contacto tiene un bloqueo activo hasta el %s. No se pueden crear órdenes para este contacto.'),
+                                $contact->blocked_until->format('Y-m-d H:i'),
+                            ))
+                            ->send();
+
+                        return;
+                    }
+
                     $record->update([
                         'status' => BudgetStatusEnum::Approved,
                         'approved_at' => now(),
