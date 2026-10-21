@@ -26,7 +26,7 @@ class MakeSuperadminCommand extends Command
             return Command::FAILURE;
         }
 
-        $user = new User();
+        $user = new User;
         $user->name = $name;
         $user->email = $email;
         $user->password = Hash::make($password);

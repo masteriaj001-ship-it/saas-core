@@ -81,4 +81,55 @@ class CashShiftTest extends TestCase
 
         $this->assertNull($shiftInOtherTenant);
     }
+
+    public function test_cierre_con_notas_vacias_conserva_notas_de_apertura(): void
+    {
+        $shift = CashShift::openShift($this->user, 100000);
+        $shift->update(['notes' => 'Notas de apertura']);
+
+        $shift->close($this->user, 100000, '');
+
+        $this->assertDatabaseHas('cash_shifts', [
+            'id' => $shift->id,
+            'notes' => 'Notas de apertura',
+        ]);
+    }
+
+    public function test_cierre_con_notas_null_conserva_notas_de_apertura(): void
+    {
+        $shift = CashShift::openShift($this->user, 100000);
+        $shift->update(['notes' => 'Notas de apertura']);
+
+        $shift->close($this->user, 100000, null);
+
+        $this->assertDatabaseHas('cash_shifts', [
+            'id' => $shift->id,
+            'notes' => 'Notas de apertura',
+        ]);
+    }
+
+    public function test_cierre_notas_de_apertura_concatena_con_separador(): void
+    {
+        $shift = CashShift::openShift($this->user, 100000);
+        $shift->update(['notes' => 'Apertura X']);
+
+        $shift->close($this->user, 100000, 'Cierre Y');
+
+        $this->assertDatabaseHas('cash_shifts', [
+            'id' => $shift->id,
+            'notes' => 'Apertura X | Cierre Y',
+        ]);
+    }
+
+    public function test_cierre_notas_solo_de_cierre_sin_separador_inicial(): void
+    {
+        $shift = CashShift::openShift($this->user, 100000);
+
+        $shift->close($this->user, 100000, 'Cierre Y');
+
+        $this->assertDatabaseHas('cash_shifts', [
+            'id' => $shift->id,
+            'notes' => 'Cierre Y',
+        ]);
+    }
 }

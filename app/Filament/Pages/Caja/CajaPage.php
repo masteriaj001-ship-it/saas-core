@@ -33,6 +33,8 @@ class CajaPage extends Page
 
     public ?float $initialAmount = null;
 
+    public ?string $openNotes = null;
+
     public ?float $actualCash = null;
 
     public ?string $closeNotes = null;
@@ -126,9 +128,10 @@ class CajaPage extends Page
 
         try {
             $user = auth()->user();
-            CashMovementService::openShift($user, $this->initialAmount);
+            CashMovementService::openShift($user, $this->initialAmount, $this->openNotes);
 
             $this->initialAmount = null;
+            $this->openNotes = null;
             $this->loadData();
 
             Notification::make()

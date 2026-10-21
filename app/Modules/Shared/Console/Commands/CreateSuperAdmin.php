@@ -48,7 +48,7 @@ class CreateSuperAdmin extends Command
 
         try {
             DB::transaction(function () use ($email, $password) {
-                $user = new User();
+                $user = new User;
                 $user->name = 'Super Admin';
                 $user->email = $email;
                 $user->password = Hash::make($password);

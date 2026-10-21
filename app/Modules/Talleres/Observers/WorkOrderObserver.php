@@ -12,12 +12,23 @@ use App\Modules\Talleres\Models\WorkOrder;
 use App\Modules\Talleres\Notifications\WorkOrderApprovedNotification;
 use App\Modules\Talleres\Notifications\WorkOrderRejectedNotification;
 use App\Modules\Talleres\Services\WorkOrderWebhookService;
+use Filament\Notifications\Notification as FilamentNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 
 class WorkOrderObserver
 {
+    public function creating(WorkOrder $workOrder): void
+    {
+        $this->rejectBlockedContact($workOrder);
+    }
+
     public function updating(WorkOrder $workOrder): void
     {
+        if ($workOrder->isDirty('contact_id')) {
+            $this->rejectBlockedContact($workOrder);
+        }
+
         if (! $workOrder->isDirty('status')) {
             return;
         }
@@ -48,6 +59,36 @@ class WorkOrderObserver
 
         $this->dispatchApprovalNotifications($workOrder, $originalStatus);
         $this->consumeStockOnCompletion($workOrder, $originalStatus);
+    }
+
+    private function rejectBlockedContact(WorkOrder $workOrder): void
+    {
+        if ($workOrder->contact_id === null) {
+            return;
+        }
+
+        $contact = $workOrder->contact()->first();
+
+        if ($contact === null || $contact->blocked_until === null) {
+            return;
+        }
+
+        if ($contact->blocked_until->isFuture()) {
+            $message = sprintf(
+                __('El contacto tiene un bloqueo activo hasta el %s. No se pueden crear órdenes para este contacto.'),
+                $contact->blocked_until->format('Y-m-d H:i'),
+            );
+
+            FilamentNotification::make()
+                ->danger()
+                ->title($message)
+                ->send();
+
+            throw ValidationException::withMessages([
+                'contact_id' => $message,
+                'data.contact_id' => $message,
+            ]);
+        }
     }
 
     private function consumeStockOnCompletion(WorkOrder $workOrder, ?WorkOrderStatusEnum $originalStatus): void

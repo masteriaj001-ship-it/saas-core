@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
   "version": "1.1.92",
-  "last_updated": "2026-10-01",
+  "last_updated": "2026-10-14",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
@@ -160,7 +160,7 @@
     },
     "caja_turnos": {
       "status": "implemented",
-      "last_check": "2026-10-01",
+      "last_check": "2026-10-14",
       "features": [
         "CashShift model: open/close/canOpen/addExpectedCash/subtractExpectedCash",
         "CashMovement model: type enum (sale/expense/income/refund), payment_method enum",
@@ -179,13 +179,18 @@
         "Dockerfile assets stage copia vendor/filament (vendor excluido del build context)",
         "Iconos CajaPage via x-filament::icon + Heroicon enum (inmune a DisableBladeIconComponents)",
         "Casts (float) antes de number_format con decimal:2 (devuelve string + strict_types = TypeError)",
-        "Columnas/entries calculadas via getStateUsing (metodos float no son relaciones Eloquent)"
+        "Columnas/entries calculadas via getStateUsing (metodos float no son relaciones Eloquent)",
+        "CreateCashShift: pagina Filament de creacion via URL directa (finding 3: sin boton en UI) con notas visibles para admin/owner; delega en CashMovementService::openShift",
+        "Notas de apertura y cierre concatenadas en CashShift::close() con separador ' | ' (append); CajaPage cierra pasando closeNotes",
+        "CashMovementService::openShift envuelta en DB::transaction (turno + notas + movimiento income atomicos)",
+        "CashShiftPolicy + RolePermissionSeeder: permisos view/create/edit/delete_cash_shifts por tenant (owner=admin-edit=todo, editor=edit, viewer=view)",
+        "Tests: CashShiftCreatePageTest (8: delegacion servicio, notas visibles/ocultas por rol, status ausente, viewer 403) + append en CashShiftTest; suite completa 615"
       ],
       "tables": [
         "cash_shifts (UUID PK, tenant_id, opened_by, closed_by, opened_at, closed_at, initial_amount, expected_cash, actual_cash, difference, status, notes, metadata)",
         "cash_movements (UUID PK, tenant_id, shift_id, work_order_id, invoice_id, type, payment_method, amount, description, created_by, metadata)"
       ],
-      "notes": "Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard. Fixes prod 2026-10-01 (commits c150db2, f8448d8, a43c9b8, 3b19882, 55a397b): sin CreateAction en lista, tema Vite del panel, iconos Filament, casts float, getStateUsing en columnas calculadas."
+      "notes": "Módulo de caja con turnos para gestión de efectivo. Un turno abierto por tenant. Ventas se registran automáticamente desde facturas. Gastos se registran manualmente desde el dashboard. Fixes prod 2026-10-01 (commits c150db2, f8448d8, a43c9b8, 3b19882, 55a397b): sin CreateAction en lista, tema Vite del panel, iconos Filament, casts float, getStateUsing en columnas calculadas. Piloto pipeline agentes 2026-10-14 (PR #14, branch feature/cash-shift-create-notes): página CreateCashShift + append de notas; permisos cash_shifts/client_vehicles faltantes en dev re-sincronizados vía RolePermissionSeeder con contexto de tenant (permisos son filas por-tenant)."
     },
     "taller_locations": {
       "status": "implemented",
@@ -203,7 +208,7 @@
     },
     "work_order_closure": {
       "status": "implemented",
-      "last_check": "2026-06-17",
+      "last_check": "2026-10-14",
       "features": [
         "WorkOrderStatusEnum extendido: WorkDone, EvidencePending, WaitingClient, NoPickup, Breach",
         "settings JSONB en work_orders con is_legacy_closure para migración legacy completed → work_done",
@@ -216,9 +221,15 @@
         "Fase 2: WorkOrderClosureService con transiciones validadas (gate de checklist final + fotos antes/después + firma) y audit trail",
         "Fase 2: WorkOrder::hasCompleteFinalChecklist() + hasBeforeAfterPhotos()",
         "7 tests WorkOrderClosurePhase2Test (checklist, fotos, happy path, legacy, stage, firma, RLS media)",
-        "17 tests PHPUnit (transiciones, SMS, legacy, RLS, fase 2)"
+        "17 tests PHPUnit (transiciones, SMS, legacy, RLS, fase 2)",
+        "Fase 3: breach sin firma desde WaitingClient/NoPickup + closure_window_started_at en settings JSONB (ISO-8601)",
+        "Fase 3: comando horario work-orders:check-closure-expiry (sin overlapping) — sweep 72h con try/catch \\Throwable por orden y finally clearTenantContext (seguridad RLS), triple fallback de ventana: stamp → fila activity → created_at",
+        "Fase 3: alerta 48h en NoPickup at-most-once (marker pickup_alert_sent_at + notificación en la misma DB::transaction, se limpia al re-entrar a NoPickup)",
+        "Fase 3: bloqueo Contact.blocked_until 7d (decisión John 2026-10-14, > 72h de compromiso) vía WorkOrderObserver creating (wizard + recepción); enforcement por fecha — aplica a todos los roles; desbloqueo manual solo owner/admin (patrón caja)",
+        "Fase 3: skip de órdenes legacy solo con Log::warning (sin filas activity por ejecución); mensajes i18n __() en observer",
+        "Tests Fase 3: WorkOrderClosurePhase3Test + CheckWorkOrderClosureExpiryCommandTest + WorkOrderBlockedContactTest (incluye camino wizard Livewire) + ContactBlockedUntilFormTest — suite 648/648"
       ],
-      "notes": "FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. Fase 2 completada: gate de cierre (checklist completa + fotos before/after + firma) enforcement vía WorkOrderClosureService con audit trail en activities. RLS en sms_codes. 395 tests total."
+      "notes": "FEATURE_SPEC.md en features/work-order-closure/. 7 estados del flujo de cierre. Fase 2 completada: gate de cierre (checklist completa + fotos before/after + firma) enforcement vía WorkOrderClosureService con audit trail en activities. RLS en sms_codes. Fase 3 completada 2026-10-14 (branch feature/work-order-closure-phase3): automatismos de vencimiento 72h/48h, bloqueo de cliente 7d, desbloqueo manual owner/admin. Suite 648 tests total."
     },
     "tenant_job_context": {
       "status": "implemented",

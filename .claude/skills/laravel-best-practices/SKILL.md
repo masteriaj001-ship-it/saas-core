@@ -43,10 +43,19 @@ Check sibling files, related controllers, models, or tests for established patte
 ### 3. Security → `rules/security.md`
 
 - Define `$fillable` or `$guarded` on every model, authorize every action via policies or gates
-- No raw SQL with user input — use Eloquent or query builder
 - `{{ }}` for output escaping, `@csrf` on all POST/PUT/DELETE forms, `throttle` on auth and API routes
 - Validate MIME type, extension, and size for file uploads
 - Never commit `.env`, use `config()` for secrets, `encrypted` cast for sensitive DB fields
+
+#### SQL Injection Prevention
+
+- **No variable interpolation in raw SQL** — never use `"WHERE x = '{$input}'"` in `DB::statement()`, `DB::raw()`, or `DB::unprepared()`
+- Use Eloquent or Query Builder for all user-driven queries — they use PDO parameter binding automatically
+- For unavoidable raw SQL with dynamic values, use **PDO parameterization**:
+  - `DB::statement("... WHERE x = ?", [$value])` — positional placeholder
+  - `DB::connection()->getPdo()->quote($value)` — string escaping for DDL/auth queries that can't use placeholders (e.g., `CREATE ROLE ... PASSWORD`)
+  - `DB::connection()->getPdo()->quoteIdentifier($name)` — identifier quoting for dynamic table/database/column names
+- **Never use `env()` inside migrations** for values that end up in SQL strings. If you must, escape via PDO.
 
 ### 4. Caching → `rules/caching.md`
 

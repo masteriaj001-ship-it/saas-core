@@ -75,21 +75,27 @@ class CashMovementService
         });
     }
 
-    public static function openShift(User $user, float $initialAmount): CashShift
+    public static function openShift(User $user, float $initialAmount, ?string $notes = null): CashShift
     {
-        $shift = CashShift::openShift($user, $initialAmount);
+        return DB::transaction(function () use ($user, $initialAmount, $notes): CashShift {
+            $shift = CashShift::openShift($user, $initialAmount);
 
-        CashMovement::create([
-            'tenant_id' => $shift->tenant_id,
-            'shift_id' => $shift->id,
-            'type' => 'income',
-            'payment_method' => 'cash',
-            'amount' => $initialAmount,
-            'description' => 'Apertura de turno de caja',
-            'created_by' => $user->id,
-        ]);
+            if (filled($notes)) {
+                $shift->update(['notes' => $notes]);
+            }
 
-        return $shift;
+            CashMovement::create([
+                'tenant_id' => $shift->tenant_id,
+                'shift_id' => $shift->id,
+                'type' => 'income',
+                'payment_method' => 'cash',
+                'amount' => $initialAmount,
+                'description' => 'Apertura de turno de caja',
+                'created_by' => $user->id,
+            ]);
+
+            return $shift;
+        });
     }
 
     public static function closeShift(User $user, float $actualCash, string $notes = ''): CashShift

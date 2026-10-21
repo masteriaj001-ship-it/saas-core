@@ -93,6 +93,16 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "policy": {
+            "advisories": {
+                "block": true,
+                "audit": "fail"
+            },
+            "abandoned": {
+                "block": false,
+                "audit": "report"
+            }
         }
     },
     "minimum-stability": "stable",

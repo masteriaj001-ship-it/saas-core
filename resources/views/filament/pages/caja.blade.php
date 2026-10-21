@@ -38,6 +38,13 @@
                     <input type="number" wire:model="initialAmount" min="0" step="100" required class="w-full rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-blue-700 dark:bg-gray-700 dark:text-white" placeholder="0" />
                 </div>
 
+                @if(auth()->user()?->hasRole(['admin', 'owner']))
+                    <div>
+                        <label class="mb-1 block text-sm font-medium text-blue-800 dark:text-blue-200">{{ __('Notas') }}</label>
+                        <textarea wire:model="openNotes" rows="2" class="w-full rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm text-gray-900 shadow-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-blue-700 dark:bg-gray-700 dark:text-white" placeholder="{{ __('Observaciones de apertura...') }}"></textarea>
+                    </div>
+                @endif
+
                 <div class="flex justify-end">
                     <button type="submit" class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-900">
                         <x-filament::icon :icon="\Filament\Support\Icons\Heroicon::OutlinedPlus" class="h-4 w-4" />

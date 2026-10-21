@@ -30,9 +30,11 @@ class WorkOrderClosureService
         WorkOrderStatusEnum::WaitingClient->value => [
             WorkOrderStatusEnum::Completed,
             WorkOrderStatusEnum::NoPickup,
+            WorkOrderStatusEnum::Breach,
         ],
         WorkOrderStatusEnum::NoPickup->value => [
             WorkOrderStatusEnum::Completed,
+            WorkOrderStatusEnum::Breach,
         ],
     ];
 
@@ -69,6 +71,17 @@ class WorkOrderClosureService
 
             if ($to === WorkOrderStatusEnum::WorkDone) {
                 $updates['actual_completed_at'] = now();
+            }
+
+            if (in_array($to, [WorkOrderStatusEnum::WaitingClient, WorkOrderStatusEnum::NoPickup], true)) {
+                $settings = $workOrder->settings ?? [];
+                $settings['closure_window_started_at'] = now()->toIso8601String();
+
+                if ($to === WorkOrderStatusEnum::NoPickup) {
+                    unset($settings['pickup_alert_sent_at']);
+                }
+
+                $updates['settings'] = $settings;
             }
 
             $workOrder->update($updates);
