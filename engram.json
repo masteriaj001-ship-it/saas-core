@@ -1,7 +1,7 @@
 {
   "project": "ProyectDashboard - SaaS Multitenant (Operaciones tipo Taller)",
   "version": "1.1.92",
-  "last_updated": "2026-10-14",
+  "last_updated": "2026-10-21",
   "vertical": "operaciones",
   "status": "active_development",
   "deployment": {
@@ -583,6 +583,7 @@
   ],
   "security_status": {
     "mfa_superadmin": "implemented",
+    "php2shell_cve_2026_109618_109619": "2026-10-21 — 'PHP2Shell': CVE-2026-109618 (RCE via OOM corruption) y CVE-2026-109619 (RCE via stale global state), CVSS 9.2, RCE sin autenticación, exploit público (CERT-EU 2026-018). Parche oficial: PHP 8.5.12 / 8.4.27 / 8.3.36 / 8.2.35. Mitigación aplicada: runtime parcheado a 8.5.12 (prod: Dockerfile pin php:8.5.12-fpm-alpine; dev: rebuild Sail; CI: php-version 8.4.27) + docker/php-security.ini (fatal_error_backtraces=0, session.upload_progress.enabled=0, post_max_size=20M, upload_max_filesize=20M, max_input_nesting_level=16; memory_limit=-1 mantido como mitigación principal de PHP). Pendiente John: rotar APP_KEY y credenciales (supply chain con credential-stealer) + revisar logs de Render desde 2026-10-21.",
     "rls_enabled": "verified_5of5_fixed",
     "rls_audit_date": "2026-06-17",
     "rls_gaps": [],

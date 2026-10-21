@@ -1,4 +1,4 @@
-FROM php:8.5-fpm-alpine AS base
+FROM php:8.5.12-fpm-alpine AS base
 RUN apk add --no-cache \
         nginx \
         postgresql-client \
@@ -70,6 +70,7 @@ RUN mkdir -p \
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint
 COPY docker/nginx-default.conf /etc/nginx/http.d/default.conf
 COPY docker/opcache.ini /usr/local/etc/php/conf.d/opcache.ini
+COPY docker/php-security.ini /usr/local/etc/php/conf.d/zz-security.ini
 RUN chmod +x /usr/local/bin/entrypoint
 
 EXPOSE 80
