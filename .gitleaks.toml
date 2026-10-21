@@ -1,0 +1,11 @@
+title = "saas-core gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Ejemplos de credenciales en documentacion (no son secretos reales)"
+paths = [
+  '''(^|/)rules/config\.md$''',
+  '''(^|/)docs/architecture/BILLING\.md$''',
+]

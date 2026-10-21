@@ -93,6 +93,33 @@
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
+        },
+        "policy": {
+            "advisories": {
+                "block": true,
+                "audit": "fail",
+                "ignore-id": {
+                    "dompdf/dompdf": "Baseline 6 advisories pendientes de upgrade del paquete.",
+                    "filament/filament": "Baseline 4 advisories pendientes de upgrade del paquete.",
+                    "guzzlehttp/guzzle": "Baseline 9 advisories pendientes de upgrade del paquete.",
+                    "guzzlehttp/psr7": "Baseline 4 advisories pendientes de upgrade del paquete.",
+                    "laravel/framework": "Baseline 2 advisories pendientes de upgrade del paquete.",
+                    "league/commonmark": "Baseline 12 advisories pendientes de upgrade del paquete.",
+                    "league/flysystem": "Baseline 1 advisories pendientes de upgrade del paquete.",
+                    "livewire/livewire": "Baseline 1 advisories pendientes de upgrade del paquete.",
+                    "mtdowling/jmespath.php": "Baseline 1 advisories pendientes de upgrade del paquete.",
+                    "symfony/html-sanitizer": "Baseline 2 advisories pendientes de upgrade del paquete.",
+                    "symfony/http-foundation": "Baseline 2 advisories pendientes de upgrade del paquete.",
+                    "symfony/polyfill-intl-idn": "Baseline 1 advisories pendientes de upgrade del paquete.",
+                    "symfony/routing": "Baseline 1 advisories pendientes de upgrade del paquete.",
+                    "symfony/yaml": "Baseline 1 advisories pendientes de upgrade del paquete.",
+                    "ueberdosis/tiptap-php": "Baseline 1 advisories pendientes de upgrade del paquete."
+                }
+            },
+            "abandoned": {
+                "block": false,
+                "audit": "report"
+            }
         }
     },
     "minimum-stability": "stable",

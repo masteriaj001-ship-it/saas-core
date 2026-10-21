@@ -70,6 +70,16 @@ jobs:
             ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO app_user;
           "
 
+      - name: Composer audit (advisories)
+        run: composer audit --locked --no-interaction --no-ansi
+
+      - name: Secret scan (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_UPLOAD_ARTIFACT: "false"
+          GITLEAKS_CONFIG: .gitleaks.toml
+
       - name: Run Pint
         run: vendor/bin/pint --test
 
