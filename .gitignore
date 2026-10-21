@@ -31,3 +31,6 @@ Thumbs.db
 # agent pipeline
 /artifacts/
 /feature-request.md
+
+# Worktrees locales de git (aislamiento)
+.worktrees/
