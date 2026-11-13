@@ -3,6 +3,11 @@ ProyectDashboard · Jaosoft Engineering Standards v1.0
 
 Visión General
 Todo feature en ProyectDashboard pasa por 5 fases obligatorias antes de considerarse completo. No existe el "lo implementé directamente" sin análisis previo.
+
+Las fases son una guía para features sustanciales; el proceso se escala
+según riesgo y alcance. Las aprobaciones de esquema, migraciones, seguridad
+y RLS siguen siendo obligatorias según `AGENTS.md`.
+
 FASE 1: Análisis y Diseño
          │
          ▼

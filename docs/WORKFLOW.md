@@ -7,6 +7,10 @@
 
 ## 1. El ciclo de un feature (SDD)
 
+Este recorrido aplica a features que requieran ese nivel de diseño. Para
+cambios pequeños, seguir la tarea y los guardrails vigentes en `AGENTS.md`;
+registrar al cierre la evidencia y los límites en la spec/handoff local.
+
 GATE 0 — /enrich_us
 
 TÚ: "Quiero un módulo de órdenes de trabajo"
