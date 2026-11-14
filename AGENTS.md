@@ -452,7 +452,7 @@ Prohibido → Canónico:
 Prohibido: Prisma, stancl/tenancy, spatie/laravel-multitenancy
 Cualquier paquete nuevo requiere aprobación explícita de John antes de instalarse.
 
-### Ciclo SDD — ProyectDashboard
+### Gating y ciclo de desarrollo — ProyectDashboard
 
 GATE 0: /enrich_us
   └─ FEATURE_SPEC.md → John escribe APROBADO
@@ -464,12 +464,16 @@ GATE 2: Schema
   └─ Borrador SQL → John escribe APROBADO → generar migración
   └─ John escribe APROBADO → ejecutar migrate
 
-Ciclo de desarrollo (en este orden estricto):
-  1. Test     → escribir tests que fallan primero (TDD)
-  2. Docs     → actualizar docs afectadas
-  3. Code     → implementar hasta que los tests pasen
-  4. Report   → suite completa en verde + reporte de cobertura
-  5. Update   → FEATURE_SPEC actualizado con desviaciones del plan
+Para toda solicitud aplica ODD: explora el repo, clasifica por entendimiento/riesgo/retomabilidad y usa el spec/cola existente cuando el trabajo sea sustancial. No crees otra fuente de tareas.
+
+Ciclo de cada corte de comportamiento (TDD cuando aplica):
+  1. Aceptación → concretar comportamiento esperado y casos negativos pertinentes
+  2. Test       → escribir/ajustar prueba determinista que falle por la razón esperada
+  3. Code       → implementar el mínimo para satisfacerla; refactorizar con pruebas verdes
+  4. Docs       → actualizar documentos/FEATURE_SPEC afectados junto con el corte
+  5. Report     → registrar verificaciones reales, desviaciones y pendientes en el spec/handoff
+
+Para un cambio sin comportamiento ejecutable, registra una verificación alternativa y su motivo. La exigencia de pruebas RLS y las reglas específicas del repo permanecen vigentes.
 
 GATE 3: /commit
   └─ 0 tests rojos → merge permitido
@@ -527,32 +531,32 @@ Archivos de configuración (`bootstrap/providers.php`, `config/*.php`, `bootstra
 4. Solo preguntar por documentación si John lo pide explícitamente.
 
 ### Política de documentación
-- No crear FEATURE_SPEC ni docs por cambios pequeños (< 3 archivos, sin nueva tabla).
-- John pide "documenta" explícitamente para crear/actualizar docs.
-- El resumen de progreso (conversación) se mantiene siempre actualizado.
+- Para trabajo pequeño, entendido y retomable desde la solicitud + diff, no crear FEATURE_SPEC de rutina; el número de archivos o tablas no determina por sí solo el tamaño.
+- Crear/actualizar documentación cuando el cambio afecte contratos, arquitectura, seguridad, operación o decisiones que deban sobrevivir a la sesión, y cuando el usuario lo solicite.
+- El handoff/spec del repo conserva el estado de tareas. La conversación es un canal de coordinación, no fuente canónica.
 
 ### Manejo de errores
 - Si un plan falla, el agente: 1) diagnóstica mostrando código, 2) presenta nuevo plan, 3) espera OK.
 - No apilar parches sobre parches sin diagnóstico.
 
 ### Project State
-- `engram.json` — canonical source of truth for agents
+- `engram.json` — snapshot canónico del estado general del proyecto para contexto de agentes; no reemplaza `specs/QUEUE.md`, `specs/HANDOFF.md` ni el spec aprobado como fuente de tareas.
 - `PROJECT_STATE.md` — generated from `engram.json`, human-readable
 - Regenerate: `vendor/bin/sail artisan jaosoft:project-state`
-- Update `engram.json` after each feature completion
+- Actualizar el snapshot al cerrar una feature cuando cambie el estado general reflejado allí.
 
 ## RLS Awareness & Security Gaps
 
-> Última auditoría: 2026-06-17
-> Estado: GAPS DOCUMENTADOS, fixes pendientes de aprobación de John
+> Estado de auditoría: verificar evidencia actual antes de tratar estos hallazgos como diagnóstico vigente.
+> Los fixes de RLS y migraciones requieren que John escriba literalmente APROBADO; se mantienen los gates de este archivo.
 
 ### Contexto crítico
 
 El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_tenant_id()` que lee `app.current_tenant_id` del contexto de sesión.
 
-**PROBLEMA CONFIRMADO:** El usuario de base de datos `sail` (desarrollo) tiene `BYPASSRLS = true`. Esto significa que RLS está habilitada en tablas pero **ignorada completamente** por la conexión actual.
+**Limitación de pruebas:** una conexión con privilegios que omiten RLS no demuestra que RLS esté aplicándose.
 
-**CONSECUENCIA:** Los tests que pasan no están probando RLS real. Solo prueban el global scope de Eloquent (`BelongsToTenant`).
+**Consecuencia:** separar pruebas de lógica de aplicación de pruebas de RLS; para estas últimas usar una conexión sin bypass, según la regla 7.
 
 ### Reglas para código nuevo
 
@@ -571,14 +575,14 @@ El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_ten
 
 6. **Antes de sobrescribir modelo existente**, ejecutar `git log --oneline app/Models/<Nombre>.php`. Si hay commits previos, hacer diff contra el original para no perder traits ni relaciones.
 
-7. **RLS testing requiere conexión dual.** `pgsql` (sail/BYPASSRLS=true) para lógica de aplicación. `pgsql-rls` (app_user/NOBYPASSRLS) para seguridad RLS. Nunca confiar en tests RLS sobre la conexión default.
+7. **RLS testing requiere conexión dual.** Usa la conexión de aplicación para lógica de aplicación y una conexión sin bypass para seguridad RLS. Nunca confíes en tests RLS sobre la conexión default.
 
    ```php
-   // MAL — esto NO prueba RLS (usa sail/BYPASSRLS, pasa aunque RLS esté roto)
+   // MAL — asertar sobre la conexión de aplicación no prueba RLS
    $this->assertDatabaseMissing('tenant_modules', [...]);
 
-   // BIEN — esto SÍ prueba RLS (usa app_user/NOBYPASSRLS)
-   $rows = DB::connection('pgsql-rls')->select(...);
+   // BIEN — consultar con la conexión sin bypass y asertar cero filas
+   $rows = $connectionWithoutBypass->select(...);
    $this->assertCount(0, $rows);
    ```
 
@@ -592,7 +596,7 @@ El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_ten
 
 12. **`SECURITY DEFINER` no bypasea `FORCE ROW LEVEL SECURITY`.** La policy aplica incluso al dueño de la tabla. No intentes crear funciones SQL "privileged" para leer tablas con FORCE — arregla la policy o setea contexto. Ver GAP-006.
 
-13. **Flujos pre-contexto (registro, setup inicial):** setea `app.current_tenant_id` con el UUID generado ANTES del primer INSERT que pueda tocar tablas con RLS (incluye activity log vía trait `Auditable`). Ver GAP-007 y `RegisterService`.
+13. **Flujos pre-contexto:** establece el contexto del tenant antes de cualquier inserción sujeta a RLS, incluido el registro de actividad.
 
 ### Gaps documentados (no fixeados)
 
@@ -601,11 +605,23 @@ El proyecto usa PostgreSQL RLS (Row Level Security) con la función `current_ten
 | GAP-001 | Usuario sail tiene BYPASSRLS = true | ✅ app_user creado con NOBYPASSRLS (2026-06-17) |
 | GAP-002 | Superadmin no establece app.current_tenant_id | ✅ SetTenantContext resuelve tenant para superadmin (2026-06-17) |
 | GAP-003 | Jobs no establecen contexto de tenant | ✅ BelongsToTenantJob trait + middleware (2026-06-17) |
-| GAP-004 | Tests no ejercitan RLS real | ✅ TenantManager sincroniza pgsql-rls (2026-06-17) |
+| GAP-004 | Tests no ejercitan RLS real | ✅ Pruebas RLS sincronizadas con la conexión sin bypass |
 | GAP-005 | current_tenant_id() sin fallback | ✅ current_tenant_id_or_null() creada (2026-06-17) |
-| GAP-006 | Policy users_select evaluaba OR en orden no garantizado (500 en registro/prod) | ✅ CASE en policy + UsersSelectRlsTest (2026-09-30) |
-| GAP-007 | Activity log se insertaba antes de setTenantContext en registro | ✅ Contexto pre-seteado en RegisterService + RegistrationRlsTest (2026-10-01) |
+| GAP-006 | Caso límite en la evaluación de una policy RLS | ✅ Corregido; conservar prueba de regresión |
+| GAP-007 | Orden del contexto del tenant en un flujo pre-contexto | ✅ Corregido; conservar prueba de regresión |
 
 ### Referencia
 
 Archivo completo de auditoría: `docs/security/SECURITY_GAPS.md` (5/5 gaps fixeados 2026-06-17).
+
+### Coordinación Codex ↔ OpenCode mediante specs
+
+Para decisiones transversales de cartera, roles de agentes y política de entornos, consulta el hub de coordinación del workspace. El modelo transversal es ODD + FDD ligero + TDD + SDD selectivo según el hub. El hub complementa estas reglas: `specs/` sigue siendo la fuente canónica local de tareas de saas-core, no se versiona en este repo, y este `AGENTS.md` conserva la autoridad técnica local.
+
+- Antes de iniciar o retomar trabajo, lee `specs/README.md`, `specs/QUEUE.md` y `specs/HANDOFF.md`; luego abre el spec de la tarea seleccionada.
+- No pidas al usuario que copie prompts entre agentes. Las tareas se registran en specs/ (local, excluido de Git; el respaldo vive fuera del repo). No versionar specs/ en este repo público.
+- Trabaja únicamente en una tarea marcada `ready` (solo lectura/diagnóstico), `approved` (cambios de código explícitamente aprobados en el spec) o `in_progress` que el handoff indique que quedó sin agente activo y puede retomarse. Nunca retomes una tarea `in_progress` si otro agente puede estar editando el mismo checkout. Si no existe una tarea elegible, no inventes trabajo: informa el bloqueo en `specs/HANDOFF.md`.
+- El estado `approved` es la aprobación para los cambios de código descritos en ese spec. No autoriza despliegues, rotación o exposición de credenciales, cambios destructivos de datos, gastos, ni acciones externas; requieren autorización explícita para esa acción. `artisan migrate` continúa sujeto a la regla de aprobación literal de este archivo.
+- Antes de editar, revisa `git status` y el diff para preservar trabajo previo. No edites archivos que no estén en el alcance del spec.
+- Al terminar o bloquearte, actualiza `specs/HANDOFF.md` y `specs/QUEUE.md` con evidencia concisa: archivos/diff relevante, comandos realmente ejecutados, resultados, pendientes y siguiente paso. No afirmes que pruebas, accesos o despliegues fueron verificados sin evidencia.
+- No guardes secretos, tokens, `.env`, datos personales ni logs crudos de producción en specs. Conserva solo hallazgos mínimos y redactados.
