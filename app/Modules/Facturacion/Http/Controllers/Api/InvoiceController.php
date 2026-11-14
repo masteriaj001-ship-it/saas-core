@@ -25,7 +25,10 @@ class InvoiceController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $tenantId = $this->currentTenantId();
+
         $invoices = Invoice::query()
+            ->where('tenant_id', $tenantId)
             ->when($request->status, fn ($q, $v) => $q->where('status', $v))
             ->when($request->document_type, fn ($q, $v) => $q->where('document_type', $v))
             ->when($request->from, fn ($q, $v) => $q->whereDate('created_at', '>=', $v))
@@ -39,7 +42,7 @@ class InvoiceController extends Controller
 
     public function store(StoreInvoiceRequest $request): JsonResponse
     {
-        $tenantId = $this->tenantManager->getCurrentTenantId();
+        $tenantId = $this->currentTenantId();
         $tenant = Tenant::findOrFail($tenantId);
         $documentType = $tenant->documentTypeForRegimen();
 
@@ -50,6 +53,8 @@ class InvoiceController extends Controller
 
     public function show(Invoice $invoice): JsonResponse
     {
+        $this->ensureTenantOwnership($invoice);
+
         $invoice->load(['items', 'contact']);
 
         return new InvoiceResource($invoice)->response();
@@ -57,6 +62,8 @@ class InvoiceController extends Controller
 
     public function update(UpdateInvoiceRequest $request, Invoice $invoice): JsonResponse
     {
+        $this->ensureTenantOwnership($invoice);
+
         if ($request->has('notes')) {
             $invoice->update(['notes' => $request->notes]);
         }
@@ -87,6 +94,8 @@ class InvoiceController extends Controller
 
     public function cancel(CancelInvoiceRequest $request, Invoice $invoice): JsonResponse
     {
+        $this->ensureTenantOwnership($invoice);
+
         $invoice->update([
             'status' => 'cancelled',
             'notes' => trim(($invoice->notes ?? '')."\nCancelación: ".$request->reason),
@@ -95,5 +104,27 @@ class InvoiceController extends Controller
         $invoice->load(['items', 'contact']);
 
         return new InvoiceResource($invoice)->response();
+    }
+
+    /**
+     * Tenant efectivo de la petición, resuelto por SetRequestTenantContext.
+     */
+    private function currentTenantId(): string
+    {
+        $tenantId = $this->tenantManager->getCurrentTenantId();
+
+        if ($tenantId === null) {
+            abort(403, 'Tenant context is not available.');
+        }
+
+        return $tenantId;
+    }
+
+    /**
+     * Defensa en profundidad: el recurso debe pertenecer al tenant de la petición.
+     */
+    private function ensureTenantOwnership(Invoice $invoice): void
+    {
+        abort_unless($invoice->tenant_id === $this->currentTenantId(), 404);
     }
 }

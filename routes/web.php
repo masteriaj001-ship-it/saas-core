@@ -30,15 +30,15 @@ Route::middleware('guest')->group(function () {
     Route::post('/reset-password', [ResetPasswordController::class, 'reset'])->name('password.update');
 });
 
-Route::middleware('auth')
+Route::middleware(['auth', 'tenant.request'])
     ->get('/invoices/{invoice}/pdf', InvoicePdfController::class)
     ->name('invoices.pdf');
 
-Route::middleware('auth')
+Route::middleware(['auth', 'tenant.request'])
     ->get('/invoices/{invoice}/ticket', InvoiceTicketController::class)
     ->name('invoices.ticket');
 
-Route::middleware('auth')
+Route::middleware(['auth', 'tenant.request'])
     ->post('/pos/print', PosPrintController::class)
     ->name('pos.print');
 

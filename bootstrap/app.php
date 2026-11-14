@@ -1,9 +1,11 @@
 <?php
 
 use App\Http\Middleware\EnsureModuleAccess;
+use App\Http\Middleware\SetRequestTenantContext;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -23,7 +25,13 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'module' => EnsureModuleAccess::class,
+            'tenant.request' => SetRequestTenantContext::class,
         ]);
+
+        $middleware->prependToPriorityList(
+            SubstituteBindings::class,
+            SetRequestTenantContext::class,
+        );
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

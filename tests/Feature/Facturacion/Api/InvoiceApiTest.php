@@ -7,7 +7,6 @@ namespace Tests\Feature\Facturacion\Api;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Modules\Facturacion\Models\Invoice;
-use App\Services\TenantManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -40,8 +39,7 @@ class InvoiceApiTest extends TestCase
 
     public function test_create_invoice_as_declarante(): void
     {
-        $this->actingAs($this->userDeclarante);
-        app(TenantManager::class)->setTenantContext($this->tenantDeclarante->id);
+        $this->authenticateAs($this->userDeclarante);
 
         $response = $this->postJson('/api/v1/invoices', [
             'contact_name' => 'Cliente Test',
@@ -64,8 +62,7 @@ class InvoiceApiTest extends TestCase
 
     public function test_create_pos_as_no_declarante(): void
     {
-        $this->actingAs($this->userNoDeclarante);
-        app(TenantManager::class)->setTenantContext($this->tenantNoDeclarante->id);
+        $this->authenticateAs($this->userNoDeclarante);
 
         $response = $this->postJson('/api/v1/invoices', [
             'contact_name' => 'Cliente POS',
@@ -83,8 +80,7 @@ class InvoiceApiTest extends TestCase
 
     public function test_list_invoices_paginated(): void
     {
-        $this->actingAs($this->userDeclarante);
-        app(TenantManager::class)->setTenantContext($this->tenantDeclarante->id);
+        $this->authenticateAs($this->userDeclarante);
 
         Invoice::factory()->count(3)->create([
             'tenant_id' => $this->tenantDeclarante->id,
@@ -105,8 +101,7 @@ class InvoiceApiTest extends TestCase
 
     public function test_get_single_invoice(): void
     {
-        $this->actingAs($this->userDeclarante);
-        app(TenantManager::class)->setTenantContext($this->tenantDeclarante->id);
+        $this->authenticateAs($this->userDeclarante);
 
         $invoice = Invoice::factory()->create([
             'tenant_id' => $this->tenantDeclarante->id,
@@ -123,8 +118,7 @@ class InvoiceApiTest extends TestCase
 
     public function test_cancel_issued_invoice(): void
     {
-        $this->actingAs($this->userDeclarante);
-        app(TenantManager::class)->setTenantContext($this->tenantDeclarante->id);
+        $this->authenticateAs($this->userDeclarante);
 
         $invoice = Invoice::factory()->create([
             'tenant_id' => $this->tenantDeclarante->id,
@@ -142,8 +136,7 @@ class InvoiceApiTest extends TestCase
 
     public function test_cannot_cancel_draft_invoice(): void
     {
-        $this->actingAs($this->userDeclarante);
-        app(TenantManager::class)->setTenantContext($this->tenantDeclarante->id);
+        $this->authenticateAs($this->userDeclarante);
 
         $invoice = Invoice::factory()->create([
             'tenant_id' => $this->tenantDeclarante->id,
@@ -156,5 +149,16 @@ class InvoiceApiTest extends TestCase
         ]);
 
         $response->assertStatus(422);
+    }
+
+    /**
+     * Autentica con un token Sanctum real. El contexto de tenant lo establece
+     * la propia ruta (SetRequestTenantContext); el test no lo preconfigura.
+     */
+    private function authenticateAs(User $user): void
+    {
+        $token = $user->createToken('invoice-api-test')->plainTextToken;
+
+        $this->withHeader('Authorization', 'Bearer '.$token);
     }
 }

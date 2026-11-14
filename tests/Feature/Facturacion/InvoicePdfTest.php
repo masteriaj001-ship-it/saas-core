@@ -56,7 +56,7 @@ class InvoicePdfTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_pdf_route_returns_403_for_other_tenant(): void
+    public function test_pdf_route_returns_404_for_other_tenant(): void
     {
         $tenantB = Tenant::factory()->create();
         $userB = User::factory()->for($tenantB)->create();
@@ -65,7 +65,9 @@ class InvoicePdfTest extends TestCase
 
         $response = $this->get(route('invoices.pdf', $this->invoice));
 
-        $response->assertStatus(403);
+        // Contrato SEC-004: cross-tenant responde 404 para no revelar existencia.
+        // Ver specs/work-items/SEC-004-tenant-url-isolation.md línea 340.
+        $response->assertStatus(404);
     }
 
     public function test_pdf_response_is_pdf_content_type(): void

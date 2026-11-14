@@ -63,7 +63,7 @@ class PosPrintTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_print_endpoint_returns_403_for_other_tenant(): void
+    public function test_print_endpoint_returns_404_for_other_tenant(): void
     {
         $tenantB = Tenant::factory()->create();
         $userB = User::factory()->for($tenantB)->create();
@@ -74,7 +74,9 @@ class PosPrintTest extends TestCase
             'invoice_id' => $this->invoice->id,
         ]);
 
-        $response->assertStatus(403);
+        // Contrato SEC-004: cross-tenant responde 404 para no revelar existencia.
+        // Ver specs/work-items/SEC-004-tenant-url-isolation.md línea 340.
+        $response->assertStatus(404);
     }
 
     public function test_print_endpoint_returns_404_for_missing_invoice(): void

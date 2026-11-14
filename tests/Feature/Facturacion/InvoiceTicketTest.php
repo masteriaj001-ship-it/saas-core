@@ -78,7 +78,7 @@ class InvoiceTicketTest extends TestCase
         $response->assertSee('window.print()');
     }
 
-    public function test_ticket_route_returns_403_for_other_tenant(): void
+    public function test_ticket_route_returns_404_for_other_tenant(): void
     {
         $tenantB = Tenant::factory()->create();
         $userB = User::factory()->for($tenantB)->create();
@@ -87,6 +87,8 @@ class InvoiceTicketTest extends TestCase
 
         $response = $this->get(route('invoices.ticket', $this->invoice));
 
-        $response->assertStatus(403);
+        // Contrato SEC-004: cross-tenant responde 404 para no revelar existencia.
+        // Ver specs/work-items/SEC-004-tenant-url-isolation.md línea 340.
+        $response->assertStatus(404);
     }
 }
