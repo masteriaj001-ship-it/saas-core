@@ -56,6 +56,13 @@ final class InvoiceApiRlsTest extends TestCase
             $this->tenantManager->clearTenantContext();
         }
 
+        // DatabaseTruncation only truncates before each test, never after it.
+        // This test commits rows through the default connection so the
+        // pgsql-rls session can observe them (SEC-005 C2). Those committed
+        // rows survive the refresh of the remaining suites, which only
+        // migrate once per process, and collide on unique indexes.
+        $this->truncateTablesForAllConnections();
+
         parent::tearDown();
     }
 
